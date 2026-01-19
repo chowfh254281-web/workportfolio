@@ -1,65 +1,113 @@
+"use client";
+
 import Image from "next/image";
+import { motion } from "framer-motion";
+
+// 作品資料
+const projects = [
+  { id: 1, title: "Portrait", img: "/p1.jpg", tag: "People" },
+  { id: 2, title: "Landscape", img: "/p2.jpg", tag: "Nature" },
+  { id: 3, title: "Architecture", img: "/p3.jpg", tag: "Urban" },
+  { id: 4, title: "Animals", img: "/p4.jpg", tag: "Wild" },
+];
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="min-h-screen font-sans overflow-x-hidden bg-[#050505] text-white selection:bg-white selection:text-black">
+      
+      {/* --- HERO SECTION --- */}
+      <section className="flex flex-col md:flex-row h-screen items-center justify-center p-8 md:p-20">
+        
+        {/* 左邊：個人照片 */}
+        <div className="w-full md:w-1/2 flex justify-center items-center h-1/2 md:h-full order-2 md:order-1">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8 }}
+            className="relative w-64 h-80 md:w-96 md:h-[500px] overflow-hidden rounded-lg grayscale hover:grayscale-0 transition-all duration-700 ease-in-out border border-gray-800"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            {/* 這裡是指向 /me.jpg，請確保 public 資料夾有這張圖 */}
+            <Image 
+              src="/me.jpg" 
+              alt="Sam Chow Portrait" 
+              fill 
+              className="object-cover"
+              priority
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </motion.div>
         </div>
-      </main>
-    </div>
+
+        {/* 右邊：文字 */}
+        <div className="w-full md:w-1/2 flex flex-col justify-center h-1/2 md:h-full space-y-6 order-1 md:order-2 z-10">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-5xl md:text-8xl font-bold tracking-tighter"
+          >
+            SAM CHOW.
+          </motion.h1>
+          
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-gray-400 max-w-md text-sm md:text-base leading-relaxed"
+          >
+            Based in Hong Kong. <br/>
+            Capturing the silence in the noise.
+          </motion.p>
+        </div>
+      </section>
+
+      {/* --- INFINITE MARQUEE SECTION (無限輪迴) --- */}
+      <section className="py-20 overflow-hidden">
+         <div className="pl-8 md:pl-20 mb-8">
+            <motion.h2 
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                className="text-sm font-bold tracking-widest text-gray-500 uppercase"
+            >
+              Selected Works (Hover to Pause)
+            </motion.h2>
+         </div>
+        
+        {/* 這裡會用到 animate-marquee，如果 tailwind.config 設定正確就會郁 */}
+        <div className="relative flex w-full overflow-hidden group">
+            {/* 第一組 */}
+            <div className="flex space-x-6 animate-marquee whitespace-nowrap py-4 group-hover:[animation-play-state:paused]">
+                {projects.map((item) => (
+                    <CollectionCard key={item.id} title={item.title} img={item.img} tag={item.tag} />
+                ))}
+            </div>
+            {/* 第二組 (Duplicate) */}
+            <div className="absolute top-0 flex space-x-6 animate-marquee2 whitespace-nowrap py-4 group-hover:[animation-play-state:paused]">
+                {projects.map((item) => (
+                    <CollectionCard key={`dup-${item.id}`} title={item.title} img={item.img} tag={item.tag} />
+                ))}
+            </div>
+        </div>
+      </section>
+    </main>
   );
+}
+
+// 卡片組件
+function CollectionCard({ title, img, tag }: { title: string, img: string, tag: string }) {
+  return (
+    <div className="relative w-[300px] h-[400px] md:w-[400px] md:h-[500px] mx-4 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer bg-gray-900 border border-gray-800">
+       <Image 
+          src={img} 
+          alt={title} 
+          fill 
+          className="object-cover opacity-80 hover:opacity-100 transition-opacity duration-500"
+       />
+       <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent" />
+       
+       <div className="absolute bottom-0 left-0 p-6 w-full">
+         <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{tag}</p>
+         <h3 className="text-3xl font-bold text-white">{title}</h3>
+       </div>
+    </div>
+  )
 }
