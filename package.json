@@ -275,6 +275,11 @@
     "zod": "^4.1.13",
     "zod-validation-error": "^4.0.2"
   },
+  "devDependencies": {
+    "@types/node": "20.11.0",
+    "@types/react": "18.2.0",
+    "@types/react-dom": "18.2.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
