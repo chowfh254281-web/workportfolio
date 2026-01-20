@@ -20,6 +20,9 @@ declare global {
 }
 
 export default function ThreeDPage() {
+  // 1. 新增 Loading 狀態 (Preloader)
+  const [isLoading, setIsLoading] = useState(true);
+
   const trackRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const prodRef = useRef<HTMLDivElement>(null);
@@ -41,6 +44,12 @@ export default function ThreeDPage() {
 
   useEffect(() => {
     setIsMounted(true);
+
+    // 設定 Preloader Timer (0.5秒後淡出)
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+
     let lenis: any;
     let animationFrameId: number;
 
@@ -297,6 +306,7 @@ export default function ThreeDPage() {
     animate();
 
     return () => {
+        clearTimeout(timer); // Cleanup Timer
         if (lenis) lenis.destroy();
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         menuBtn?.removeEventListener('click', toggleMenu);
@@ -319,6 +329,10 @@ export default function ThreeDPage() {
         .lenis.lenis-stopped { overflow: hidden; }
         .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; mix-blend-mode: overlay; opacity: 0.06; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
         
+        /* Preloader */
+        .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; }
+        .preloader.hidden { opacity: 0; }
+
         /* NAVBAR */
         .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); height: 60px; padding: 0 30px; display: flex; justify-content: space-between; align-items: center; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: 30px; }
@@ -340,42 +354,35 @@ export default function ThreeDPage() {
         /* TRACK */
         .sequence-track { height: 1300vh; position: relative; z-index: 10; }
         .sticky-viewport { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        
         /* HEADER */
         .header-content { text-align: center; width: 100%; position: absolute; top: 10%; left:0; z-index: 5; pointer-events: none; transition: opacity 0.5s ease; }
         h1.page-title { font-size: 80px; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -2px; color: #fff; opacity: 1; }
         .page-desc { margin-top: 20px; font-size: 16px; color: #888; max-width: 600px; display: inline-block; opacity: 1; }
-
         /* VIDEO CARDS */
         .video-card { width: 100%; height: 100%; border-radius: 8px; overflow: hidden; position: relative; background: #111; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         video { width: 100%; height: 100%; object-fit: cover; }
         .video-caption { position: absolute; bottom: 20px; left: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: rgba(255,255,255,0.9); z-index: 2; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
         .video-number { position: absolute; bottom: 10px; left: 15px; font-size: 80px; font-weight: 100; line-height: 1; color: transparent; -webkit-text-stroke: 1px rgba(255, 255, 255, 0.7); z-index: 3; pointer-events: none; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
         .video-desc { position: absolute; top: 20px; left: 20px; font-size: 12px; font-weight: 700; letter-spacing: 2px; color: #fff; z-index: 3; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-
         /* HERO GALLERY */
         .cg-hero-section { position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); display: flex; justify-content: center; gap: 10px; width: 95vw; height: 50vh; z-index: 30; opacity: 1; }
         .hero-strip { flex: 1; height: 100%; transition: flex 0.4s cubic-bezier(0.22, 1, 0.36, 1); position: relative; }
         .hero-strip:hover { flex: 1.5; }
-
         /* PRODUCTION */
         .production-section { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px; z-index: 20; width: 100%; opacity: 0; }
         .section-title { font-size: 1.5vw; font-weight: 700; letter-spacing: 4px; color: #fff; text-transform: uppercase; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
         .production-group { display: flex; gap: 2vw; width: auto; }
         .prod-card-wrap { width: 25vw; aspect-ratio: 9/16; }
-
         /* MODELS */
         .layer-models { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; display: flex; justify-content: space-between; align-items: center; padding: 0 5%; opacity: 0; transition: opacity 0.8s ease; }
         .model-container { width: 25vw; height: 60vh; position: relative; pointer-events: auto; }
         .model-container:nth-child(1) { margin-top: 15vh; } .model-container:nth-child(2) { margin-top: -15vh; }
         model-viewer { width: 100%; height: 100%; --poster-color: transparent; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6)); }
-
         .layer-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; text-align: center; z-index: 10; pointer-events: none; opacity: 0; }
         .reveal-text { font-size: 5vw; font-weight: 800; line-height: 1.2; letter-spacing: -1px; color: #fff; }
         .word { display: inline-block; opacity: 0; transition: opacity 0.3s ease; white-space: pre-wrap; }
         .word.active { opacity: 1 !important; } .word.dim { opacity: 0.1 !important; }
         .headline-accent { font-family: 'Times New Roman', serif; font-style: italic; color: #F4D03F; }
-
         /* UNREAL ENGINE */
         .layer-ue { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 15; pointer-events: none; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .ue-header-group { text-align: center; margin-bottom: 4vh; }
@@ -391,7 +398,6 @@ export default function ThreeDPage() {
         .ue-col-right .ue-img-wrapper img { object-position: left center; }
         .ue-img-wrapper:hover img { transform: scale(1.05); }
         .ue-label { position: absolute; bottom: 20px; left: 20px; background: rgba(255,255,255,0.9); color: #000; padding: 6px 16px; border-radius: 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); pointer-events: auto; }
-
         /* LIVE SETUP */
         .layer-live { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 16; pointer-events: none; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .live-header-group { text-align: center; margin-bottom: 4vh; }
@@ -405,7 +411,6 @@ export default function ThreeDPage() {
         .live-img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
         .live-img-wrapper:hover img { transform: scale(1.05); }
         .live-label { position: absolute; bottom: 20px; left: 20px; background: rgba(255,255,255,0.9); color: #000; padding: 6px 16px; border-radius: 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); pointer-events: auto; }
-
         /* FRESH METAVERSE GARDEN */
         .layer-fresh { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 17; pointer-events: none; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
         .fresh-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; filter: brightness(0.5); }
@@ -416,7 +421,6 @@ export default function ThreeDPage() {
         .fresh-img-wrapper { width: 20vw; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.3s ease; }
         .fresh-img-wrapper:hover { transform: scale(1.05); }
         .fresh-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-
         /* CONTACT WIDGET */
         .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; }
         .contact-widget:hover, .contact-widget.expanded { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
@@ -426,7 +430,6 @@ export default function ThreeDPage() {
         .contact-link { color: #ccc; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; transition: color 0.3s; }
         .contact-link:hover { color: #fff; }
         .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #666; margin-right: 10px; width: 60px; font-weight: 700; }
-        
         /* SCROLL PROMPT UI */
         .scroll-prompt { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; pointer-events: none; transition: opacity 0.5s ease, transform 0.5s ease; opacity: 1; }
         .scroll-prompt.hide { opacity: 0; transform: translate(-50%, 20px); }
@@ -435,6 +438,9 @@ export default function ThreeDPage() {
         .scroll-line::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, transparent, #fff, transparent); transform: translateY(-100%); animation: scrollFlow 2s cubic-bezier(0.77, 0, 0.175, 1) infinite; }
         @keyframes scrollFlow { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
       `}</style>
+
+      {/* Preloader - 遮住閃爍畫面 */}
+      <div className={`preloader ${!isLoading ? 'hidden' : ''}`}></div>
 
       <div className="noise-overlay"></div>
       

@@ -6,7 +6,7 @@ export default function HomePage() {
   // 1. 定義狀態
   const [randomAiVideo, setRandomAiVideo] = useState<string | null>(null);
   const [activeYt, setActiveYt] = useState<string | null>(null); 
-  const [isLoading, setIsLoading] = useState(true); // <--- 新增 Loading 狀態
+  const [isLoading, setIsLoading] = useState(true); // Loading 狀態
 
   // 2. 初始化
   useEffect(() => {
@@ -17,10 +17,11 @@ export default function HomePage() {
     ];
     setRandomAiVideo(aiVideoSources[Math.floor(Math.random() * aiVideoSources.length)]);
 
-    // 設定 Preloader (0.5秒後淡出，遮住原本閃爍的畫面)
+    // 🔴 修改這裡：將時間從 500 改為 2000 (2秒)
+    // 這樣可以確保瀏覽器有足夠時間排版，不會閃爍
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 500);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -387,7 +388,7 @@ export default function HomePage() {
         .smart-nav.collapsed .nav-links { max-width: 0; opacity: 0; gap: 0; pointer-events: none; } 
         .smart-nav.collapsed .nav-logo { margin-right: 10px; } 
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
-        .smart-nav:hover, .smart-nav.force-expand { min-width: 650px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
+        .smart-nav:hover, .smart-nav.force-expand { min-width: 500px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
         .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; gap: 25px !important; pointer-events: auto !important; display: flex !important; } 
         .mobile-menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 1500; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 30px; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; } .mobile-menu-overlay.active { opacity: 1; pointer-events: auto; }
         .mobile-link { font-size: 30px; font-weight: 700; color: #888; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; transform: translateY(20px); opacity: 0; transition: all 0.4s ease; } .mobile-link:hover { color: #fff; } .mobile-menu-overlay.active .mobile-link { transform: translateY(0); opacity: 1; }
