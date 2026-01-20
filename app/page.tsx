@@ -3,17 +3,26 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 export default function HomePage() {
-  // 1. 定義所有狀態 (State) - 補回了 activeYt
+  // 1. 定義狀態
   const [randomAiVideo, setRandomAiVideo] = useState<string | null>(null);
   const [activeYt, setActiveYt] = useState<string | null>(null); 
+  const [isLoading, setIsLoading] = useState(true); // <--- 新增 Loading 狀態
 
-  // 2. 初始化隨機影片
+  // 2. 初始化
   useEffect(() => {
+    // 設定隨機影片
     const aiVideoSources = [
       "/images/AI_optimized/ai_1.mp4",
       "/images/AI_optimized/ai_2.mp4"
     ];
     setRandomAiVideo(aiVideoSources[Math.floor(Math.random() * aiVideoSources.length)]);
+
+    // 設定 Preloader (0.5秒後淡出，遮住原本閃爍的畫面)
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, []);
 
   // 3. 動畫與邏輯
@@ -332,7 +341,6 @@ export default function HomePage() {
     });
   }
 
-  // Data for Gallery
   const portfolioData: any = {
     'uiux': { type: 'static', src: "/images/index_uiux.png" },
     'graphic': { type: 'static', src: "/images/index_graphic.png" },
@@ -362,6 +370,11 @@ export default function HomePage() {
         .lenis.lenis-smooth { scroll-behavior: auto !important; }
         .lenis.lenis-stopped { overflow: hidden; }
         .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; mix-blend-mode: overlay; opacity: 0.06; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
+        
+        /* Preloader */
+        .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; }
+        .preloader.hidden { opacity: 0; }
+
         /* NAVBAR */
         .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); height: 60px; padding: 0 30px; display: flex; justify-content: space-between; align-items: center; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: 30px; }
@@ -450,7 +463,8 @@ export default function HomePage() {
         .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #666; margin-right: 10px; width: 60px; font-weight: 700; }
       `}</style>
 
-      <div className="noise-overlay"></div>
+      {/* Preloader - 遮住閃爍的畫面 */}
+      <div className={`preloader ${!isLoading ? 'hidden' : ''}`}></div>
 
       <nav className="smart-nav" id="navbar">
         <Link href="/" className="nav-logo">SAM CHOW.</Link>

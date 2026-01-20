@@ -1,8 +1,11 @@
 'use client';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
 export default function GraphicPage() {
+  // 1. 新增 Loading 狀態 (Preloader)
+  const [isLoading, setIsLoading] = useState(true);
+
   // Refs for rows
   const row1Ref = useRef<HTMLDivElement>(null);
   const row2Ref = useRef<HTMLDivElement>(null);
@@ -11,6 +14,11 @@ export default function GraphicPage() {
   const row5Ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // 設定 Preloader Timer (0.5秒後淡出)
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+
     let lenis: any;
     let animationFrameId: number;
 
@@ -183,6 +191,7 @@ export default function GraphicPage() {
     window.addEventListener('scroll', handleScroll);
 
     return () => {
+      clearTimeout(timer); // Preloader cleanup
       if (lenis) lenis.destroy();
       if (cleanupDesktop) cleanupDesktop();
       if (cleanupMobile) cleanupMobile();
@@ -204,6 +213,10 @@ export default function GraphicPage() {
         .lenis.lenis-stopped { overflow: hidden; }
         .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; mix-blend-mode: overlay; opacity: 0.06; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
         
+        /* Preloader */
+        .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; }
+        .preloader.hidden { opacity: 0; }
+
         /* NAVBAR */
         .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); height: 60px; padding: 0 30px; display: flex; justify-content: space-between; align-items: center; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: 30px; }
@@ -275,6 +288,9 @@ export default function GraphicPage() {
         .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #666; margin-right: 10px; width: 60px; font-weight: 700; }
       `}</style>
 
+      {/* Preloader - 遮住閃爍畫面 */}
+      <div className={`preloader ${!isLoading ? 'hidden' : ''}`}></div>
+
       <div className="noise-overlay"></div>
 
       <nav className="smart-nav" id="navbar">
@@ -312,20 +328,17 @@ export default function GraphicPage() {
         <div className="mobile-track">
             <div className="gallery-strip" id="row-1" ref={row1Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/02.jpg" alt="01" /><div className="strip-caption">01</div></div>
-                {/* 🔴 FIXED: Changed filename to 24card1.jpg */}
                 <div className="strip-item"><img src="/images/Graphic_optimized/24card1.jpg" alt="02" /><div className="strip-caption">02</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/300x600_1.jpg" alt="03" /><div className="strip-caption">03</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/0320_b.jpg" alt="04" /><div className="strip-caption">04</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/0414_v1.jpg" alt="05" /><div className="strip-caption">05</div></div>
                 {/* Duplicates for Loop */}
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/02.jpg" alt="01" /><div className="strip-caption">01</div></div>
-                {/* 🔴 FIXED: Changed filename to 24card1.jpg */}
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/24card1.jpg" alt="02" /><div className="strip-caption">02</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/300x600_1.jpg" alt="03" /><div className="strip-caption">03</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0320_b.jpg" alt="04" /><div className="strip-caption">04</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0414_v1.jpg" alt="05" /><div className="strip-caption">05</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/02.jpg" alt="01" /><div className="strip-caption">01</div></div>
-                {/* 🔴 FIXED: Changed filename to 24card1.jpg */}
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/24card1.jpg" alt="02" /><div className="strip-caption">02</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/300x600_1.jpg" alt="03" /><div className="strip-caption">03</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0320_b.jpg" alt="04" /><div className="strip-caption">04</div></div>

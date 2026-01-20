@@ -1,13 +1,20 @@
 'use client';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 export default function AiPage() {
-  
+  // 1. 新增 Loading 狀態 (Preloader)
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
+    // 設定 Preloader Timer (0.5秒後淡出)
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+
     let lenis: any;
 
-    // 1. Initialize Lenis Smooth Scroll
+    // 2. Initialize Lenis Smooth Scroll
     import('@studio-freight/lenis').then((Lenis) => {
       lenis = new Lenis.default({
         duration: 1.2,
@@ -22,7 +29,7 @@ export default function AiPage() {
       requestAnimationFrame(raf);
     });
 
-    // 2. Navbar & Mobile Menu Logic
+    // 3. Navbar Logic
     const navbar = document.getElementById('navbar');
     const menuBtn = document.getElementById('menu-btn');
     const mobileMenu = document.getElementById('mobile-menu');
@@ -49,6 +56,7 @@ export default function AiPage() {
 
     // Cleanup
     return () => {
+        clearTimeout(timer);
         if (lenis) lenis.destroy();
         menuBtn?.removeEventListener('click', toggleMenu);
         window.removeEventListener('scroll', handleScroll);
@@ -65,6 +73,10 @@ export default function AiPage() {
         
         .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; opacity: 0.06; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
         
+        /* Preloader Style */
+        .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; }
+        .preloader.hidden { opacity: 0; }
+
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fadeInUp { animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 
@@ -105,6 +117,9 @@ export default function AiPage() {
         .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #666; margin-right: 10px; width: 60px; font-weight: 700; }
       `}</style>
 
+      {/* Preloader - 遮住閃爍畫面 */}
+      <div className={`preloader ${!isLoading ? 'hidden' : ''}`}></div>
+
       {/* Noise Overlay */}
       <div className="noise-overlay"></div>
 
@@ -137,30 +152,32 @@ export default function AiPage() {
       </div>
 
       {/* Header */}
-      <section className="pt-[220px] pb-[100px] px-[40px] text-center relative z-10">
-        <h1 className="text-[80px] font-black leading-none tracking-tighter text-white opacity-0 animate-fadeInUp [animation-delay:0.2s]">AI Generative</h1>
+      <section className="pt-[220px] pb-[100px] px-[20px] md:px-[40px] text-center relative z-10">
+        <h1 className="text-[60px] md:text-[80px] font-black leading-none tracking-tighter text-white opacity-0 animate-fadeInUp [animation-delay:0.2s]">AI Generative</h1>
         <div className="mt-[20px] text-base text-[#888] max-w-[600px] inline-block opacity-0 animate-fadeInUp [animation-delay:0.4s]">
           Exploring the frontier of machine creativity.
         </div>
       </section>
 
-      {/* Video Gallery Stack */}
-      <div className="flex flex-col gap-[80px] w-full max-w-[1400px] mx-auto mb-[120px] px-[40px]">
+      {/* Video Gallery Stack (Modified for wider fit) */}
+      <div className="flex flex-col gap-[80px] w-full max-w-[95vw] mx-auto mb-[120px] px-[20px] md:px-[0]">
+        
         {/* Video 1 */}
         <div className="relative w-full opacity-0 animate-fadeInUp [animation-delay:0.6s]">
-          <video src="/images/AI_optimized/ai_1.mp4" autoPlay loop muted playsInline className="w-full h-auto max-h-[85vh] object-cover rounded-xl shadow-2xl"></video>
+          {/* 使用 w-full, h-auto 確保影片因應寬度自動調整高度 */}
+          <video src="/images/AI_optimized/ai_1.mp4" autoPlay loop muted playsInline className="w-full h-auto object-cover rounded-xl shadow-2xl block"></video>
           <div className="mt-[15px] text-sm font-semibold text-[#888] uppercase tracking-widest pl-[5px]">Sequence 01</div>
         </div>
 
         {/* Video 2 */}
         <div className="relative w-full opacity-0 animate-fadeInUp [animation-delay:0.8s]">
-          <video src="/images/AI_optimized/ai_2.mp4" autoPlay loop muted playsInline className="w-full h-auto max-h-[85vh] object-cover rounded-xl shadow-2xl"></video>
+          <video src="/images/AI_optimized/ai_2.mp4" autoPlay loop muted playsInline className="w-full h-auto object-cover rounded-xl shadow-2xl block"></video>
           <div className="mt-[15px] text-sm font-semibold text-[#888] uppercase tracking-widest pl-[5px]">Sequence 02</div>
         </div>
 
         {/* Video 3 */}
         <div className="relative w-full opacity-0 animate-fadeInUp [animation-delay:1.0s]">
-          <video src="/images/muji.mov" autoPlay loop muted playsInline className="w-full h-auto max-h-[85vh] object-cover rounded-xl shadow-2xl"></video>
+          <video src="/images/muji.mov" autoPlay loop muted playsInline className="w-full h-auto object-cover rounded-xl shadow-2xl block"></video>
           <div className="mt-[15px] text-sm font-semibold text-[#888] uppercase tracking-widest pl-[5px]">Sequence 03</div>
         </div>
       </div>
