@@ -19,7 +19,7 @@ export default function GraphicPage() {
       lenis = new Lenis.default({
         duration: 1.2,
         easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        // smoothTouch: true, // <--- 已移除此行以修正 Error
+        // smoothTouch: true, // Removed to fix TS error
         touchMultiplier: 1.5,
       });
 
@@ -312,18 +312,21 @@ export default function GraphicPage() {
         <div className="mobile-track">
             <div className="gallery-strip" id="row-1" ref={row1Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/02.jpg" alt="01" /><div className="strip-caption">01</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/24.jpg" alt="02" /><div className="strip-caption">02</div></div>
+                {/* 🔴 FIXED: Changed filename to 24card1.jpg */}
+                <div className="strip-item"><img src="/images/Graphic_optimized/24card1.jpg" alt="02" /><div className="strip-caption">02</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/300x600_1.jpg" alt="03" /><div className="strip-caption">03</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/0320_b.jpg" alt="04" /><div className="strip-caption">04</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/0414_v1.jpg" alt="05" /><div className="strip-caption">05</div></div>
                 {/* Duplicates for Loop */}
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/02.jpg" alt="01" /><div className="strip-caption">01</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/24.jpg" alt="02" /><div className="strip-caption">02</div></div>
+                {/* 🔴 FIXED: Changed filename to 24card1.jpg */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/24card1.jpg" alt="02" /><div className="strip-caption">02</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/300x600_1.jpg" alt="03" /><div className="strip-caption">03</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0320_b.jpg" alt="04" /><div className="strip-caption">04</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0414_v1.jpg" alt="05" /><div className="strip-caption">05</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/02.jpg" alt="01" /><div className="strip-caption">01</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/24.jpg" alt="02" /><div className="strip-caption">02</div></div>
+                {/* 🔴 FIXED: Changed filename to 24card1.jpg */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/24card1.jpg" alt="02" /><div className="strip-caption">02</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/300x600_1.jpg" alt="03" /><div className="strip-caption">03</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0320_b.jpg" alt="04" /><div className="strip-caption">04</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0414_v1.jpg" alt="05" /><div className="strip-caption">05</div></div>
