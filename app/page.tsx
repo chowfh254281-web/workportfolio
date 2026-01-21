@@ -17,24 +17,28 @@ export default function HomePage() {
     ];
     setRandomAiVideo(aiVideoSources[Math.floor(Math.random() * aiVideoSources.length)]);
 
-    // Preloader 設定 (2秒)
+    // 🔴 Preloader 設定: 減少至 1 秒
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
 
   // 3. Navbar Toggle Logic
-  const toggleMenu = () => {
+  const toggleMenu = (e: React.MouseEvent) => {
     const navbar = document.getElementById('navbar');
     const menuBtn = document.getElementById('menu-btn');
+    const target = e.target as HTMLElement;
     
     if (!navbar || !menuBtn) return;
 
     if (window.innerWidth <= 768) {
         const isActive = navbar.classList.contains('mobile-active');
-        
+        const isLogo = target.closest('.nav-logo');
+
+        if (isLogo && !isActive) return;
+
         if (isActive) {
             navbar.classList.remove('mobile-active');
             menuBtn.classList.remove('open');
@@ -131,6 +135,7 @@ export default function HomePage() {
     }
 
     if (subtitle && !subtitle.classList.contains('split-done')) {
+       // Only split for animation, spacing is handled by CSS/HTML
        const subText = subtitle.textContent || '';
        subtitle.innerHTML = subText.split('').map(char => `<span class="sub-char">${char}</span>`).join('');
        subtitle.classList.add('split-done');
@@ -148,12 +153,11 @@ export default function HomePage() {
       const scrollY = window.scrollY;
       const windowHeight = window.innerHeight;
       const windowWidth = window.innerWidth;
+      const isMobile = windowWidth <= 768;
 
       if (scrollY > 50) {
-          if (navbar && navbar.classList.contains('mobile-active')) {
-              navbar.classList.remove('collapsed');
-          } else {
-              navbar?.classList.add('collapsed');
+          if (navbar && !navbar.classList.contains('mobile-active')) {
+              navbar.classList.add('collapsed');
           }
       } else {
         navbar?.classList.remove('collapsed');
@@ -213,13 +217,15 @@ export default function HomePage() {
         if (trackRect.top <= 0) progress = Math.abs(trackRect.top) / totalDistance;
         progress = Math.max(0, Math.min(progress, 1));
 
-        const startW = Math.min(windowWidth * 0.25, 350);
-        const startH = Math.min(windowWidth * 0.35, 500);
-        const midW = windowWidth * 0.4;
-        const midH = startH * 1.3;
+        // Mobile specific dimensions for Hero
+        const startW = isMobile ? windowWidth * 0.6 : Math.min(windowWidth * 0.25, 350);
+        const startH = isMobile ? windowWidth * 0.8 : Math.min(windowWidth * 0.35, 500);
+        const midW = isMobile ? windowWidth : windowWidth * 0.4;
+        const midH = isMobile ? windowHeight : startH * 1.3;
         
         let currentW, currentH, radius;
 
+        // --- Part 1: Hero Card Expansion ---
         if (progress < 0.15) {
           const p1 = progress / 0.15;
           currentW = startW + (midW - startW) * p1;
@@ -231,6 +237,7 @@ export default function HomePage() {
           if (imgBg) imgBg.style.opacity = swapP.toString();
           if (revealSource) revealSource.style.opacity = '0';
         } else {
+          // --- Part 2: Full Screen & Text Reveal ---
           const growP = (progress - 0.15) / 0.75;
           currentW = midW + (windowWidth - midW) * growP;
           currentH = midH + (windowHeight - midH) * growP;
@@ -262,6 +269,7 @@ export default function HomePage() {
 
           if (revealSource) revealSource.style.opacity = Math.max(0, textFade).toString();
 
+          // --- Part 3: Details Text (Bottom) ---
           let detailsOp = 0;
           if (progress > 0.85) {
             detailsOp = (progress - 0.85) / 0.10;
@@ -270,10 +278,11 @@ export default function HomePage() {
           if (detailsBlock) {
               detailsBlock.style.opacity = Math.max(0, Math.min(detailsOp, 1)).toString();
               
-              if (window.innerWidth > 768) {
+              if (!isMobile) {
                   detailsBlock.style.transform = `translateY(${(1 - Math.min(detailsOp, 1)) * 20}px)`;
               } else {
-                  detailsBlock.style.transform = ''; 
+                  // Mobile: Ensure it doesn't float away
+                  detailsBlock.style.transform = `translate(-50%, -50%)`; 
               }
           }
           if (heroOverlay) heroOverlay.style.opacity = (growP * 0.6).toString();
@@ -388,8 +397,8 @@ export default function HomePage() {
         .lenis.lenis-stopped { overflow: hidden; }
         .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; mix-blend-mode: overlay; opacity: 0.06; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
         
-        /* Preloader */
-        .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; }
+        /* 🔴 Preloader: 1s Fade Out & Immediate Black Screen */
+        .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; opacity: 1; transition: opacity 0.8s ease-in-out; pointer-events: none; }
         .preloader.hidden { opacity: 0; }
 
         /* NAVBAR - FULLSCREEN MOBILE OVERLAY */
@@ -402,58 +411,58 @@ export default function HomePage() {
             width: auto; min-width: 450px; height: 60px;
             transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); 
             overflow: hidden;
-            /* 🔴 CURSOR POINTER for entire bar */
-            cursor: pointer; 
+            cursor: pointer;
         }
         
-        /* Inner Wrapper for Logo and Burger */
-        .nav-header {
-            display: contents; /* Desktop: acts as if not there */
-        }
-
-        .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: 30px; cursor: pointer; }
-        .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; }
+        /* 🔴 DESKTOP NAVBAR ORDER FIX (Align Icon Right) */
+        .nav-header { display: contents; }
+        .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
+        .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; order: 2; margin: 0 40px; }
         .nav-item { text-decoration: none; color: #ccc; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
         .nav-item:hover, .nav-item.active { color: #F4D03F; }
         
-        /* Menu Icon */
         .menu-icon { 
-            width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; margin-left: 40px; 
-            pointer-events: none; /* Let clicks pass to nav */
-            z-index: 2005; 
+            width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; 
+            pointer-events: none; z-index: 2005; order: 3; margin-left: 0;
         }
-        .menu-line { 
-            width: 100%; height: 1px; background-color: #fff; 
-            transition: all 0.3s ease; transform-origin: center;
-        }
-        
-        /* HAMBURGER TO X ANIMATION */
+        .menu-line { width: 100%; height: 1px; background-color: #fff; transition: all 0.3s ease; transform-origin: center; }
         .menu-icon.open .menu-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
         .menu-icon.open .menu-line:nth-child(2) { opacity: 0; }
         .menu-icon.open .menu-line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-        /* Desktop Hover Expand */
-        .smart-nav:hover, .smart-nav.force-expand { min-width: 650px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
-        .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; gap: 25px !important; pointer-events: auto !important; display: flex !important; } 
+        /* DESKTOP ONLY: Hover to expand */
+        @media (min-width: 769px) {
+            .smart-nav:hover, .smart-nav.force-expand { min-width: 650px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
+            .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; gap: 25px !important; pointer-events: auto !important; display: flex !important; } 
+        }
         
         .smart-nav.collapsed { min-width: 150px; background: rgba(255, 255, 255, 0.05); padding: 0 20px; } 
         .smart-nav.collapsed .nav-links { max-width: 0; opacity: 0; gap: 0; pointer-events: none; } 
         .smart-nav.collapsed .nav-logo { margin-right: 10px; } 
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
 
+        .mobile-menu-overlay { display: none; }
+
         /* INTRO */
         .intro-section { height: 100vh; width: 100%; position: relative; overflow: hidden; margin-bottom: 0; z-index: 10; }
         .intro-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 50; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; will-change: opacity, transform, color; }
-        .main-title { font-size: 8vw; font-weight: 900; margin: 0 0 20px 0; letter-spacing: -2px; line-height: 1; color: #F4D03F; transition: color 0.1s linear; }
+        
+        /* 🔴 Title Styling: No Wrap on Desktop, Scaled on Mobile */
+        .main-title { 
+            font-size: 8vw; font-weight: 900; margin: 0 0 20px 0; letter-spacing: -2px; line-height: 1; color: #F4D03F; transition: color 0.1s linear; 
+            white-space: nowrap; 
+        }
         .subtitle { font-size: 1.5vw; font-weight: 400; line-height: 1.4; max-width: 800px; color: #F4D03F; opacity: 0; transform: translateY(20px); transition: all 1s ease; }
         .subtitle.visible { opacity: 1; transform: translateY(0); }
         .char-span, .sub-char { display: inline-block; will-change: transform, opacity, filter, color; }
+        
         /* HERO */
         .seamless-hero { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 25vw; height: 35vw; max-width: 350px; max-height: 500px; border-radius: 16px; z-index: 5; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.6); opacity: 0; will-change: width, height, border-radius, opacity; }
         .hero-inner-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transition: none; }
         .img-bg { z-index: 1; opacity: 0; }
         .img-card { z-index: 2; opacity: 1; }
         .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3; opacity: 0; pointer-events: none; }
+        
         /* ABOUT */
         .about-track { height: 300vh; position: relative; z-index: 10; margin-top: -10vh; }
         .about-sticky-view { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; padding: 0 5vw; box-sizing: border-box; background: transparent; pointer-events: none; }
@@ -469,6 +478,7 @@ export default function HomePage() {
         .citation-list { list-style: none; padding: 0; margin: 0; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px; } 
         .citation-item { font-size: 16px; color: #F4D03F; margin-bottom: 12px; padding-left: 15px; border-left: 2px solid rgba(244, 208, 63, 0.3); } 
         .citation-item span { display: block; color: #aaa; font-size: 14px; margin-top: 4px; }
+        
         /* OVERVIEW */
         .overview-section { height: 100vh; width: 100%; position: relative; z-index: 30; background-color: #050505; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
         .overview-title { font-size: 6vw; font-weight: 800; letter-spacing: -1px; margin-bottom: 15px; color: #fff; line-height: 1; visibility: visible; }
@@ -493,13 +503,10 @@ export default function HomePage() {
             font-size: 8vw; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; 
             color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 20; 
             pointer-events: none; text-align: center; width: 100%; 
-            opacity: 0; /* Hidden by default on Desktop */
+            opacity: 0; 
             transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); 
         }
-        .hero-section:hover .hero-category-label { 
-            opacity: 1; 
-            transform: translate(-50%, -50%); 
-        }
+        .hero-section:hover .hero-category-label { opacity: 1; transform: translate(-50%, -50%); }
 
         .yt-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
         .hero-section:hover .yt-thumb { opacity: 0; } 
@@ -523,168 +530,62 @@ export default function HomePage() {
         .contact-link:hover { color: #fff; }
         .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #666; margin-right: 10px; width: 60px; font-weight: 700; }
 
-        /* MOBILE ADAPTATION OVERRIDES */
+        /* 🔴 MOBILE ADAPTATION OVERRIDES */
         @media (max-width: 768px) {
-            /* 🔴 FIX GRID: Single Column to fix off-center text */
-            .about-grid { 
-                display: block !important; 
-            }
-            .card-target-left {
-                display: none !important; 
-            }
+            /* 🔴 Fix Grid: Single Column for About Section */
+            .about-grid { display: block !important; }
+            .card-target-left { display: none !important; }
 
-            /* 🔴 Mobile Text Always Visible */
-            .hero-category-label {
-                opacity: 1 !important;
-                transform: translate(-50%, -50%) !important;
-            }
+            /* 🔴 Ensure Text is Always Visible on Mobile Hover State */
+            .hero-category-label { opacity: 1 !important; transform: translate(-50%, -50%) !important; }
 
-            /* NAVBAR FULL SCREEN OVERLAY FIX */
+            /* 🔴 Navbar Fullscreen Overlay Fix */
             .smart-nav { 
-                flex-direction: column !important;
-                align-items: flex-start !important;
-                width: 90% !important; 
-                max-width: 350px !important;
-                height: 60px; 
-                overflow: hidden;
-                transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-                /* 🔴 RESET MIN-WIDTH for Mobile! */
-                min-width: 0 !important; 
+                flex-direction: column !important; align-items: flex-start !important; 
+                width: 90% !important; max-width: 350px !important; height: 60px; 
+                overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; 
             }
-            
-            .smart-nav.mobile-active {
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                transform: none !important;
-                width: 100vw !important; 
-                max-width: none !important;
-                height: 100vh !important;
-                
-                border-radius: 0 !important;
-                background: #000 !important;
-                border: none !important;
-                padding: 30px !important; 
-                justify-content: flex-start !important;
-                align-items: center !important; /* Center the content horizontally */
-                z-index: 9000 !important; 
+            .smart-nav.mobile-active { 
+                position: fixed !important; top: 0 !important; left: 0 !important; transform: none !important; 
+                width: 100vw !important; max-width: none !important; height: 100vh !important; 
+                border-radius: 0 !important; background: #000 !important; border: none !important; 
+                padding: 30px !important; justify-content: flex-start !important; align-items: center !important; z-index: 9000 !important; 
             }
-            
-            .nav-header {
-                display: flex !important;
-                width: 100%;
-                justify-content: space-between;
-                align-items: center;
-                height: 60px;
-                flex-shrink: 0;
-            }
-            
+            .nav-header { display: flex !important; width: 100%; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
+            .nav-logo { order: unset; margin-right: 0; }
+            .menu-icon { order: unset; }
             .nav-links { 
-                display: flex !important;
-                flex-direction: column !important;
-                width: 100% !important;
-                opacity: 0;
-                transform: translateY(20px);
-                transition: all 0.4s ease 0.1s;
-                pointer-events: none;
-                margin-top: 0;
-                height: 100%;
-                justify-content: center;
-                align-items: center; /* Center Items */
-                text-align: center; /* Ensure text is centered */
-                gap: 40px !important;
+                display: flex !important; flex-direction: column !important; width: 100% !important; 
+                opacity: 0; transform: translateY(20px); transition: all 0.4s ease 0.1s; pointer-events: none; 
+                margin-top: 0; height: 100%; justify-content: center; align-items: center; gap: 40px !important; order: unset; margin: 0; 
             }
-            
-            .smart-nav.mobile-active .nav-links {
-                opacity: 1 !important;
-                transform: translateY(0) !important;
-                pointer-events: auto !important;
-                visibility: visible !important;
-            }
-            
-            .nav-item {
-                font-size: 28px !important;
-                font-weight: 700 !important;
-                letter-spacing: 2px !important;
-            }
+            .smart-nav.mobile-active .nav-links { opacity: 1 !important; transform: translateY(0) !important; pointer-events: auto !important; visibility: visible !important; }
+            .nav-item { font-size: 28px !important; font-weight: 700 !important; letter-spacing: 2px !important; }
 
-            .main-title { font-size: 18vw; }
+            /* 🔴 Title Scaled Down for Mobile to fit one line */
+            .main-title { font-size: 13vw; }
             .subtitle { font-size: 16px; padding: 0 20px; }
 
-            /* 🔴 MOBILE TEXT CONTAINER HEIGHT FIX */
-            .text-container {
-                height: 100vh !important; /* Force full height so top:50% works */
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                width: 100% !important;
-                padding: 0 20px;
+            /* 🔴 Fix Text Details Clipping/Positioning on Mobile */
+            .text-container { 
+                height: 100vh !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; padding: 0 20px; 
             }
-            .text-layer-1 { 
-                font-size: 28px; 
-                width: 90%; 
-                line-height: 1.3; 
-            }
-            /* 🔴 TEXT VERTICAL AND HORIZONTAL CENTER FIX */
+            .text-layer-1 { font-size: 28px; width: 90%; line-height: 1.3; }
             .text-layer-2 { 
-                position: absolute !important;
-                top: 50% !important;
-                left: 50% !important;
-                transform: translate(-50%, -50%) !important; /* Perfect Center */
-                width: 100% !important;
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: center !important;
-                align-items: center !important;
-                text-align: center !important;
-                padding: 0 20px !important; /* Reduced padding */
-                pointer-events: none;
+                position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; 
+                width: 100% !important; display: flex !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; text-align: center !important; padding: 0 20px !important; pointer-events: none; 
             }
-            .details-text { 
-                font-size: 16px;
-                line-height: 1.5;
-                color: #eee; 
-                text-align: center !important;
-                margin-bottom: 20px;
-                width: 100%;
-            }
-            .citation-list { 
-                text-align: left; 
-                display: inline-block; 
-                margin-top: 10px; 
-                width: 100%;
-                /* 🔴 REMOVED MAX-WIDTH LIMIT */
-                max-width: 100% !important; 
-            }
+            .details-text { font-size: 16px; line-height: 1.5; color: #eee; text-align: center !important; margin-bottom: 20px; width: 100%; }
+            .citation-list { text-align: left; display: inline-block; margin-top: 10px; width: 100%; max-width: 100% !important; }
 
-            .contact-content { 
-                flex-direction: column !important; 
-                gap: 30px; 
-            }
-            .contact-content.shift-layout { 
-                gap: 40px; 
-                transform: translate(-50%, -60%); 
-            }
-            .contact-title { 
-                font-size: 15vw; 
-                white-space: normal; 
-                text-align: center; 
-            }
-            .vertical-line { 
-                width: 1px; 
-                height: 40px !important; 
-                margin: 20px 0 !important; 
-            }
-            .contact-content.shift-layout .vertical-line {
-                height: 60px !important;
-            }
-            .qr-container { 
-                transform: translateY(20px); 
-            }
-            .contact-content.shift-layout .qr-container {
-                width: 150px; 
-                transform: translateY(0);
-            }
+            /* 🔴 Mobile Contact Layout */
+            .contact-content { flex-direction: column !important; gap: 30px; }
+            .contact-content.shift-layout { gap: 40px; transform: translate(-50%, -60%); }
+            .contact-title { font-size: 15vw; white-space: normal; text-align: center; }
+            .vertical-line { width: 1px; height: 40px !important; margin: 20px 0 !important; }
+            .contact-content.shift-layout .vertical-line { height: 60px !important; }
+            .qr-container { transform: translateY(20px); }
+            .contact-content.shift-layout .qr-container { width: 150px; transform: translateY(0); }
         }
       `}</style>
 
@@ -695,7 +596,6 @@ export default function HomePage() {
       <nav className="smart-nav" id="navbar" onClick={toggleMenu}>
         <div className="nav-header">
             <Link href="/" className="nav-logo">SAM CHOW.</Link>
-            {/* 🔴 Removed onClick from menu-icon to let event bubble to nav */}
             <div className="menu-icon" id="menu-btn">
                 <div className="menu-line"></div>
                 <div className="menu-line"></div>
@@ -721,7 +621,8 @@ export default function HomePage() {
       <div className="intro-section" id="intro-trigger">
         <div className="intro-text" id="intro-text-container">
           <h1 className="main-title">SAM CHOW.</h1>
-          <div className="subtitle">MultiMedia Designer | Work Portfolio</div>
+          {/* 🔴 Added spacing here */}
+          <div className="subtitle">MultiMedia Designer &nbsp;|&nbsp; Work Portfolio</div>
         </div>
         
         <div className="scroll-prompt" id="scroll-prompt">
