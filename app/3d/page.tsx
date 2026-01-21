@@ -20,8 +20,8 @@ declare global {
 }
 
 export default function ThreeDPage() {
-  // 1. 新增 Loading 狀態 (Preloader)
   const [isLoading, setIsLoading] = useState(true);
+  const [isContactExpanded, setIsContactExpanded] = useState(false);
 
   const trackRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -45,7 +45,6 @@ export default function ThreeDPage() {
   useEffect(() => {
     setIsMounted(true);
 
-    // 設定 Preloader Timer (0.5秒後淡出)
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 500);
@@ -117,6 +116,7 @@ export default function ThreeDPage() {
     const animate = () => {
         const windowHeight = window.innerHeight;
         const scrollY = window.scrollY;
+        const isMobile = window.innerWidth <= 768;
 
         if (scrollPromptRef.current) {
             if (scrollY > 50) scrollPromptRef.current.classList.add('hide'); 
@@ -146,112 +146,132 @@ export default function ThreeDPage() {
 
             if (cgHero && productionSection && header && layerUE && ueHeader && ueGallery && layerLive && liveHeader && liveGallery && layerFresh && freshGallery && layerModels && layerText) {
                 
-                if (progress < 0.15) {
-                    const exitP = progress / 0.15;
-                    cgHero.style.transform = `translate(-50%, calc(-50% - ${exitP * 100}vh))`; 
-                    header.style.transform = `translateY(-${exitP * 50}vh)`;
+                // --- 🔴 MOBILE ANIMATION LOGIC (REVISED) ---
+
+                // 1. HERO SCROLL (0.00 - 0.30)
+                if (progress < 0.30) {
+                    const scrollP = progress / 0.30; 
                     
-                    if (progress > 0.1) {
-                        const entryP = (progress - 0.1) / 0.05;
-                        productionSection.style.opacity = entryP.toString();
-                        productionSection.style.transform = `translate(-50%, calc(-50% + ${(1-entryP)*100}px))`;
+                    if (isMobile) {
+                        const startY = 15; 
+                        const endY = -130; 
+                        const currentY = startY + (endY - startY) * scrollP;
+                        cgHero.style.transform = `translate(-50%, ${currentY}vh)`;
+                        header.style.transform = `translateY(-${scrollP * 80}vh)`; 
                     } else {
-                        productionSection.style.opacity = '0';
+                        cgHero.style.transform = `translate(-50%, calc(-50% - ${scrollP * 100}vh))`; 
+                        header.style.transform = `translateY(-${scrollP * 50}vh)`;
                     }
-                } 
-                else if (progress >= 0.15 && progress < 0.30) {
-                    cgHero.style.transform = `translate(-50%, -150vh)`; 
                     
-                    if (progress < 0.25) {
-                        productionSection.style.opacity = '1';
-                        productionSection.style.transform = `translate(-50%, -50%)`;
-                    } else {
-                        const exitP = (progress - 0.25) / 0.05;
-                        productionSection.style.opacity = (1 - exitP).toString();
-                        productionSection.style.transform = `translate(-50%, calc(-50% - ${exitP*100}px))`;
-                    }
-                    layerUE.style.opacity = '0';
-                }
-                else if (progress >= 0.30 && progress < 0.50) {
+                    cgHero.style.opacity = '1';
                     productionSection.style.opacity = '0';
+                } 
+                
+                // 2. HERO EXIT / PRODUCTION ENTER (0.30 - 0.35)
+                else if (progress >= 0.30 && progress < 0.35) {
+                    const transP = (progress - 0.30) / 0.05; // 0 to 1
                     
-                    let ueOp = 0;
-                    if (progress < 0.35) ueOp = (progress - 0.30) / 0.05;
-                    else if (progress < 0.45) ueOp = 1;
-                    else ueOp = 1 - ((progress - 0.45) / 0.05);
+                    if (isMobile) cgHero.style.transform = `translate(-50%, -130vh)`;
+                    else cgHero.style.transform = `translate(-50%, -150vh)`;
                     
-                    layerUE.style.opacity = Math.max(0, Math.min(ueOp, 1)).toString();
+                    cgHero.style.opacity = (1 - transP).toString();
+                    productionSection.style.opacity = transP.toString();
                     
-                    if (progress < 0.45) {
-                        layerUE.style.transform = `translateY(0)`;
-                        if (progress > 0.30) {
-                            const entryP = Math.min((progress - 0.30) / 0.10, 1);
-                            ueHeader.style.transform = `translateY(${(1-entryP)*30}px)`;
-                            ueGallery.style.transform = `translateY(${(1-entryP)*60}px)`;
-                        }
+                    if (isMobile) {
+                        const startY = 50; 
+                        const endY = 20;
+                        const currentY = startY + (endY - startY) * transP;
+                        productionSection.style.transform = `translate(-50%, ${currentY}vh)`; 
                     } else {
-                        const exitP = (progress - 0.45) / 0.05;
-                        layerUE.style.transform = `translateY(-${exitP * 100}px)`;
+                        productionSection.style.transform = `translate(-50%, calc(-50% + ${(1-transP)*100}px))`;
                     }
-                    layerLive.style.opacity = '0';
                 }
-                else if (progress >= 0.50 && progress < 0.70) {
+
+                // 3. 🔴 PRODUCTION SCROLL (0.35 - 0.70) -> EXTENDED DURATION
+                else if (progress >= 0.35 && progress < 0.70) {
+                    cgHero.style.opacity = '0';
+                    cgHero.style.transform = `translate(-50%, -500vh)`; 
+                    
+                    productionSection.style.opacity = '1';
+                    
+                    if (isMobile) {
+                        // Scroll P: 0 to 1 over 35% of track (Longer)
+                        const prodScrollP = (progress - 0.35) / 0.35; 
+                        
+                        // Start at 20vh
+                        // End at -180vh (Enough to see the 3rd "Composition" video fully)
+                        const startY = 20; 
+                        const endY = -180; 
+                        const currentY = startY + (endY - startY) * prodScrollP;
+                        
+                        productionSection.style.transform = `translate(-50%, ${currentY}vh)`;
+                    } else {
+                        productionSection.style.transform = `translate(-50%, -50%)`;
+                    }
+                    
                     layerUE.style.opacity = '0';
+                }
+
+                // 4. PRODUCTION EXIT -> UE ENTER (0.70 - 0.75)
+                else if (progress >= 0.70 && progress < 0.75) {
+                    const exitP = (progress - 0.70) / 0.05;
+                    
+                    productionSection.style.opacity = (1 - exitP).toString();
+                    if (isMobile) productionSection.style.transform = `translate(-50%, -200vh)`; // Continue up
+                    else productionSection.style.transform = `translate(-50%, calc(-50% - ${exitP*100}px))`;
+
+                    layerUE.style.opacity = exitP.toString();
+                    layerUE.style.transform = `translateY(0)`;
+                    ueHeader.style.transform = `translateY(${(1-exitP)*30}px)`;
+                    ueGallery.style.transform = `translateY(${(1-exitP)*60}px)`;
+                }
+
+                // 5. UE ACTIVE (0.75 - 0.82)
+                else if (progress >= 0.75 && progress < 0.82) {
+                    productionSection.style.opacity = '0';
+                    layerUE.style.opacity = '1';
                     ueHeader.style.transform = `translateY(0)`;
                     ueGallery.style.transform = `translateY(0)`;
+                    layerLive.style.opacity = '0';
+                }
 
-                    let liveOp = 0;
-                    if (progress < 0.55) {
-                        liveOp = (progress - 0.50) / 0.05;
-                        layerLive.style.transform = `translateY(0)`;
-                        liveHeader.style.transform = `translateY(${(1-liveOp)*30}px)`;
-                        liveGallery.style.transform = `translateY(${(1-liveOp)*60}px)`;
-                    }
-                    else if (progress < 0.65) {
-                        liveOp = 1;
-                        layerLive.style.transform = `translateY(0)`;
-                        liveHeader.style.transform = `translateY(0)`;
-                        liveGallery.style.transform = `translateY(0)`;
-                    }
-                    else {
-                        liveOp = 1 - ((progress - 0.65) / 0.05);
-                        layerLive.style.transform = `translateY(-${(progress-0.65)*200}vh)`;
-                    }
-                    
-                    layerLive.style.opacity = Math.max(0, Math.min(liveOp, 1)).toString();
+                // 6. UE EXIT -> LIVE ENTER (0.82 - 0.87)
+                else if (progress >= 0.82 && progress < 0.87) {
+                    const transP = (progress - 0.82) / 0.05;
+                    layerUE.style.opacity = (1 - transP).toString();
+                    layerLive.style.opacity = transP.toString();
+                    liveHeader.style.transform = `translateY(${(1-transP)*30}px)`;
+                    liveGallery.style.transform = `translateY(${(1-transP)*60}px)`;
+                }
+
+                // 7. LIVE ACTIVE (0.87 - 0.92)
+                else if (progress >= 0.87 && progress < 0.92) {
+                    layerUE.style.opacity = '0';
+                    layerLive.style.opacity = '1';
+                    liveHeader.style.transform = 'translateY(0)';
+                    liveGallery.style.transform = 'translateY(0)';
                     layerFresh.style.opacity = '0';
                 }
-                else if (progress >= 0.70 && progress < 0.85) {
-                    layerLive.style.opacity = '0';
-                    
-                    let freshOp = 0;
-                    if (progress < 0.75) freshOp = (progress - 0.70) / 0.05;
-                    else if (progress < 0.85) freshOp = 1; 
-                    
-                    layerFresh.style.opacity = freshOp.toString();
 
-                    if (progress > 0.75) {
-                        const galleryP = Math.min((progress - 0.75) / 0.05, 1);
-                        freshGallery.style.opacity = galleryP.toString();
-                        freshGallery.style.transform = `translateY(${(1-galleryP)*50}px)`;
-                    } else {
-                        freshGallery.style.opacity = '0';
-                    }
-                    
-                    layerModels.style.opacity = '0';
-                    layerText.style.opacity = '0';
+                // 8. LIVE EXIT -> FRESH ENTER (0.92 - 0.96)
+                else if (progress >= 0.92 && progress < 0.96) {
+                    const transP = (progress - 0.92) / 0.04;
+                    layerLive.style.opacity = (1 - transP).toString();
+                    layerFresh.style.opacity = transP.toString();
+                    freshGallery.style.transform = `translateY(${(1-transP)*50}px)`;
+                    freshGallery.style.opacity = transP.toString();
                 }
-                else if (progress >= 0.85) {
-                    const freshExit = 1 - Math.min((progress - 0.85) / 0.05, 1);
-                    layerFresh.style.opacity = freshExit.toString();
+
+                // 9. FRESH ACTIVE -> MODELS (0.96+)
+                else if (progress >= 0.96) {
+                    const exitP = Math.min((progress - 0.96) / 0.04, 1);
+                    layerFresh.style.opacity = (1 - exitP).toString();
                     
-                    const modelOp = Math.min((progress - 0.85) / 0.05, 1);
-                    layerModels.style.opacity = modelOp.toString();
-                    layerText.style.opacity = modelOp.toString();
+                    layerModels.style.opacity = exitP.toString();
+                    layerText.style.opacity = exitP.toString();
                     
-                    if (progress > 0.90) {
-                        const textEntry = Math.min((progress - 0.90) / 0.10, 1);
-                        const wordsToActivate = Math.floor(textEntry * allWords.length);
+                    if (progress > 0.98) {
+                        const wordsToActivate = Math.floor(exitP * allWords.length);
                         allWords.forEach((word: any, index: number) => {
                             word.style.opacity = '';
                             if (index <= wordsToActivate) { 
@@ -281,17 +301,6 @@ export default function ThreeDPage() {
 
     const navbar = document.getElementById('navbar');
     const menuBtn = document.getElementById('menu-btn');
-    const mobileMenu = document.getElementById('mobile-menu');
-
-    const toggleMenu = () => {
-        if (window.innerWidth > 768) {
-            navbar?.classList.toggle('force-expand');
-        } else {
-            mobileMenu?.classList.toggle('active');
-            menuBtn?.classList.toggle('open');
-        }
-    };
-
     const handleScroll = () => {
         if (window.scrollY > 50) navbar?.classList.add('collapsed');
         else {
@@ -300,23 +309,51 @@ export default function ThreeDPage() {
         }
     };
 
-    menuBtn?.addEventListener('click', toggleMenu);
     window.addEventListener('scroll', handleScroll);
-
-    animate();
+    animationFrameId = requestAnimationFrame(animate);
 
     return () => {
-        clearTimeout(timer); // Cleanup Timer
+        clearTimeout(timer);
         if (lenis) lenis.destroy();
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
-        menuBtn?.removeEventListener('click', toggleMenu);
         window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
+  const toggleMenu = (e: React.MouseEvent) => {
+    const navbar = document.getElementById('navbar');
+    const menuBtn = document.getElementById('menu-btn');
+    const target = e.target as HTMLElement;
+    
+    if (!navbar || !menuBtn) return;
+
+    if (window.innerWidth <= 768) {
+        const isActive = navbar.classList.contains('mobile-active');
+        const isLogo = target.closest('.nav-logo');
+
+        if (isLogo && !isActive) return;
+
+        if (isActive) {
+            navbar.classList.remove('mobile-active');
+            menuBtn.classList.remove('open');
+            document.body.style.overflow = ''; 
+        } else {
+            navbar.classList.remove('collapsed'); 
+            navbar.classList.add('mobile-active');
+            menuBtn.classList.add('open');
+            document.body.style.overflow = 'hidden'; 
+        }
+    } else {
+        navbar.classList.toggle('force-expand');
+    }
+  };
+
+  const toggleContact = () => {
+    setIsContactExpanded(!isContactExpanded);
+  };
+
   return (
     <>
-      {/* Load Model Viewer Script */}
       <Script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js" strategy="lazyOnload" />
 
       {/* @ts-ignore */}
@@ -334,25 +371,53 @@ export default function ThreeDPage() {
         .preloader.hidden { opacity: 0; }
 
         /* NAVBAR */
-        .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); height: 60px; padding: 0 30px; display: flex; justify-content: space-between; align-items: center; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
-        .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: 30px; }
-        .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; }
+        .smart-nav { 
+            position: fixed; top: 30px; left: 50%; transform: translateX(-50%); 
+            padding: 0 30px; display: flex; align-items: center; justify-content: space-between;
+            z-index: 2000; background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
+            border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); 
+            width: auto; min-width: 450px; height: 60px;
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); 
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        /* DESKTOP NAVBAR ORDER FIX (Align Icon Right) */
+        .nav-header { display: contents; }
+        .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
+        .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; order: 2; margin: 0 40px; }
         .nav-item { text-decoration: none; color: #ccc; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
         .nav-item:hover, .nav-item.active { color: #F4D03F; }
-        .menu-icon { width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; margin-left: 40px; }
-        .menu-line { width: 100%; height: 1px; background-color: #fff; transition: width 0.3s ease; }
+        
+        .menu-icon { 
+            width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; 
+            pointer-events: none; z-index: 2005; order: 3; margin-left: 0;
+        }
+        .menu-line { width: 100%; height: 1px; background-color: #fff; transition: all 0.3s ease; transform-origin: center; }
+        
+        .menu-icon.open .menu-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+        .menu-icon.open .menu-line:nth-child(2) { opacity: 0; }
+        .menu-icon.open .menu-line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+        /* DESKTOP ONLY: Hover to expand */
+        @media (min-width: 769px) {
+            .smart-nav:hover, .smart-nav.force-expand { min-width: 650px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
+            .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; gap: 25px !important; pointer-events: auto !important; display: flex !important; } 
+        }
+        
         .smart-nav.collapsed { min-width: 150px; background: rgba(255, 255, 255, 0.05); padding: 0 20px; } 
         .smart-nav.collapsed .nav-links { max-width: 0; opacity: 0; gap: 0; pointer-events: none; } 
         .smart-nav.collapsed .nav-logo { margin-right: 10px; } 
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
-        .smart-nav:hover, .smart-nav.force-expand { min-width: 500px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
-        .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; gap: 25px !important; pointer-events: auto !important; display: flex !important; } 
-        .mobile-menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 1500; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 30px; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; } .mobile-menu-overlay.active { opacity: 1; pointer-events: auto; }
-        .mobile-link { font-size: 30px; font-weight: 700; color: #888; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; transform: translateY(20px); opacity: 0; transition: all 0.4s ease; } .mobile-link:hover { color: #fff; } .mobile-menu-overlay.active .mobile-link { transform: translateY(0); opacity: 1; }
-        @media (max-width: 768px) { .nav-links { display: none !important; } .smart-nav { min-width: 0 !important; width: 90% !important; max-width: 350px; top: 20px; padding: 0 20px !important; } }
+
+        .mobile-menu-overlay { display: none; }
         
         /* TRACK */
         .sequence-track { height: 1300vh; position: relative; z-index: 10; }
+        /* 🔴 INCREASED TRACK HEIGHT FOR MOBILE TO ACCOMMODATE LONGER SCROLL */
+        @media (max-width: 768px) { .sequence-track { height: 1800vh; } } 
+
         .sticky-viewport { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         /* HEADER */
         .header-content { text-align: center; width: 100%; position: absolute; top: 10%; left:0; z-index: 5; pointer-events: none; transition: opacity 0.5s ease; }
@@ -364,25 +429,18 @@ export default function ThreeDPage() {
         .video-caption { position: absolute; bottom: 20px; left: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: rgba(255,255,255,0.9); z-index: 2; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
         .video-number { position: absolute; bottom: 10px; left: 15px; font-size: 80px; font-weight: 100; line-height: 1; color: transparent; -webkit-text-stroke: 1px rgba(255, 255, 255, 0.7); z-index: 3; pointer-events: none; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
         .video-desc { position: absolute; top: 20px; left: 20px; font-size: 12px; font-weight: 700; letter-spacing: 2px; color: #fff; z-index: 3; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        
         /* HERO GALLERY */
         .cg-hero-section { position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); display: flex; justify-content: center; gap: 10px; width: 95vw; height: 50vh; z-index: 30; opacity: 1; }
         .hero-strip { flex: 1; height: 100%; transition: flex 0.4s cubic-bezier(0.22, 1, 0.36, 1); position: relative; }
         .hero-strip:hover { flex: 1.5; }
+        
         /* PRODUCTION */
         .production-section { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px; z-index: 20; width: 100%; opacity: 0; }
         .section-title { font-size: 1.5vw; font-weight: 700; letter-spacing: 4px; color: #fff; text-transform: uppercase; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
         .production-group { display: flex; gap: 2vw; width: auto; }
         .prod-card-wrap { width: 25vw; aspect-ratio: 9/16; }
-        /* MODELS */
-        .layer-models { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; display: flex; justify-content: space-between; align-items: center; padding: 0 5%; opacity: 0; transition: opacity 0.8s ease; }
-        .model-container { width: 25vw; height: 60vh; position: relative; pointer-events: auto; }
-        .model-container:nth-child(1) { margin-top: 15vh; } .model-container:nth-child(2) { margin-top: -15vh; }
-        model-viewer { width: 100%; height: 100%; --poster-color: transparent; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6)); }
-        .layer-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; text-align: center; z-index: 10; pointer-events: none; opacity: 0; }
-        .reveal-text { font-size: 5vw; font-weight: 800; line-height: 1.2; letter-spacing: -1px; color: #fff; }
-        .word { display: inline-block; opacity: 0; transition: opacity 0.3s ease; white-space: pre-wrap; }
-        .word.active { opacity: 1 !important; } .word.dim { opacity: 0.1 !important; }
-        .headline-accent { font-family: 'Times New Roman', serif; font-style: italic; color: #F4D03F; }
+        
         /* UNREAL ENGINE */
         .layer-ue { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 15; pointer-events: none; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .ue-header-group { text-align: center; margin-bottom: 4vh; }
@@ -398,6 +456,7 @@ export default function ThreeDPage() {
         .ue-col-right .ue-img-wrapper img { object-position: left center; }
         .ue-img-wrapper:hover img { transform: scale(1.05); }
         .ue-label { position: absolute; bottom: 20px; left: 20px; background: rgba(255,255,255,0.9); color: #000; padding: 6px 16px; border-radius: 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); pointer-events: auto; }
+        
         /* LIVE SETUP */
         .layer-live { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 16; pointer-events: none; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .live-header-group { text-align: center; margin-bottom: 4vh; }
@@ -411,6 +470,7 @@ export default function ThreeDPage() {
         .live-img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
         .live-img-wrapper:hover img { transform: scale(1.05); }
         .live-label { position: absolute; bottom: 20px; left: 20px; background: rgba(255,255,255,0.9); color: #000; padding: 6px 16px; border-radius: 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); pointer-events: auto; }
+        
         /* FRESH METAVERSE GARDEN */
         .layer-fresh { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 17; pointer-events: none; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
         .fresh-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; filter: brightness(0.5); }
@@ -421,15 +481,32 @@ export default function ThreeDPage() {
         .fresh-img-wrapper { width: 20vw; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.3s ease; }
         .fresh-img-wrapper:hover { transform: scale(1.05); }
         .fresh-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* MODELS */
+        .layer-models { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; display: flex; justify-content: space-between; align-items: center; padding: 0 5%; opacity: 0; transition: opacity 0.8s ease; }
+        .model-container { width: 25vw; height: 60vh; position: relative; pointer-events: auto; }
+        .model-container:nth-child(1) { margin-top: 15vh; } .model-container:nth-child(2) { margin-top: -15vh; }
+        model-viewer { width: 100%; height: 100%; --poster-color: transparent; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6)); }
+        .layer-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; text-align: center; z-index: 10; pointer-events: none; opacity: 0; }
+        .reveal-text { font-size: 5vw; font-weight: 800; line-height: 1.2; letter-spacing: -1px; color: #fff; }
+        .word { display: inline-block; opacity: 0; transition: opacity 0.3s ease; white-space: pre-wrap; }
+        .word.active { opacity: 1 !important; } .word.dim { opacity: 0.1 !important; }
+        .headline-accent { font-family: 'Times New Roman', serif; font-style: italic; color: #F4D03F; }
+
         /* CONTACT WIDGET */
-        .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; }
-        .contact-widget:hover, .contact-widget.expanded { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .contact-widget:hover .contact-details, .contact-widget.expanded .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
+        .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; cursor: pointer; }
         .contact-icon { width: 38px; height: 38px; background: #fff; color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         .contact-details { opacity: 0; white-space: nowrap; margin-left: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; pointer-events: none; transition: opacity 0.3s ease 0.1s, margin-left 0.4s ease; }
         .contact-link { color: #ccc; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; transition: color 0.3s; }
         .contact-link:hover { color: #fff; }
         .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #666; margin-right: 10px; width: 60px; font-weight: 700; }
+        .contact-widget.expanded { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .contact-widget.expanded .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
+        @media (min-width: 769px) {
+            .contact-widget:hover { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+            .contact-widget:hover .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
+        }
+
         /* SCROLL PROMPT UI */
         .scroll-prompt { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; pointer-events: none; transition: opacity 0.5s ease, transform 0.5s ease; opacity: 1; }
         .scroll-prompt.hide { opacity: 0; transform: translate(-50%, 20px); }
@@ -437,15 +514,85 @@ export default function ThreeDPage() {
         .scroll-line { width: 1px; height: 40px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden; }
         .scroll-line::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, transparent, #fff, transparent); transform: translateY(-100%); animation: scrollFlow 2s cubic-bezier(0.77, 0, 0.175, 1) infinite; }
         @keyframes scrollFlow { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+
+        /* 🔴 MOBILE ADAPTATION (VERTICAL LAYOUT) */
+        @media (max-width: 768px) {
+            .header-section { padding-bottom: 50px; }
+            h1.page-title { font-size: 15vw; }
+            .page-desc { font-size: 14px; padding: 0 20px; }
+
+            /* Navbar Mobile Reset */
+            .smart-nav { flex-direction: column !important; align-items: flex-start !important; width: 90% !important; max-width: 350px !important; height: 60px; overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; }
+            .smart-nav.mobile-active { position: fixed !important; top: 0 !important; left: 0 !important; transform: none !important; width: 100vw !important; max-width: none !important; height: 100vh !important; border-radius: 0 !important; background: #000 !important; border: none !important; padding: 30px !important; justify-content: flex-start !important; align-items: center !important; z-index: 9000 !important; }
+            .nav-header { display: flex !important; width: 100%; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
+            .nav-logo { order: unset; margin-right: 0; }
+            .menu-icon { order: unset; }
+            .nav-links { display: flex !important; flex-direction: column !important; width: 100% !important; opacity: 0; transform: translateY(20px); transition: all 0.4s ease 0.1s; pointer-events: none; margin-top: 0; height: 100%; justify-content: center; align-items: center; gap: 40px !important; order: unset; margin: 0; }
+            .smart-nav.mobile-active .nav-links { opacity: 1 !important; transform: translateY(0) !important; pointer-events: auto !important; visibility: visible !important; }
+            .nav-item { font-size: 28px !important; font-weight: 700 !important; letter-spacing: 2px !important; }
+
+            /* 🔴 CG HERO - Vertical Stack - Fixed Start Position */
+            .cg-hero-section { 
+                flex-direction: column; 
+                width: 90vw; 
+                height: auto; 
+                top: 20%; 
+                left: 50%;
+                transform: translateX(-50%); 
+                gap: 30px; 
+                padding-bottom: 20vh; 
+            }
+            .hero-strip { width: 100%; height: 35vh; flex: 1 !important; } 
+            .video-card video { object-fit: cover; }
+
+            /* 🔴 PRODUCTION - Vertical Stack */
+            .production-section { position: absolute; gap: 30px; height: auto; }
+            .production-group { flex-direction: column; width: 100%; gap: 30px; align-items: center; }
+            .prod-card-wrap { width: 80vw; aspect-ratio: 9/16; }
+            .section-title { font-size: 6vw; margin-bottom: 20px; }
+
+            /* UNREAL ENGINE - Vertical Stack */
+            .ue-big-title { font-size: 8vw; }
+            .ue-small-subtitle { font-size: 3.5vw; }
+            .ue-gallery { display: flex; flex-direction: column; height: auto; width: 90vw; gap: 20px; }
+            .ue-col-left, .ue-col-right { display: contents; }
+            .ue-img-wrapper { width: 100%; height: 30vh; }
+            .ue-col-right > .ue-img-wrapper { height: 40vh; }
+
+            /* LIVE - Vertical Stack */
+            .live-big-title { font-size: 8vw; }
+            .live-gallery { display: flex; flex-direction: column; height: auto; width: 90vw; gap: 20px; }
+            .live-col-left, .live-col-right { display: contents; }
+            .live-img-wrapper { width: 100%; height: 30vh; }
+            .live-col-right > .live-img-wrapper { height: 40vh; }
+
+            /* FRESH - Vertical Stack */
+            .fresh-title { font-size: 12vw; }
+            .fresh-subtitle { font-size: 3.5vw; }
+            .fresh-gallery { flex-direction: column; width: 100%; align-items: center; gap: 30px; }
+            .fresh-img-wrapper { width: 80vw; aspect-ratio: 16/9; }
+
+            /* MODELS - Stacked */
+            .layer-models { flex-direction: column; padding: 10vh 0; justify-content: center; gap: 50px; }
+            .model-container { width: 80vw; height: 40vh; margin: 0 !important; }
+            .reveal-text { font-size: 8vw; }
+        }
       `}</style>
 
-      {/* Preloader - 遮住閃爍畫面 */}
+      {/* Preloader */}
       <div className={`preloader ${!isLoading ? 'hidden' : ''}`}></div>
 
       <div className="noise-overlay"></div>
       
-      <nav className="smart-nav" id="navbar">
-        <Link href="/" className="nav-logo">SAM CHOW.</Link>
+      <nav className="smart-nav" id="navbar" onClick={toggleMenu}>
+        <div className="nav-header">
+            <Link href="/" className="nav-logo">SAM CHOW.</Link>
+            <div className="menu-icon" id="menu-btn">
+                <div className="menu-line"></div>
+                <div className="menu-line"></div>
+                <div className="menu-line"></div>
+            </div>
+        </div>
         <div className="nav-links">
           <Link href="/uiux" className="nav-item">UI/UX</Link>
           <Link href="/graphic" className="nav-item">Graphic</Link>
@@ -453,11 +600,6 @@ export default function ThreeDPage() {
           <Link href="/photography" className="nav-item">Photography</Link>
           <Link href="/video" className="nav-item">Video</Link>
           <Link href="/ai" className="nav-item">AI Generative</Link>
-        </div>
-        <div className="menu-icon" id="menu-btn">
-          <div className="menu-line"></div>
-          <div className="menu-line"></div>
-          <div className="menu-line"></div>
         </div>
       </nav>
 
@@ -555,7 +697,6 @@ export default function ThreeDPage() {
                         {/* @ts-ignore */}
                         <div className="model-container"><model-viewer src="/images/3d_models/all%20hours_product.glb" environment-image="/images/3d_models/studio_lighting.hdr" exposure="1.2" shadow-intensity="1" auto-rotate rotation-per-second="15deg"></model-viewer></div>
                         {/* @ts-ignore */}
-                        {/* 4. 修正路徑: 空格轉 %20 且指向正確的 3d_models 資料夾 */}
                         <div className="model-container"><model-viewer src="/images/3d_models/Black%20Tea%206%20.glb" environment-image="/images/3d_models/studio_lighting.hdr" exposure="1.2" shadow-intensity="1" auto-rotate rotation-per-second="-15deg"></model-viewer></div>
                     </>
                 )}
@@ -572,10 +713,14 @@ export default function ThreeDPage() {
         <div className="scroll-line"></div>
     </div>
 
-    <div className="contact-widget" id="contact-bubble">
+    <div 
+        className={`contact-widget ${isContactExpanded ? 'expanded' : ''}`} 
+        id="contact-bubble"
+        onClick={toggleContact}
+    >
         <div className="contact-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
         <div className="contact-details">
-            <a href="https://wa.me/85267012420" target="_blank" className="contact-link" style={{ color: '#fff' }}><span className="label">WA</span>+852 6701 2420</a>
+            <a href="https://wa.me/85267012420" target="_blank" className="contact-link" style={{ color: '#fff' }}><span className="label">WHATSAPP</span>6701 2420</a>
             <a href="mailto:chowfh254281@gmail.com" className="contact-link" style={{ color: '#fff' }}><span className="label">MAIL</span>chowfh254281@gmail.com</a>
         </div>
     </div>

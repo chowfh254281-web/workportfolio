@@ -5,8 +5,10 @@ import Link from 'next/link';
 export default function AiPage() {
   // 1. Loading 狀態
   const [isLoading, setIsLoading] = useState(true);
+  // 2. Contact Widget State
+  const [isContactExpanded, setIsContactExpanded] = useState(false);
   
-  // 2. Observer Ref (用於自動播放/暫停影片)
+  // 3. Observer Ref (用於自動播放/暫停影片)
   const observerRef = useRef<IntersectionObserver | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
@@ -63,39 +65,63 @@ export default function AiPage() {
         if (video) observerRef.current?.observe(video);
     });
 
-    // Navbar Logic
+    // Navbar Scroll Logic
     const navbar = document.getElementById('navbar');
-    const menuBtn = document.getElementById('menu-btn');
-    const mobileMenu = document.getElementById('mobile-menu');
-
-    const toggleMenu = () => {
-        if (window.innerWidth > 768) {
-            navbar?.classList.toggle('force-expand');
-        } else {
-            mobileMenu?.classList.toggle('active');
-            menuBtn?.classList.toggle('open');
-        }
-    };
-
     const handleScroll = () => {
-        if (window.scrollY > 50) navbar?.classList.add('collapsed');
-        else {
+        if (window.scrollY > 50) {
+            if (navbar && !navbar.classList.contains('mobile-active')) {
+                navbar.classList.add('collapsed');
+            }
+        } else {
             navbar?.classList.remove('collapsed');
             navbar?.classList.remove('force-expand');
         }
     };
-
-    menuBtn?.addEventListener('click', toggleMenu);
     window.addEventListener('scroll', handleScroll);
 
     return () => {
         clearTimeout(timer);
         if (lenis) lenis.destroy();
         if (observerRef.current) observerRef.current.disconnect();
-        menuBtn?.removeEventListener('click', toggleMenu);
         window.removeEventListener('scroll', handleScroll);
     };
   }, []);
+
+  // 🔴 Navbar Toggle Logic (Aligned with Home/Uiux/Graphic)
+  const toggleMenu = (e: React.MouseEvent) => {
+    const navbar = document.getElementById('navbar');
+    const menuBtn = document.getElementById('menu-btn');
+    const target = e.target as HTMLElement;
+    
+    if (!navbar || !menuBtn) return;
+
+    if (window.innerWidth <= 768) {
+        const isActive = navbar.classList.contains('mobile-active');
+        const isLogo = target.closest('.nav-logo');
+
+        if (isLogo && !isActive) return;
+
+        if (isActive) {
+            // Close
+            navbar.classList.remove('mobile-active');
+            menuBtn.classList.remove('open');
+            document.body.style.overflow = ''; 
+        } else {
+            // Open
+            navbar.classList.remove('collapsed'); 
+            navbar.classList.add('mobile-active');
+            menuBtn.classList.add('open');
+            document.body.style.overflow = 'hidden'; 
+        }
+    } else {
+        navbar.classList.toggle('force-expand');
+    }
+  };
+
+  // 🔴 Contact Widget Toggle
+  const toggleContact = () => {
+    setIsContactExpanded(!isContactExpanded);
+  };
 
   return (
     <>
@@ -113,31 +139,59 @@ export default function AiPage() {
         .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; }
         .preloader.hidden { opacity: 0; }
 
-        /* NAVBAR */
-        .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); height: 60px; padding: 0 30px; display: flex; justify-content: space-between; align-items: center; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
-        .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: 30px; }
-        .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; }
+        /* NAVBAR - FULLSCREEN MOBILE OVERLAY */
+        .smart-nav { 
+            position: fixed; top: 30px; left: 50%; transform: translateX(-50%); 
+            padding: 0 30px; display: flex; align-items: center; justify-content: space-between;
+            z-index: 2000; background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
+            border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); 
+            width: auto; min-width: 450px; height: 60px;
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); 
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .nav-header { display: contents; }
+        .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
+        .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; order: 2; margin: 0 40px; }
         .nav-item { text-decoration: none; color: #ccc; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
         .nav-item:hover, .nav-item.active { color: #F4D03F; }
-        .menu-icon { width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; margin-left: 40px; }
-        .menu-line { width: 100%; height: 1px; background-color: #fff; transition: width 0.3s ease; }
+        
+        .menu-icon { 
+            width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; 
+            pointer-events: none; z-index: 2005; order: 3; margin-left: 0;
+        }
+        .menu-line { 
+            width: 100%; height: 1px; background-color: #fff; 
+            transition: all 0.3s ease; transform-origin: center;
+        }
+        
+        /* HAMBURGER TO X ANIMATION */
+        .menu-icon.open .menu-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+        .menu-icon.open .menu-line:nth-child(2) { opacity: 0; }
+        .menu-icon.open .menu-line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+        /* 🔴 DESKTOP ONLY: Hover to expand */
+        @media (min-width: 769px) {
+            .smart-nav:hover, .smart-nav.force-expand { min-width: 650px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
+            .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; gap: 25px !important; pointer-events: auto !important; display: flex !important; } 
+        }
+        
         .smart-nav.collapsed { min-width: 150px; background: rgba(255, 255, 255, 0.05); padding: 0 20px; } 
         .smart-nav.collapsed .nav-links { max-width: 0; opacity: 0; gap: 0; pointer-events: none; } 
         .smart-nav.collapsed .nav-logo { margin-right: 10px; } 
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
-        .smart-nav:hover, .smart-nav.force-expand { min-width: 500px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
-        .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; gap: 25px !important; pointer-events: auto !important; display: flex !important; } 
-        .mobile-menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 1500; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 30px; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; } .mobile-menu-overlay.active { opacity: 1; pointer-events: auto; }
-        .mobile-link { font-size: 30px; font-weight: 700; color: #888; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; transform: translateY(20px); opacity: 0; transition: all 0.4s ease; } .mobile-link:hover { color: #fff; } .mobile-menu-overlay.active .mobile-link { transform: translateY(0); opacity: 1; }
-        @media (max-width: 768px) { .nav-links { display: none !important; } .smart-nav { min-width: 0 !important; width: 90% !important; max-width: 350px; top: 20px; padding: 0 20px !important; } }
-        
+
+        .mobile-menu-overlay { display: none; }
+
         /* HEADER */
         .header-section { padding: 220px 40px 100px 40px; text-align: center; position: relative; z-index: 10; }
         h1.page-title { font-size: 80px; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -2px; opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.2s; color: #fff; }
         .page-desc { margin-top: 20px; font-size: 16px; color: #888; max-width: 600px; display: inline-block; opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.4s; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* VIDEO FEED (Unified with Video Page) */
+        /* VIDEO FEED */
         .video-feed { width: 100%; display: flex; flex-direction: column; gap: 0; padding-bottom: 100px; }
         .video-block { width: 100%; height: 90vh; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); background: #000; }
         
@@ -148,26 +202,71 @@ export default function AiPage() {
         .video-title { font-size: 3vw; font-weight: 800; line-height: 1.1; margin-bottom: 10px; text-shadow: 0 4px 20px rgba(0,0,0,0.8); }
         .video-meta { font-size: 14px; color: #aaa; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
         
-        @media (max-width: 768px) { .video-title { font-size: 40px; } .video-info-overlay { bottom: 60px; left: 20px; right: 20px; } .video-block { height: 70vh; } }
+        /* MOBILE ADAPTATION */
+        @media (max-width: 768px) {
+            .header-section { padding-bottom: 50px; }
+            
+            /* Navbar Fullscreen Overlay & Order Reset */
+            .smart-nav { flex-direction: column !important; align-items: flex-start !important; width: 90% !important; max-width: 350px !important; height: 60px; overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; }
+            .smart-nav.mobile-active { position: fixed !important; top: 0 !important; left: 0 !important; transform: none !important; width: 100vw !important; max-width: none !important; height: 100vh !important; border-radius: 0 !important; background: #000 !important; border: none !important; padding: 30px !important; justify-content: flex-start !important; align-items: center !important; z-index: 9000 !important; }
+            .nav-header { display: flex !important; width: 100%; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
+            .nav-logo { order: unset; margin-right: 0; }
+            .menu-icon { order: unset; }
+            .nav-links { display: flex !important; flex-direction: column !important; width: 100% !important; opacity: 0; transform: translateY(20px); transition: all 0.4s ease 0.1s; pointer-events: none; margin-top: 0; height: 100%; justify-content: center; align-items: center; gap: 40px !important; order: unset; margin: 0; }
+            .smart-nav.mobile-active .nav-links { opacity: 1 !important; transform: translateY(0) !important; pointer-events: auto !important; visibility: visible !important; }
+            .nav-item { font-size: 28px !important; font-weight: 700 !important; letter-spacing: 2px !important; }
+
+            .video-title { font-size: 40px; } 
+            .video-info-overlay { bottom: 60px; left: 20px; right: 20px; } 
+            .video-block { height: 70vh; }
+        }
 
         /* CONTACT WIDGET */
-        .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; }
-        .contact-widget:hover, .contact-widget.expanded { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .contact-widget:hover .contact-details, .contact-widget.expanded .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
+        /* Base (Shared) */
+        .contact-widget { 
+            position: fixed; bottom: 30px; right: 30px; z-index: 2500; 
+            display: flex; align-items: center; 
+            background: rgba(255, 255, 255, 0.08); 
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
+            border: 1px solid rgba(255,255,255,0.15); 
+            border-radius: 50px; padding: 6px; 
+            width: auto; max-width: 52px; height: 52px; 
+            box-sizing: border-box; overflow: hidden; 
+            transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; 
+            cursor: pointer;
+        }
         .contact-icon { width: 38px; height: 38px; background: #fff; color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         .contact-details { opacity: 0; white-space: nowrap; margin-left: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; pointer-events: none; transition: opacity 0.3s ease 0.1s, margin-left 0.4s ease; }
         .contact-link { color: #ccc; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; transition: color 0.3s; }
         .contact-link:hover { color: #fff; }
         .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #666; margin-right: 10px; width: 60px; font-weight: 700; }
+
+        /* 🔴 Expanded State (Mobile Click / Desktop Click) */
+        .contact-widget.expanded { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .contact-widget.expanded .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
+
+        /* 🔴 Desktop Only Hover */
+        @media (min-width: 769px) {
+            .contact-widget:hover { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+            .contact-widget:hover .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
+        }
       `}</style>
 
-      {/* Preloader - 遮住閃爍畫面 */}
+      {/* Preloader */}
       <div className={`preloader ${!isLoading ? 'hidden' : ''}`}></div>
 
       <div className="noise-overlay"></div>
 
-      <nav className="smart-nav" id="navbar">
-        <Link href="/" className="nav-logo">SAM CHOW.</Link>
+      {/* 🔴 Updated Navbar with onClick Handler */}
+      <nav className="smart-nav" id="navbar" onClick={toggleMenu}>
+        <div className="nav-header">
+            <Link href="/" className="nav-logo">SAM CHOW.</Link>
+            <div className="menu-icon" id="menu-btn">
+                <div className="menu-line"></div>
+                <div className="menu-line"></div>
+                <div className="menu-line"></div>
+            </div>
+        </div>
         <div className="nav-links">
           <Link href="/uiux" className="nav-item">UI/UX</Link>
           <Link href="/graphic" className="nav-item">Graphic</Link>
@@ -175,11 +274,6 @@ export default function AiPage() {
           <Link href="/photography" className="nav-item">Photography</Link>
           <Link href="/video" className="nav-item">Video</Link>
           <Link href="/ai" className="nav-item active">AI Generative</Link>
-        </div>
-        <div className="menu-icon" id="menu-btn">
-          <div className="menu-line"></div>
-          <div className="menu-line"></div>
-          <div className="menu-line"></div>
         </div>
       </nav>
 
@@ -218,10 +312,14 @@ export default function AiPage() {
         ))}
       </div>
 
-      <div className="contact-widget" id="contact-bubble">
+      <div 
+        className={`contact-widget ${isContactExpanded ? 'expanded' : ''}`} 
+        id="contact-bubble"
+        onClick={toggleContact}
+      >
         <div className="contact-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
         <div className="contact-details">
-            <a href="https://wa.me/85267012420" target="_blank" className="contact-link" style={{ color: '#fff' }}><span className="label">WA</span>+852 6701 2420</a>
+            <a href="https://wa.me/85267012420" target="_blank" className="contact-link" style={{ color: '#fff' }}><span className="label">WHATSAPP</span>6701 2420</a>
             <a href="mailto:chowfh254281@gmail.com" className="contact-link" style={{ color: '#fff' }}><span className="label">MAIL</span>chowfh254281@gmail.com</a>
         </div>
       </div>

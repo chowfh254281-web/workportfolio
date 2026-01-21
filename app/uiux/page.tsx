@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
 export default function UiuxPage() {
-  // 1. 新增 Loading 狀態 (Preloader)
   const [isLoading, setIsLoading] = useState(true);
 
   // Refs for drag containers
@@ -20,14 +19,13 @@ export default function UiuxPage() {
   const kenzoSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // 設定 Preloader Timer (0.5秒後淡出)
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 500);
 
     let lenis: any;
 
-    // 1. Initialize Lenis Smooth Scroll
+    // 1. Initialize Lenis
     import('@studio-freight/lenis').then((Lenis) => {
       lenis = new Lenis.default({
         duration: 1.2,
@@ -106,8 +104,7 @@ export default function UiuxPage() {
         centerSection(kenzoRef.current, '.kenzo-strip');
     }, 500);
 
-
-    // 4. Intersection Observer for Fade-In
+    // 4. Intersection Observer
     const observerCallback = (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -143,46 +140,64 @@ export default function UiuxPage() {
     if (christmasSectionRef.current) scrollObserver.observe(christmasSectionRef.current);
     if (kenzoSectionRef.current) scrollObserver.observe(kenzoSectionRef.current);
 
-    // Navbar Logic
+    // Navbar Scroll Logic
     const navbar = document.getElementById('navbar');
-    const menuBtn = document.getElementById('menu-btn');
-    const mobileMenu = document.getElementById('mobile-menu');
-
-    const toggleMenu = () => {
-        if (window.innerWidth > 768) {
-            navbar?.classList.toggle('force-expand');
-        } else {
-            mobileMenu?.classList.toggle('active');
-            menuBtn?.classList.toggle('open');
-        }
-    };
-
     const handleScroll = () => {
-        if (window.scrollY > 50) navbar?.classList.add('collapsed');
-        else {
+        if (window.scrollY > 50) {
+            if (navbar && !navbar.classList.contains('mobile-active')) {
+                navbar.classList.add('collapsed');
+            }
+        } else {
             navbar?.classList.remove('collapsed');
             navbar?.classList.remove('force-expand');
         }
     };
-
-    menuBtn?.addEventListener('click', toggleMenu);
     window.addEventListener('scroll', handleScroll);
 
     return () => {
-      clearTimeout(timer); // Cleanup timer
+      clearTimeout(timer);
       if (lenis) lenis.destroy();
       cleanupGallery && cleanupGallery();
       cleanupMinigame && cleanupMinigame();
       cleanupChristmas && cleanupChristmas();
       cleanupKenzo && cleanupKenzo();
       scrollObserver.disconnect();
-      menuBtn?.removeEventListener('click', toggleMenu);
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
+  // Navbar Toggle Logic
+  const toggleMenu = (e: React.MouseEvent) => {
+    const navbar = document.getElementById('navbar');
+    const menuBtn = document.getElementById('menu-btn');
+    const target = e.target as HTMLElement;
+    
+    if (!navbar || !menuBtn) return;
+
+    if (window.innerWidth <= 768) {
+        const isActive = navbar.classList.contains('mobile-active');
+        const isLogo = target.closest('.nav-logo');
+
+        if (isLogo && !isActive) return; 
+
+        if (isActive) {
+            navbar.classList.remove('mobile-active');
+            menuBtn.classList.remove('open');
+            document.body.style.overflow = ''; 
+        } else {
+            navbar.classList.remove('collapsed'); 
+            navbar.classList.add('mobile-active');
+            menuBtn.classList.add('open');
+            document.body.style.overflow = 'hidden'; 
+        }
+    } else {
+        navbar.classList.toggle('force-expand');
+    }
+  };
+
   return (
     <>
+      {/* @ts-ignore */}
       <style jsx global>{`
         /* PERFORMANCE & RESET */
         * { box-sizing: border-box; }
@@ -197,23 +212,50 @@ export default function UiuxPage() {
         .preloader.hidden { opacity: 0; }
 
         /* NAVBAR */
-        .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); height: 60px; padding: 0 30px; display: flex; justify-content: space-between; align-items: center; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
-        .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: 30px; }
+        .smart-nav { 
+            position: fixed; top: 30px; left: 50%; transform: translateX(-50%); 
+            padding: 0 30px; display: flex; align-items: center; justify-content: space-between;
+            z-index: 2000; background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
+            border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); 
+            width: auto; min-width: 450px; height: 60px;
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); 
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .nav-header { display: contents; }
+        .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: 30px; cursor: pointer; }
         .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; }
         .nav-item { text-decoration: none; color: #ccc; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
         .nav-item:hover, .nav-item.active { color: #F4D03F; }
-        .menu-icon { width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; margin-left: 40px; }
-        .menu-line { width: 100%; height: 1px; background-color: #fff; transition: width 0.3s ease; }
+        
+        .menu-icon { 
+            width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; margin-left: 40px; 
+            pointer-events: none; z-index: 2005; 
+        }
+        .menu-line { 
+            width: 100%; height: 1px; background-color: #fff; 
+            transition: all 0.3s ease; transform-origin: center;
+        }
+        
+        .menu-icon.open .menu-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+        .menu-icon.open .menu-line:nth-child(2) { opacity: 0; }
+        .menu-icon.open .menu-line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+        /* 🔴 DESKTOP ONLY: Hover to expand */
+        @media (min-width: 769px) {
+            .smart-nav:hover, .smart-nav.force-expand { min-width: 650px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
+            .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; gap: 25px !important; pointer-events: auto !important; display: flex !important; } 
+        }
+        
         .smart-nav.collapsed { min-width: 150px; background: rgba(255, 255, 255, 0.05); padding: 0 20px; } 
         .smart-nav.collapsed .nav-links { max-width: 0; opacity: 0; gap: 0; pointer-events: none; } 
         .smart-nav.collapsed .nav-logo { margin-right: 10px; } 
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
-        .smart-nav:hover, .smart-nav.force-expand { min-width: 500px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
-        .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; gap: 25px !important; pointer-events: auto !important; display: flex !important; } 
-        .mobile-menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 1500; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 30px; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; } .mobile-menu-overlay.active { opacity: 1; pointer-events: auto; }
-        .mobile-link { font-size: 30px; font-weight: 700; color: #888; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; transform: translateY(20px); opacity: 0; transition: all 0.4s ease; } .mobile-link:hover { color: #fff; } .mobile-menu-overlay.active .mobile-link { transform: translateY(0); opacity: 1; }
-        @media (max-width: 768px) { .nav-links { display: none !important; } .smart-nav { min-width: 0 !important; width: 90% !important; max-width: 350px; top: 20px; padding: 0 20px !important; } }
-        
+
+        .mobile-menu-overlay { display: none; }
+
         /* HEADER */
         .header-section { padding: 220px 40px 80px 40px; text-align: center; position: relative; z-index: 10; }
         h1.page-title { font-size: 80px; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -2px; opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.2s; color: #fff; }
@@ -285,30 +327,6 @@ export default function UiuxPage() {
         .kenzo-item img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
         .kenzo-item:hover { transform: scale(1.05); animation-play-state: paused; }
 
-        @media (max-width: 768px) {
-            .header-section { padding-bottom: 40px; }
-            .uiux-showcase { height: 70vh; min-height: 450px; }
-            .uiux-strip { gap: 20px; padding: 20px 30px; height: 60vh; }
-            .kiehls-section { justify-content: center; padding-right: 0; height: 80vh; }
-            .kiehls-img-container { height: 65vh; width: auto; }
-            .kiehls-static-showcase { height: auto; padding: 60px 20px; align-items: flex-start; }
-            .kiehls-static-strip { flex-direction: column; height: auto; width: 100%; gap: 40px; padding: 20px 0; }
-            .kiehls-static-item { width: 100%; height: auto; max-height: 70vh; transform: translateY(30px); }
-            .kiehls-static-item img { width: 100%; height: auto; }
-            .clarins-section { height: auto; padding: 100px 0; }
-            .clarins-content { flex-direction: column; gap: 40px; height: auto; justify-content: center; }
-            .clarins-item.product { height: 40vh; width: auto; }
-            .clarins-item.phone { height: 50vh; width: auto; }
-            .clarins-minigame-showcase, .christmas-showcase { height: auto; padding: 60px 20px; display: block; }
-            .minigame-header { font-size: 5vw; text-align: center; margin-bottom: 40px; }
-            .minigame-scroll-wrapper, .christmas-showcase .scroll-container { display: block; width: 100%; }
-            .clarins-minigame-strip, .christmas-strip { flex-direction: column; height: auto; width: 100%; gap: 40px; padding: 20px 0; }
-            .clarins-minigame-item, .christmas-item { width: 100%; height: auto; max-height: 70vh; }
-            .clarins-minigame-item img, .christmas-item img { width: 100%; height: auto; }
-            .kenzo-showcase { height: 70vh; min-height: 450px; }
-            .kenzo-strip { gap: 20px; padding: 20px 30px; height: 60vh; }
-        }
-
         /* CONTACT WIDGET */
         .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; }
         .contact-widget:hover, .contact-widget.expanded { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
@@ -318,15 +336,71 @@ export default function UiuxPage() {
         .contact-link { color: #ccc; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; transition: color 0.3s; }
         .contact-link:hover { color: #fff; }
         .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #666; margin-right: 10px; width: 60px; font-weight: 700; }
+
+        /* 🔴 MOBILE ADAPTATION - IMAGES ~70% WIDTH & CENTERED & OVERLAP FIX */
+        @media (max-width: 768px) {
+            .header-section { padding-bottom: 40px; }
+            
+            /* Navbar */
+            .smart-nav { flex-direction: column !important; align-items: flex-start !important; width: 90% !important; max-width: 350px !important; height: 60px; overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; }
+            .smart-nav.mobile-active { position: fixed !important; top: 0 !important; left: 0 !important; transform: none !important; width: 100vw !important; max-width: none !important; height: 100vh !important; border-radius: 0 !important; background: #000 !important; border: none !important; padding: 30px !important; justify-content: flex-start !important; align-items: center !important; z-index: 9000 !important; }
+            .nav-header { display: flex !important; width: 100%; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
+            .nav-links { display: flex !important; flex-direction: column !important; width: 100% !important; opacity: 0; transform: translateY(20px); transition: all 0.4s ease 0.1s; pointer-events: none; margin-top: 0; height: 100%; justify-content: center; align-items: center; gap: 40px !important; }
+            .smart-nav.mobile-active .nav-links { opacity: 1 !important; transform: translateY(0) !important; pointer-events: auto !important; visibility: visible !important; }
+            .nav-item { font-size: 28px !important; font-weight: 700 !important; letter-spacing: 2px !important; }
+
+            /* 🔴 Prevent Image Crop & One Per Row & ~70% Smaller */
+            .uiux-showcase { height: auto; min-height: 450px; padding-bottom: 50px; }
+            .uiux-strip { flex-direction: column; height: auto; width: 100%; gap: 40px; padding: 20px 30px; pointer-events: auto; align-items: center; }
+            
+            /* 🔴 Reduced width to 70% */
+            .uiux-strip-item { width: 70% !important; height: auto; aspect-ratio: auto; max-height: none; animation: none; transform: none !important; margin: 0 auto; }
+            .uiux-strip-item img, .uiux-strip-item video { width: 100%; height: auto; object-fit: contain; }
+
+            .kiehls-section { justify-content: center; padding-right: 0; height: 80vh; }
+            /* 🔴 Kiehls main product reduced to 35% (half size) */
+            .kiehls-img-container { height: auto; width: 35% !important; margin: 0 auto; }
+            .kiehls-img-container img { width: 100%; height: auto; object-fit: contain; }
+
+            .kiehls-static-showcase { height: auto; padding: 60px 20px; align-items: flex-start; }
+            .kiehls-static-strip { flex-direction: column; height: auto; width: 100%; gap: 40px; padding: 20px 0; align-items: center; }
+            /* 🔴 Reduced width to 70% */
+            .kiehls-static-item { width: 70% !important; height: auto; max-height: 70vh; transform: translateY(0) !important; animation: none; opacity: 1 !important; margin: 0 auto; }
+            .kiehls-static-item img { width: 100%; height: auto; object-fit: contain; }
+
+            .clarins-section { height: auto; padding: 100px 0; }
+            .clarins-content { flex-direction: column; gap: 40px; height: auto; justify-content: center; align-items: center; }
+            /* 🔴 Reduced width to ~28% (half size) */
+            .clarins-item.product { height: auto; width: 28% !important; animation: none; margin: 0 auto; }
+            .clarins-item.phone { height: auto; width: 55% !important; animation: none; margin: 0 auto; }
+            .clarins-item img { width: 100%; height: auto; }
+
+            .clarins-minigame-showcase, .christmas-showcase { height: auto; padding: 60px 20px; display: block; }
+            .minigame-header { font-size: 6vw; text-align: center; margin-bottom: 40px; }
+            .minigame-scroll-wrapper, .christmas-showcase .scroll-container { display: block; width: 100%; }
+            .clarins-minigame-strip, .christmas-strip { flex-direction: column; height: auto; width: 100%; gap: 40px; padding: 20px 0; pointer-events: auto; align-items: center; }
+            /* 🔴 Reduced width to 70% */
+            .clarins-minigame-item, .christmas-item { width: 70% !important; height: auto; max-height: none; animation: none; transform: none !important; opacity: 1 !important; margin: 0 auto; }
+            .clarins-minigame-item img, .christmas-item img { width: 100%; height: auto; object-fit: contain; }
+
+            .kenzo-showcase { height: auto; min-height: 450px; padding-bottom: 50px; }
+            .kenzo-strip { flex-direction: column; height: auto; width: 100%; gap: 40px; padding: 20px 30px; pointer-events: auto; align-items: center; }
+            /* 🔴 Reduced width to 70% */
+            .kenzo-item { width: 70% !important; height: auto; aspect-ratio: auto; max-height: none; animation: none; transform: none !important; opacity: 1 !important; margin: 0 auto; }
+            .kenzo-item img { width: 100%; height: auto; object-fit: contain; }
+        }
       `}</style>
 
-      {/* Preloader - 遮住閃爍畫面 */}
-      <div className={`preloader ${!isLoading ? 'hidden' : ''}`}></div>
-
-      <div className="noise-overlay"></div>
-
-      <nav className="smart-nav" id="navbar">
-        <Link href="/" className="nav-logo">SAM CHOW.</Link>
+      {/* 🔴 Updated Navbar with onClick Handler */}
+      <nav className="smart-nav" id="navbar" onClick={toggleMenu}>
+        <div className="nav-header">
+            <Link href="/" className="nav-logo">SAM CHOW.</Link>
+            <div className="menu-icon" id="menu-btn">
+                <div className="menu-line"></div>
+                <div className="menu-line"></div>
+                <div className="menu-line"></div>
+            </div>
+        </div>
         <div className="nav-links">
           <Link href="/uiux" className="nav-item active">UI/UX</Link>
           <Link href="/graphic" className="nav-item">Graphic</Link>
@@ -335,28 +409,14 @@ export default function UiuxPage() {
           <Link href="/video" className="nav-item">Video</Link>
           <Link href="/ai" className="nav-item">AI Generative</Link>
         </div>
-        <div className="menu-icon" id="menu-btn">
-          <div className="menu-line"></div>
-          <div className="menu-line"></div>
-          <div className="menu-line"></div>
-        </div>
       </nav>
 
-      <div className="mobile-menu-overlay" id="mobile-menu">
-        <Link href="/uiux" className="mobile-link">UI/UX</Link>
-        <Link href="/graphic" className="mobile-link">Graphic</Link>
-        <Link href="/3d" className="mobile-link">3D</Link>
-        <Link href="/photography" className="mobile-link">Photography</Link>
-        <Link href="/video" className="mobile-link">Video</Link>
-        <Link href="/ai" className="mobile-link">AI Generative</Link>
-      </div>
-
+      {/* ... Content ... */}
       <div className="header-section">
         <h1 className="page-title">UI/UX Design</h1>
         <div className="page-desc">Crafting intuitive digital experiences and seamless interactions.</div>
       </div>
 
-      {/* SHISEIDO */}
       <div className="uiux-showcase">
         <div className="scroll-container" id="draggable-gallery" ref={galleryRef}>
           <div className="uiux-strip">
@@ -443,7 +503,7 @@ export default function UiuxPage() {
       <div className="contact-widget" id="contact-bubble">
         <div className="contact-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
         <div className="contact-details">
-            <a href="https://wa.me/85267012420" target="_blank" className="contact-link" style={{ color: '#fff' }}><span className="label">WA</span>+852 6701 2420</a>
+            <a href="https://wa.me/85267012420" target="_blank" className="contact-link" style={{ color: '#fff' }}><span className="label">WHATSAPP</span>6701 2420</a>
             <a href="mailto:chowfh254281@gmail.com" className="contact-link" style={{ color: '#fff' }}><span className="label">MAIL</span>chowfh254281@gmail.com</a>
         </div>
     </div>

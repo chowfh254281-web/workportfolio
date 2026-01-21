@@ -17,8 +17,7 @@ export default function HomePage() {
     ];
     setRandomAiVideo(aiVideoSources[Math.floor(Math.random() * aiVideoSources.length)]);
 
-    // 🔴 修改這裡：將時間從 500 改為 2000 (2秒)
-    // 這樣可以確保瀏覽器有足夠時間排版，不會閃爍
+    // Preloader 設定 (2秒)
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 2000);
@@ -26,11 +25,35 @@ export default function HomePage() {
     return () => clearTimeout(timer);
   }, []);
 
-  // 3. 動畫與邏輯
+  // 3. Navbar Toggle Logic
+  const toggleMenu = () => {
+    const navbar = document.getElementById('navbar');
+    const menuBtn = document.getElementById('menu-btn');
+    
+    if (!navbar || !menuBtn) return;
+
+    if (window.innerWidth <= 768) {
+        const isActive = navbar.classList.contains('mobile-active');
+        
+        if (isActive) {
+            navbar.classList.remove('mobile-active');
+            menuBtn.classList.remove('open');
+            document.body.style.overflow = ''; 
+        } else {
+            navbar.classList.remove('collapsed'); 
+            navbar.classList.add('mobile-active');
+            menuBtn.classList.add('open');
+            document.body.style.overflow = 'hidden'; 
+        }
+    } else {
+        navbar.classList.toggle('force-expand');
+    }
+  };
+
+  // 4. 動畫與邏輯
   useEffect(() => {
     let lenis: any;
     
-    // 初始化 Lenis
     import('@studio-freight/lenis').then((Lenis) => {
       lenis = new Lenis.default({
         duration: 1.2,
@@ -45,10 +68,7 @@ export default function HomePage() {
       requestAnimationFrame(raf);
     });
 
-    // 獲取 DOM 元素
     const navbar = document.getElementById('navbar');
-    const menuBtn = document.getElementById('menu-btn');
-    const mobileMenu = document.getElementById('mobile-menu');
     const title = document.querySelector('.main-title') as HTMLElement;
     const subtitle = document.querySelector('.subtitle') as HTMLElement;
     const seamlessHero = document.getElementById('seamless-hero');
@@ -63,18 +83,6 @@ export default function HomePage() {
     const scrollPrompt = document.getElementById('scroll-prompt');
     const overviewTitle = document.getElementById('overview-title');
 
-    // Navbar 邏輯
-    const toggleMenu = () => {
-      if (window.innerWidth > 768) {
-        navbar?.classList.toggle('force-expand');
-      } else {
-        mobileMenu?.classList.toggle('active');
-        menuBtn?.classList.toggle('open');
-      }
-    };
-    menuBtn?.addEventListener('click', toggleMenu);
-
-    // 文字分割 Helper
     function splitTextIntoSpans(element: HTMLElement) {
         const childNodes = Array.from(element.childNodes);
         element.innerHTML = '';
@@ -136,14 +144,18 @@ export default function HomePage() {
         overviewTitle.classList.add('split-done');
     }
 
-    // Animation Loop
     const animateLoop = () => {
       const scrollY = window.scrollY;
       const windowHeight = window.innerHeight;
       const windowWidth = window.innerWidth;
 
-      if (scrollY > 50) navbar?.classList.add('collapsed');
-      else {
+      if (scrollY > 50) {
+          if (navbar && navbar.classList.contains('mobile-active')) {
+              navbar.classList.remove('collapsed');
+          } else {
+              navbar?.classList.add('collapsed');
+          }
+      } else {
         navbar?.classList.remove('collapsed');
         navbar?.classList.remove('force-expand');
       }
@@ -257,7 +269,12 @@ export default function HomePage() {
 
           if (detailsBlock) {
               detailsBlock.style.opacity = Math.max(0, Math.min(detailsOp, 1)).toString();
-              detailsBlock.style.transform = `translateY(${(1 - Math.min(detailsOp, 1)) * 20}px)`;
+              
+              if (window.innerWidth > 768) {
+                  detailsBlock.style.transform = `translateY(${(1 - Math.min(detailsOp, 1)) * 20}px)`;
+              } else {
+                  detailsBlock.style.transform = ''; 
+              }
           }
           if (heroOverlay) heroOverlay.style.opacity = (growP * 0.6).toString();
         }
@@ -283,7 +300,6 @@ export default function HomePage() {
 
     return () => {
       cancelAnimationFrame(startAnim);
-      menuBtn?.removeEventListener('click', toggleMenu);
       if (lenis) lenis.destroy();
     };
   }, []);
@@ -376,23 +392,55 @@ export default function HomePage() {
         .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; }
         .preloader.hidden { opacity: 0; }
 
-        /* NAVBAR */
-        .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); height: 60px; padding: 0 30px; display: flex; justify-content: space-between; align-items: center; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
-        .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: 30px; }
+        /* NAVBAR - FULLSCREEN MOBILE OVERLAY */
+        .smart-nav { 
+            position: fixed; top: 30px; left: 50%; transform: translateX(-50%); 
+            padding: 0 30px; display: flex; align-items: center; justify-content: space-between;
+            z-index: 2000; background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
+            border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); 
+            width: auto; min-width: 450px; height: 60px;
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); 
+            overflow: hidden;
+            /* 🔴 CURSOR POINTER for entire bar */
+            cursor: pointer; 
+        }
+        
+        /* Inner Wrapper for Logo and Burger */
+        .nav-header {
+            display: contents; /* Desktop: acts as if not there */
+        }
+
+        .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: 30px; cursor: pointer; }
         .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; }
         .nav-item { text-decoration: none; color: #ccc; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
         .nav-item:hover, .nav-item.active { color: #F4D03F; }
-        .menu-icon { width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; margin-left: 40px; }
-        .menu-line { width: 100%; height: 1px; background-color: #fff; transition: width 0.3s ease; }
+        
+        /* Menu Icon */
+        .menu-icon { 
+            width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; margin-left: 40px; 
+            pointer-events: none; /* Let clicks pass to nav */
+            z-index: 2005; 
+        }
+        .menu-line { 
+            width: 100%; height: 1px; background-color: #fff; 
+            transition: all 0.3s ease; transform-origin: center;
+        }
+        
+        /* HAMBURGER TO X ANIMATION */
+        .menu-icon.open .menu-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+        .menu-icon.open .menu-line:nth-child(2) { opacity: 0; }
+        .menu-icon.open .menu-line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+        /* Desktop Hover Expand */
+        .smart-nav:hover, .smart-nav.force-expand { min-width: 650px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
+        .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; gap: 25px !important; pointer-events: auto !important; display: flex !important; } 
+        
         .smart-nav.collapsed { min-width: 150px; background: rgba(255, 255, 255, 0.05); padding: 0 20px; } 
         .smart-nav.collapsed .nav-links { max-width: 0; opacity: 0; gap: 0; pointer-events: none; } 
         .smart-nav.collapsed .nav-logo { margin-right: 10px; } 
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
-        .smart-nav:hover, .smart-nav.force-expand { min-width: 500px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
-        .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; gap: 25px !important; pointer-events: auto !important; display: flex !important; } 
-        .mobile-menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 1500; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 30px; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; } .mobile-menu-overlay.active { opacity: 1; pointer-events: auto; }
-        .mobile-link { font-size: 30px; font-weight: 700; color: #888; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; transform: translateY(20px); opacity: 0; transition: all 0.4s ease; } .mobile-link:hover { color: #fff; } .mobile-menu-overlay.active .mobile-link { transform: translateY(0); opacity: 1; }
-        @media (max-width: 768px) { .nav-links { display: none !important; } .smart-nav { min-width: 0 !important; width: 90% !important; max-width: 350px; top: 20px; padding: 0 20px !important; } }
+
         /* INTRO */
         .intro-section { height: 100vh; width: 100%; position: relative; overflow: hidden; margin-bottom: 0; z-index: 10; }
         .intro-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 50; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; will-change: opacity, transform, color; }
@@ -439,8 +487,20 @@ export default function HomePage() {
         .hero-img-wrapper { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
         .hero-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.8s ease, filter 0.5s ease, opacity 0.5s ease; }
         .hero-img.static-thumb { filter: brightness(0.6); transform: scale(1); }
-        .hero-category-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8vw; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 20; pointer-events: none; text-align: center; width: 100%; transition: opacity 0.5s ease; opacity: 1; }
-        .hero-section:hover .hero-category-label { opacity: 0; }
+        
+        .hero-category-label { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -30%); 
+            font-size: 8vw; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; 
+            color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 20; 
+            pointer-events: none; text-align: center; width: 100%; 
+            opacity: 0; /* Hidden by default on Desktop */
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); 
+        }
+        .hero-section:hover .hero-category-label { 
+            opacity: 1; 
+            transform: translate(-50%, -50%); 
+        }
+
         .yt-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
         .hero-section:hover .yt-thumb { opacity: 0; } 
         /* CONTACT */
@@ -462,13 +522,186 @@ export default function HomePage() {
         .contact-link { color: #ccc; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; transition: color 0.3s; }
         .contact-link:hover { color: #fff; }
         .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #666; margin-right: 10px; width: 60px; font-weight: 700; }
+
+        /* MOBILE ADAPTATION OVERRIDES */
+        @media (max-width: 768px) {
+            /* 🔴 FIX GRID: Single Column to fix off-center text */
+            .about-grid { 
+                display: block !important; 
+            }
+            .card-target-left {
+                display: none !important; 
+            }
+
+            /* 🔴 Mobile Text Always Visible */
+            .hero-category-label {
+                opacity: 1 !important;
+                transform: translate(-50%, -50%) !important;
+            }
+
+            /* NAVBAR FULL SCREEN OVERLAY FIX */
+            .smart-nav { 
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                width: 90% !important; 
+                max-width: 350px !important;
+                height: 60px; 
+                overflow: hidden;
+                transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+                /* 🔴 RESET MIN-WIDTH for Mobile! */
+                min-width: 0 !important; 
+            }
+            
+            .smart-nav.mobile-active {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                transform: none !important;
+                width: 100vw !important; 
+                max-width: none !important;
+                height: 100vh !important;
+                
+                border-radius: 0 !important;
+                background: #000 !important;
+                border: none !important;
+                padding: 30px !important; 
+                justify-content: flex-start !important;
+                align-items: center !important; /* Center the content horizontally */
+                z-index: 9000 !important; 
+            }
+            
+            .nav-header {
+                display: flex !important;
+                width: 100%;
+                justify-content: space-between;
+                align-items: center;
+                height: 60px;
+                flex-shrink: 0;
+            }
+            
+            .nav-links { 
+                display: flex !important;
+                flex-direction: column !important;
+                width: 100% !important;
+                opacity: 0;
+                transform: translateY(20px);
+                transition: all 0.4s ease 0.1s;
+                pointer-events: none;
+                margin-top: 0;
+                height: 100%;
+                justify-content: center;
+                align-items: center; /* Center Items */
+                text-align: center; /* Ensure text is centered */
+                gap: 40px !important;
+            }
+            
+            .smart-nav.mobile-active .nav-links {
+                opacity: 1 !important;
+                transform: translateY(0) !important;
+                pointer-events: auto !important;
+                visibility: visible !important;
+            }
+            
+            .nav-item {
+                font-size: 28px !important;
+                font-weight: 700 !important;
+                letter-spacing: 2px !important;
+            }
+
+            .main-title { font-size: 18vw; }
+            .subtitle { font-size: 16px; padding: 0 20px; }
+
+            /* 🔴 MOBILE TEXT CONTAINER HEIGHT FIX */
+            .text-container {
+                height: 100vh !important; /* Force full height so top:50% works */
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                width: 100% !important;
+                padding: 0 20px;
+            }
+            .text-layer-1 { 
+                font-size: 28px; 
+                width: 90%; 
+                line-height: 1.3; 
+            }
+            /* 🔴 TEXT VERTICAL AND HORIZONTAL CENTER FIX */
+            .text-layer-2 { 
+                position: absolute !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important; /* Perfect Center */
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                align-items: center !important;
+                text-align: center !important;
+                padding: 0 20px !important; /* Reduced padding */
+                pointer-events: none;
+            }
+            .details-text { 
+                font-size: 16px;
+                line-height: 1.5;
+                color: #eee; 
+                text-align: center !important;
+                margin-bottom: 20px;
+                width: 100%;
+            }
+            .citation-list { 
+                text-align: left; 
+                display: inline-block; 
+                margin-top: 10px; 
+                width: 100%;
+                /* 🔴 REMOVED MAX-WIDTH LIMIT */
+                max-width: 100% !important; 
+            }
+
+            .contact-content { 
+                flex-direction: column !important; 
+                gap: 30px; 
+            }
+            .contact-content.shift-layout { 
+                gap: 40px; 
+                transform: translate(-50%, -60%); 
+            }
+            .contact-title { 
+                font-size: 15vw; 
+                white-space: normal; 
+                text-align: center; 
+            }
+            .vertical-line { 
+                width: 1px; 
+                height: 40px !important; 
+                margin: 20px 0 !important; 
+            }
+            .contact-content.shift-layout .vertical-line {
+                height: 60px !important;
+            }
+            .qr-container { 
+                transform: translateY(20px); 
+            }
+            .contact-content.shift-layout .qr-container {
+                width: 150px; 
+                transform: translateY(0);
+            }
+        }
       `}</style>
 
       {/* Preloader - 遮住閃爍的畫面 */}
       <div className={`preloader ${!isLoading ? 'hidden' : ''}`}></div>
 
-      <nav className="smart-nav" id="navbar">
-        <Link href="/" className="nav-logo">SAM CHOW.</Link>
+      {/* 🔴 Added onClick to the NAV container */}
+      <nav className="smart-nav" id="navbar" onClick={toggleMenu}>
+        <div className="nav-header">
+            <Link href="/" className="nav-logo">SAM CHOW.</Link>
+            {/* 🔴 Removed onClick from menu-icon to let event bubble to nav */}
+            <div className="menu-icon" id="menu-btn">
+                <div className="menu-line"></div>
+                <div className="menu-line"></div>
+                <div className="menu-line"></div>
+            </div>
+        </div>
         <div className="nav-links">
           <Link href="/uiux" className="nav-item">UI/UX</Link>
           <Link href="/graphic" className="nav-item">Graphic</Link>
@@ -477,21 +710,7 @@ export default function HomePage() {
           <Link href="/video" className="nav-item">Video</Link>
           <Link href="/ai" className="nav-item">AI Generative</Link>
         </div>
-        <div className="menu-icon" id="menu-btn">
-          <div className="menu-line"></div>
-          <div className="menu-line"></div>
-          <div className="menu-line"></div>
-        </div>
       </nav>
-
-      <div className="mobile-menu-overlay" id="mobile-menu">
-        <Link href="/uiux" className="mobile-link">UI/UX</Link>
-        <Link href="/graphic" className="mobile-link">Graphic</Link>
-        <Link href="/3d" className="mobile-link">3D</Link>
-        <Link href="/photography" className="mobile-link">Photography</Link>
-        <Link href="/video" className="mobile-link">Video</Link>
-        <Link href="/ai" className="mobile-link">AI Generative</Link>
-      </div>
 
       <div className="seamless-hero" id="seamless-hero">
         <img src="/images/profile.jpg" className="hero-inner-img img-card" alt="Card" />
