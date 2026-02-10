@@ -8,7 +8,7 @@ export default function PhotographyPage() {
   // 2. Contact Widget State
   const [isContactExpanded, setIsContactExpanded] = useState(false);
 
-  // Refs for animation targets
+  // Refs for animation targets (Added row7Ref)
   const wrapperRef = useRef<HTMLDivElement>(null);
   const row1Ref = useRef<HTMLDivElement>(null);
   const row2Ref = useRef<HTMLDivElement>(null);
@@ -16,6 +16,7 @@ export default function PhotographyPage() {
   const row4Ref = useRef<HTMLDivElement>(null);
   const row5Ref = useRef<HTMLDivElement>(null);
   const row6Ref = useRef<HTMLDivElement>(null);
+  const row7Ref = useRef<HTMLDivElement>(null); // NEW
 
   useEffect(() => {
     // Preloader Timer
@@ -42,53 +43,47 @@ export default function PhotographyPage() {
       requestAnimationFrame(raf);
     });
 
-    // 2. Desktop Marquee Animation Logic (With LOOPING)
+    // 2. Desktop Marquee Animation Logic
     const initDesktopAnimation = () => {
+      // Added row7Ref
       const rows = [
         row1Ref.current, row2Ref.current, row3Ref.current, 
-        row4Ref.current, row5Ref.current, row6Ref.current
+        row4Ref.current, row5Ref.current, row6Ref.current,
+        row7Ref.current
       ];
       
       if (!rows[0]) return;
 
-      let baseSpeed = 0.5; // Auto-scroll speed
+      let baseSpeed = 0.5; 
       let scrollVelocity = 0;
       let skewStrength = 0;
-      let singleSetWidth = 0;
+      
+      const vw = window.innerWidth;
+      const gap = 15;
+
+      // --- WIDTH SETTINGS ---
+      // Odd Rows (9:16): 25vw width
+      // Even Rows (16:9): 60vw width (INCREASED SIZE)
+      const oddItemWidth = vw * 0.25; 
+      const evenItemWidth = vw * 0.60; // Bigger landscape images
+
+      // Calculate total width of one set (Assuming 5 items per row)
+      const oddRowWidth = (oddItemWidth * 5) + (gap * 5); 
+      const evenRowWidth = (evenItemWidth * 5) + (gap * 5); 
 
       // Positions
-      let pos1 = 0, pos3 = 0, pos5 = 0; 
-      let pos2 = 0, pos4 = 0, pos6 = 0; 
+      let pos1 = 0, pos3 = 0, pos5 = 0, pos7 = 0; // Left Moving
+      let pos2 = 0, pos4 = 0, pos6 = 0; // Right Moving
+      
+      // Initialize offsets for seamless loops
+      // Right movers start offset by one full width to avoid pop-in
+      pos2 = -evenRowWidth; 
+      pos4 = -evenRowWidth; 
+      pos6 = -evenRowWidth; 
+
+      if (wrapperRef.current) wrapperRef.current.classList.add('loaded');
       
       let lastScrollY = window.scrollY;
-
-      const calculateWidth = () => {
-        if (rows[0]) {
-            const items = rows[0].querySelectorAll('.strip-item');
-            let totalItemWidth = 0;
-            
-            // Calculate width of the first 5 unique items
-            // Important for variable width images
-            for(let i = 0; i < 5; i++) {
-                if(items[i]) totalItemWidth += items[i].getBoundingClientRect().width;
-            }
-            
-            const style = window.getComputedStyle(rows[0]);
-            const gap = parseFloat(style.gap) || 15;
-            
-            // Total width of one complete set
-            singleSetWidth = totalItemWidth + (gap * 5);
-            
-            // Set initial offset for Right-Moving rows so they start seamlessly
-            if (singleSetWidth > 0) {
-                if(pos2 === 0) pos2 = -singleSetWidth; 
-                if(pos4 === 0) pos4 = -singleSetWidth; 
-                if(pos6 === 0) pos6 = -singleSetWidth; 
-            }
-
-            if (wrapperRef.current) wrapperRef.current.classList.add('loaded');
-        }
-      };
 
       const animate = () => {
         const currentScrollY = window.scrollY; 
@@ -99,25 +94,27 @@ export default function PhotographyPage() {
         scrollVelocity += (delta * 0.1 - scrollVelocity) * 0.1;
         
         const speed = baseSpeed + (scrollVelocity * 2); 
-        const limit = singleSetWidth || 3000; // The loop reset point
         
         // Skew
         skewStrength += ((scrollVelocity * 2) - skewStrength) * 0.1;
         const safeSkew = Math.max(Math.min(skewStrength, 5), -5);
 
-        // --- Move Left Rows ---
-        pos1 -= speed; pos3 -= speed; pos5 -= speed;
-        // Looping Logic (Reset position when scrolling past limit)
-        if (pos1 <= -limit) pos1 += limit; if (pos1 > 0) pos1 -= limit;
-        if (pos3 <= -limit) pos3 += limit; if (pos3 > 0) pos3 -= limit;
-        if (pos5 <= -limit) pos5 += limit; if (pos5 > 0) pos5 -= limit;
+        // --- Move Left Rows (Odd: 1, 3, 5, 7) ---
+        const limitOdd = oddRowWidth;
+        pos1 -= speed; pos3 -= speed; pos5 -= speed; pos7 -= speed;
+        
+        if (pos1 <= -limitOdd) pos1 += limitOdd; if (pos1 > 0) pos1 -= limitOdd;
+        if (pos3 <= -limitOdd) pos3 += limitOdd; if (pos3 > 0) pos3 -= limitOdd;
+        if (pos5 <= -limitOdd) pos5 += limitOdd; if (pos5 > 0) pos5 -= limitOdd;
+        if (pos7 <= -limitOdd) pos7 += limitOdd; if (pos7 > 0) pos7 -= limitOdd;
 
-        // --- Move Right Rows ---
+        // --- Move Right Rows (Even: 2, 4, 6) ---
+        const limitEven = evenRowWidth;
         pos2 += speed; pos4 += speed; pos6 += speed;
-        // Looping Logic
-        if (pos2 >= 0) pos2 -= limit; if (pos2 < -limit) pos2 += limit;
-        if (pos4 >= 0) pos4 -= limit; if (pos4 < -limit) pos4 += limit;
-        if (pos6 >= 0) pos6 -= limit; if (pos6 < -limit) pos6 += limit;
+        
+        if (pos2 >= 0) pos2 -= limitEven; if (pos2 < -limitEven) pos2 += limitEven;
+        if (pos4 >= 0) pos4 -= limitEven; if (pos4 < -limitEven) pos4 += limitEven;
+        if (pos6 >= 0) pos6 -= limitEven; if (pos6 < -limitEven) pos6 += limitEven;
 
         // Apply Transforms
         if(rows[0]) rows[0].style.transform = `translate3d(${pos1.toFixed(2)}px, 0, 0) skewX(${safeSkew.toFixed(2)}deg)`;
@@ -126,24 +123,14 @@ export default function PhotographyPage() {
         if(rows[3]) rows[3].style.transform = `translate3d(${pos4.toFixed(2)}px, 0, 0) skewX(${safeSkew.toFixed(2)}deg)`;
         if(rows[4]) rows[4].style.transform = `translate3d(${pos5.toFixed(2)}px, 0, 0) skewX(${safeSkew.toFixed(2)}deg)`;
         if(rows[5]) rows[5].style.transform = `translate3d(${pos6.toFixed(2)}px, 0, 0) skewX(${safeSkew.toFixed(2)}deg)`;
+        if(rows[6]) rows[6].style.transform = `translate3d(${pos7.toFixed(2)}px, 0, 0) skewX(${safeSkew.toFixed(2)}deg)`;
         
         animationFrameId = requestAnimationFrame(animate);
       };
 
-      // Init sequence to ensure widths are calculated after images load
-      calculateWidth();
-      window.addEventListener('resize', calculateWidth);
-      if (document.readyState === 'complete') {
-        calculateWidth();
-      } else {
-        window.addEventListener('load', calculateWidth);
-      }
-
       animate();
 
       return () => {
-        window.removeEventListener('resize', calculateWidth);
-        window.removeEventListener('load', calculateWidth);
         cancelAnimationFrame(animationFrameId);
       };
     };
@@ -163,6 +150,15 @@ export default function PhotographyPage() {
     };
 
     let cleanupDesktop: (() => void) | undefined;
+    
+    const handleResize = () => {
+        if (window.innerWidth > 768) {
+             if (cleanupDesktop) cleanupDesktop();
+             // @ts-ignore
+             cleanupDesktop = initDesktopAnimation();
+        }
+    };
+
     if (window.innerWidth > 768) {
         // @ts-ignore
         cleanupDesktop = initDesktopAnimation() || (() => {});
@@ -170,8 +166,7 @@ export default function PhotographyPage() {
         initMobileVerticalLogic();
     }
 
-    const handleResizeSwitch = () => { };
-    window.addEventListener('resize', handleResizeSwitch);
+    window.addEventListener('resize', handleResize);
 
     const navbar = document.getElementById('navbar');
     const handleScroll = () => {
@@ -192,7 +187,7 @@ export default function PhotographyPage() {
       if (cleanupDesktop) cleanupDesktop();
       if (observer) observer.disconnect();
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleResizeSwitch);
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
@@ -252,7 +247,6 @@ export default function PhotographyPage() {
             overflow: hidden; cursor: pointer;
         }
         
-        /* DESKTOP NAVBAR ORDER FIX */
         .nav-header { display: contents; }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
         .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; order: 2; margin: 0 40px; }
@@ -264,7 +258,6 @@ export default function PhotographyPage() {
             pointer-events: none; z-index: 2005; order: 3; margin-left: 0;
         }
         .menu-line { width: 100%; height: 1px; background-color: #fff; transition: all 0.3s ease; transform-origin: center; }
-        
         .menu-icon.open .menu-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
         .menu-icon.open .menu-line:nth-child(2) { opacity: 0; }
         .menu-icon.open .menu-line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
@@ -286,27 +279,39 @@ export default function PhotographyPage() {
         .page-desc { margin-top: 20px; font-size: 16px; color: #888; max-width: 600px; display: inline-block; opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.4s; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* KINETIC GALLERY (DESKTOP) */
+        /* KINETIC GALLERY */
         .kinetic-wrapper { position: relative; width: 100%; overflow: hidden; padding-bottom: 200px; display: flex; flex-direction: column; gap: 15px; opacity: 0; transition: opacity 1.5s ease; }
         .kinetic-wrapper.loaded { opacity: 1; }
         .mobile-track { display: contents; }
         .gallery-strip { display: flex; gap: 15px; width: max-content; transform: translate3d(0, 0, 0); will-change: transform; backface-visibility: hidden; perspective: 1000px; }
         
-        /* DESKTOP ITEM: NATURAL WIDTH, NO CROP */
+        /* --- DESKTOP ITEM STYLING --- */
+        
+        /* DEFAULT (ODD ROWS - 9:16 PORTRAIT) */
         .strip-item { 
-            flex-shrink: 0; width: auto; height: 32vw; min-height: 320px; max-height: 640px;
+            flex-shrink: 0; 
+            width: 25vw; /* Fixed width for odd rows */
+            height: auto; 
+            aspect-ratio: 9 / 16; /* Force Portrait */
             position: relative; border-radius: 8px; overflow: hidden; background-color: #111; 
             transform: translateZ(0);
         }
-        .strip-item img { width: auto; height: 100%; object-fit: cover; filter: brightness(0.9); transition: filter 0.3s ease, transform 0.3s ease; will-change: transform, filter; transform: translateZ(0); display: block; }
+        
+        /* EVEN ROWS (16:9 LANDSCAPE) - BIGGER SIZE */
+        #row-2 .strip-item, 
+        #row-4 .strip-item, 
+        #row-6 .strip-item {
+            width: 60vw; /* INCREASED from 45vw to 60vw */
+            aspect-ratio: 16 / 9; /* Force Landscape */
+        }
+
+        .strip-item img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.9); transition: filter 0.3s ease, transform 0.3s ease; will-change: transform, filter; transform: translateZ(0); display: block; }
         .strip-item:hover img { filter: brightness(1.1) !important; transform: scale(1.05); }
-        .strip-caption { position: absolute; bottom: 20px; left: 20px; font-size: 3vw; font-weight: 700; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.5); z-index: 2; pointer-events: none; }
+        .strip-caption { position: absolute; bottom: 20px; left: 20px; font-size: 2vw; font-weight: 700; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.5); z-index: 2; pointer-events: none; }
         
         /* MOBILE ADAPTATION */
         @media (max-width: 768px) {
             .header-section { padding-bottom: 50px; }
-            
-            /* Navbar Mobile Reset */
             .smart-nav { flex-direction: column !important; align-items: flex-start !important; width: 90% !important; max-width: 350px !important; height: 60px; overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; }
             .smart-nav.mobile-active { position: fixed !important; top: 0 !important; left: 0 !important; transform: none !important; width: 100vw !important; max-width: none !important; height: 100vh !important; border-radius: 0 !important; background: #000 !important; border: none !important; padding: 30px !important; justify-content: flex-start !important; align-items: center !important; z-index: 9000 !important; }
             .nav-header { display: flex !important; width: 100%; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
@@ -316,13 +321,25 @@ export default function PhotographyPage() {
             .smart-nav.mobile-active .nav-links { opacity: 1 !important; transform: translateY(0) !important; pointer-events: auto !important; visibility: visible !important; }
             .nav-item { font-size: 28px !important; font-weight: 700 !important; letter-spacing: 2px !important; }
 
-            /* Gallery Layout Fix - Vertical */
             .kinetic-wrapper { gap: 40px; padding: 0 0 100px 0; display: flex; flex-direction: column; align-items: center; }
             .mobile-track { display: block; margin-bottom: 0; width: 100%; }
             .gallery-strip { display: flex; flex-direction: column; gap: 40px; width: 100%; transform: none !important; overflow: visible; align-items: center; }
             
             /* Mobile Image: 100% Width, No Crop */
-            .strip-item { width: 100% !important; height: auto !important; max-width: none; max-height: none; aspect-ratio: auto; margin: 0 auto; filter: brightness(0.9); background-color: transparent; }
+            .strip-item, 
+            #row-2 .strip-item, 
+            #row-4 .strip-item, 
+            #row-6 .strip-item,
+            #row-7 .strip-item { 
+                width: 100% !important; 
+                height: auto !important; 
+                max-width: none; 
+                max-height: none; 
+                aspect-ratio: auto; 
+                margin: 0 auto; 
+                filter: brightness(0.9); 
+                background-color: transparent; 
+            }
             .strip-item img { width: 100%; height: auto; filter: inherit; object-fit: contain; }
             .strip-item.in-view { filter: brightness(1); }
             .strip-item.duplicate { display: none; }
@@ -372,7 +389,7 @@ export default function PhotographyPage() {
       </div>
 
       <div className="kinetic-wrapper" id="kinetic-wrapper" ref={wrapperRef}>
-        {/* ROW 1 */}
+        {/* ROW 1 (Odd: Portrait 9:16) */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-1" ref={row1Ref}>
                 <div className="strip-item"><img src="/images/photography_images_optimized/DSC00127.jpg" alt="01" /><div className="strip-caption">01</div></div>
@@ -394,7 +411,7 @@ export default function PhotographyPage() {
             </div>
         </div>
 
-        {/* ROW 2 */}
+        {/* ROW 2 (Even: Landscape 16:9 - BIGGER) */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-2" ref={row2Ref}>
                 <div className="strip-item"><img src="/images/photography_images_optimized/DSC00672.jpg" alt="06" /><div className="strip-caption">06</div></div>
@@ -416,7 +433,7 @@ export default function PhotographyPage() {
             </div>
         </div>
 
-        {/* ROW 3 */}
+        {/* ROW 3 (Odd: Portrait 9:16) */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-3" ref={row3Ref}>
                 <div className="strip-item"><img src="/images/photography_images_optimized/DSC03905.jpg" alt="11" /><div className="strip-caption">11</div></div>
@@ -438,7 +455,7 @@ export default function PhotographyPage() {
             </div>
         </div>
 
-        {/* ROW 4 */}
+        {/* ROW 4 (Even: Landscape 16:9 - BIGGER) */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-4" ref={row4Ref}>
                 <div className="strip-item"><img src="/images/photography_images_optimized/DSC04087.jpg" alt="16" /><div className="strip-caption">16</div></div>
@@ -460,7 +477,7 @@ export default function PhotographyPage() {
             </div>
         </div>
 
-        {/* ROW 5 */}
+        {/* ROW 5 (Odd: Portrait 9:16) */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-5" ref={row5Ref}>
                 <div className="strip-item"><img src="/images/photography_images_optimized/DSC04688.jpg" alt="21" /><div className="strip-caption">21</div></div>
@@ -482,7 +499,7 @@ export default function PhotographyPage() {
             </div>
         </div>
 
-        {/* ROW 6 */}
+        {/* ROW 6 (Even: Landscape 16:9 - BIGGER) */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-6" ref={row6Ref}>
                 <div className="strip-item"><img src="/images/photography_images_optimized/DSC08718.jpg" alt="26" /><div className="strip-caption">26</div></div>
@@ -503,6 +520,26 @@ export default function PhotographyPage() {
                 <div className="strip-item duplicate"><img src="/images/photography_images_optimized/DSC09352.jpg" alt="30" /><div className="strip-caption">30</div></div>
             </div>
         </div>
+
+        {/* ROW 7 (NEW - Odd: Portrait 9:16) */}
+        <div className="mobile-track">
+            <div className="gallery-strip" id="row-7" ref={row7Ref}>
+                <div className="strip-item"><img src="/images/photography_images_optimized/DSC06114.jpg" alt="31" /><div className="strip-caption">31</div></div>
+                <div className="strip-item"><img src="/images/photography_images_optimized/DSC07850.jpg" alt="32" /><div className="strip-caption">32</div></div>
+                <div className="strip-item"><img src="/images/photography_images_optimized/DSC09908.jpg" alt="33" /><div className="strip-caption">33</div></div>
+                <div className="strip-item"><img src="/images/photography_images_optimized/DSC06114.jpg" alt="31" /><div className="strip-caption">31</div></div>
+                <div className="strip-item"><img src="/images/photography_images_optimized/DSC07850.jpg" alt="32" /><div className="strip-caption">32</div></div>
+                
+                {/* Duplicates to ensure loop */}
+                <div className="strip-item duplicate"><img src="/images/photography_images_optimized/DSC06114.jpg" alt="31" /><div className="strip-caption">31</div></div>
+                <div className="strip-item duplicate"><img src="/images/photography_images_optimized/DSC07850.jpg" alt="32" /><div className="strip-caption">32</div></div>
+                <div className="strip-item duplicate"><img src="/images/photography_images_optimized/DSC09908.jpg" alt="33" /><div className="strip-caption">33</div></div>
+                <div className="strip-item duplicate"><img src="/images/photography_images_optimized/DSC06114.jpg" alt="31" /><div className="strip-caption">31</div></div>
+                <div className="strip-item duplicate"><img src="/images/photography_images_optimized/DSC07850.jpg" alt="32" /><div className="strip-caption">32</div></div>
+                <div className="strip-item duplicate"><img src="/images/photography_images_optimized/DSC09908.jpg" alt="33" /><div className="strip-caption">33</div></div>
+            </div>
+        </div>
+
       </div>
 
       <div 

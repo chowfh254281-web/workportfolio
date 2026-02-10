@@ -1,23 +1,6 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import Script from 'next/script'; 
-
-// 1. 全域類型宣告
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'model-viewer': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & {
-        src?: string;
-        'environment-image'?: string;
-        exposure?: string;
-        'shadow-intensity'?: string;
-        'auto-rotate'?: boolean;
-        'rotation-per-second'?: string;
-      }, HTMLElement>;
-    }
-  }
-}
 
 export default function ThreeDPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -26,8 +9,7 @@ export default function ThreeDPage() {
   const trackRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const prodRef = useRef<HTMLDivElement>(null);
-  const modelsRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLDivElement>(null);
+  // Removed modelsRef and textRef
   const ueRef = useRef<HTMLDivElement>(null);
   const liveRef = useRef<HTMLDivElement>(null);
   const freshRef = useRef<HTMLDivElement>(null);
@@ -38,13 +20,9 @@ export default function ThreeDPage() {
   const liveHeaderRef = useRef<HTMLDivElement>(null);
   const liveGalleryRef = useRef<HTMLDivElement>(null);
   const freshGalleryRef = useRef<HTMLDivElement>(null);
-  const revealTextRef = useRef<HTMLDivElement>(null);
-
-  const [isMounted, setIsMounted] = useState(false);
+  // Removed revealTextRef
 
   useEffect(() => {
-    setIsMounted(true);
-
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 500);
@@ -66,43 +44,7 @@ export default function ThreeDPage() {
       requestAnimationFrame(raf);
     });
 
-    const splitTextIntoSpans = (element: HTMLElement) => {
-        const childNodes = Array.from(element.childNodes); 
-        element.innerHTML = '';
-        childNodes.forEach(node => {
-            if (node.nodeType === 3) { 
-                const words = (node.textContent || '').split(/(\s+)/); 
-                words.forEach(word => { 
-                    if (word.trim().length > 0) { 
-                        const span = document.createElement('span'); 
-                        span.classList.add('word'); 
-                        span.textContent = word; 
-                        element.appendChild(span); 
-                    } else { 
-                        element.appendChild(document.createTextNode(word)); 
-                    } 
-                }); 
-            } 
-            else if (node.nodeType === 1) { 
-                const wrapperSpan = node.cloneNode(false) as HTMLElement; 
-                const innerWords = (node.textContent || '').split(/(\s+)/); 
-                innerWords.forEach(w => { 
-                    if (w.trim().length > 0) { 
-                        const wordSpan = document.createElement('span'); 
-                        wordSpan.classList.add('word'); 
-                        wordSpan.textContent = w; 
-                        wrapperSpan.appendChild(wordSpan); 
-                    } else { 
-                        wrapperSpan.appendChild(document.createTextNode(w)); 
-                    } 
-                }); 
-                element.appendChild(wrapperSpan); 
-            }
-        });
-    };
-
-    if (revealTextRef.current) splitTextIntoSpans(revealTextRef.current);
-    const allWords = revealTextRef.current?.querySelectorAll('.word') || [];
+    // Removed splitTextIntoSpans logic as the text layer is deleted
 
     setTimeout(() => { 
         const prodCards = document.querySelectorAll('.production-group .video-card');
@@ -141,10 +83,10 @@ export default function ThreeDPage() {
             const liveGallery = liveGalleryRef.current;
             const layerFresh = freshRef.current;
             const freshGallery = freshGalleryRef.current;
-            const layerModels = modelsRef.current;
-            const layerText = textRef.current;
+            
+            // Removed layerModels and layerText references
 
-            if (cgHero && productionSection && header && layerUE && ueHeader && ueGallery && layerLive && liveHeader && liveGallery && layerFresh && freshGallery && layerModels && layerText) {
+            if (cgHero && productionSection && header && layerUE && ueHeader && ueGallery && layerLive && liveHeader && liveGallery && layerFresh && freshGallery) {
                 
                 // --- 🔴 MOBILE ANIMATION LOGIC (REVISED) ---
 
@@ -187,7 +129,7 @@ export default function ThreeDPage() {
                     }
                 }
 
-                // 3. 🔴 PRODUCTION SCROLL (0.35 - 0.70) -> EXTENDED DURATION
+                // 3. 🔴 PRODUCTION SCROLL (0.35 - 0.70)
                 else if (progress >= 0.35 && progress < 0.70) {
                     cgHero.style.opacity = '0';
                     cgHero.style.transform = `translate(-50%, -500vh)`; 
@@ -195,11 +137,7 @@ export default function ThreeDPage() {
                     productionSection.style.opacity = '1';
                     
                     if (isMobile) {
-                        // Scroll P: 0 to 1 over 35% of track (Longer)
                         const prodScrollP = (progress - 0.35) / 0.35; 
-                        
-                        // Start at 20vh
-                        // End at -180vh (Enough to see the 3rd "Composition" video fully)
                         const startY = 20; 
                         const endY = -180; 
                         const currentY = startY + (endY - startY) * prodScrollP;
@@ -217,7 +155,7 @@ export default function ThreeDPage() {
                     const exitP = (progress - 0.70) / 0.05;
                     
                     productionSection.style.opacity = (1 - exitP).toString();
-                    if (isMobile) productionSection.style.transform = `translate(-50%, -200vh)`; // Continue up
+                    if (isMobile) productionSection.style.transform = `translate(-50%, -200vh)`;
                     else productionSection.style.transform = `translate(-50%, calc(-50% - ${exitP*100}px))`;
 
                     layerUE.style.opacity = exitP.toString();
@@ -253,37 +191,18 @@ export default function ThreeDPage() {
                     layerFresh.style.opacity = '0';
                 }
 
-                // 8. LIVE EXIT -> FRESH ENTER (0.92 - 0.96)
-                else if (progress >= 0.92 && progress < 0.96) {
-                    const transP = (progress - 0.92) / 0.04;
+                // 8. LIVE EXIT -> FRESH ENTER (0.92 onwards - Final Stage)
+                else if (progress >= 0.92) {
+                    // Capped at 1 so Fresh stays visible at the end
+                    const transP = Math.min((progress - 0.92) / 0.04, 1); 
+                    
                     layerLive.style.opacity = (1 - transP).toString();
+                    
                     layerFresh.style.opacity = transP.toString();
                     freshGallery.style.transform = `translateY(${(1-transP)*50}px)`;
-                    freshGallery.style.opacity = transP.toString();
                 }
-
-                // 9. FRESH ACTIVE -> MODELS (0.96+)
-                else if (progress >= 0.96) {
-                    const exitP = Math.min((progress - 0.96) / 0.04, 1);
-                    layerFresh.style.opacity = (1 - exitP).toString();
-                    
-                    layerModels.style.opacity = exitP.toString();
-                    layerText.style.opacity = exitP.toString();
-                    
-                    if (progress > 0.98) {
-                        const wordsToActivate = Math.floor(exitP * allWords.length);
-                        allWords.forEach((word: any, index: number) => {
-                            word.style.opacity = '';
-                            if (index <= wordsToActivate) { 
-                                word.classList.remove('dim'); 
-                                word.classList.add('active'); 
-                            } else { 
-                                word.classList.remove('active'); 
-                                word.classList.add('dim'); 
-                            }
-                        });
-                    }
-                }
+                
+                // Removed Phase 9 (Models)
             }
         }
 
@@ -300,7 +219,6 @@ export default function ThreeDPage() {
     };
 
     const navbar = document.getElementById('navbar');
-    const menuBtn = document.getElementById('menu-btn');
     const handleScroll = () => {
         if (window.scrollY > 50) navbar?.classList.add('collapsed');
         else {
@@ -354,7 +272,7 @@ export default function ThreeDPage() {
 
   return (
     <>
-      <Script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js" strategy="lazyOnload" />
+      {/* Removed Script tag for model-viewer */}
 
       {/* @ts-ignore */}
       <style jsx global>{`
@@ -413,10 +331,11 @@ export default function ThreeDPage() {
 
         .mobile-menu-overlay { display: none; }
         
-        /* TRACK */
-        .sequence-track { height: 1300vh; position: relative; z-index: 10; }
-        /* 🔴 INCREASED TRACK HEIGHT FOR MOBILE TO ACCOMMODATE LONGER SCROLL */
-        @media (max-width: 768px) { .sequence-track { height: 1800vh; } } 
+        /* TRACK - REDUCED HEIGHT */
+        .sequence-track { height: 1100vh; position: relative; z-index: 10; }
+        
+        /* 🔴 REDUCED TRACK HEIGHT FOR MOBILE */
+        @media (max-width: 768px) { .sequence-track { height: 1500vh; } } 
 
         .sticky-viewport { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         /* HEADER */
@@ -482,16 +401,7 @@ export default function ThreeDPage() {
         .fresh-img-wrapper:hover { transform: scale(1.05); }
         .fresh-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* MODELS */
-        .layer-models { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; display: flex; justify-content: space-between; align-items: center; padding: 0 5%; opacity: 0; transition: opacity 0.8s ease; }
-        .model-container { width: 25vw; height: 60vh; position: relative; pointer-events: auto; }
-        .model-container:nth-child(1) { margin-top: 15vh; } .model-container:nth-child(2) { margin-top: -15vh; }
-        model-viewer { width: 100%; height: 100%; --poster-color: transparent; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6)); }
-        .layer-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; text-align: center; z-index: 10; pointer-events: none; opacity: 0; }
-        .reveal-text { font-size: 5vw; font-weight: 800; line-height: 1.2; letter-spacing: -1px; color: #fff; }
-        .word { display: inline-block; opacity: 0; transition: opacity 0.3s ease; white-space: pre-wrap; }
-        .word.active { opacity: 1 !important; } .word.dim { opacity: 0.1 !important; }
-        .headline-accent { font-family: 'Times New Roman', serif; font-style: italic; color: #F4D03F; }
+        /* Removed .layer-models and .layer-text CSS */
 
         /* CONTACT WIDGET */
         .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; cursor: pointer; }
@@ -572,10 +482,7 @@ export default function ThreeDPage() {
             .fresh-gallery { flex-direction: column; width: 100%; align-items: center; gap: 30px; }
             .fresh-img-wrapper { width: 80vw; aspect-ratio: 16/9; }
 
-            /* MODELS - Stacked */
-            .layer-models { flex-direction: column; padding: 10vh 0; justify-content: center; gap: 50px; }
-            .model-container { width: 80vw; height: 40vh; margin: 0 !important; }
-            .reveal-text { font-size: 8vw; }
+            /* Removed .layer-models media query */
         }
       `}</style>
 
@@ -690,20 +597,7 @@ export default function ThreeDPage() {
                 </div>
             </div>
 
-            <div className="layer-models" id="layer-models" ref={modelsRef} suppressHydrationWarning>
-                {/* 3. 確保只在客戶端渲染 3D 模型 */}
-                {isMounted && (
-                    <>
-                        {/* @ts-ignore */}
-                        <div className="model-container"><model-viewer src="/images/3d_models/all%20hours_product.glb" environment-image="/images/3d_models/studio_lighting.hdr" exposure="1.2" shadow-intensity="1" auto-rotate rotation-per-second="15deg"></model-viewer></div>
-                        {/* @ts-ignore */}
-                        <div className="model-container"><model-viewer src="/images/3d_models/Black%20Tea%206%20.glb" environment-image="/images/3d_models/studio_lighting.hdr" exposure="1.2" shadow-intensity="1" auto-rotate rotation-per-second="-15deg"></model-viewer></div>
-                    </>
-                )}
-            </div>
-            <div className="layer-text" id="layer-text" ref={textRef}>
-                <div className="reveal-text" id="reveal-text" ref={revealTextRef}>I imagine. I create. Using <span className="headline-accent">3D software</span> to construct imaginary worlds.</div>
-            </div>
+            {/* Removed layer-models and layer-text divs */}
 
         </div>
     </div>
