@@ -9,10 +9,10 @@ export default function HomePage() {
 
   // 2. 初始化
   useEffect(() => {
-    // 🔴 Preloader 設定: 1 秒
+    // 🔴 Preloader 設定: 稍微延長到 1.5 秒，確保背景資源定位完成
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1000);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, []);
@@ -48,6 +48,8 @@ export default function HomePage() {
 
   // 4. 動畫與邏輯
   useEffect(() => {
+    if (isLoading) return; // 🔴 核心修正：Loading 期間不執行任何 DOM 操作，防止閃動
+
     let lenis: any;
     
     import('@studio-freight/lenis').then((Lenis) => {
@@ -282,7 +284,7 @@ export default function HomePage() {
       cancelAnimationFrame(startAnim);
       if (lenis) lenis.destroy();
     };
-  }, []);
+  }, [isLoading]);
 
   function updateTextWave() {
     const textContainer = document.getElementById('lets-create-text');
@@ -336,7 +338,7 @@ export default function HomePage() {
     });
   }
 
-  // 🔴 Data Configuration: Fixed AI section to use "Mixed Mode" (ai_img3 + ai_5)
+  // 🔴 Data Configuration
   const portfolioData: any = {
     'uiux': { type: 'static', src: "/images/index_uiux.png" },
     'graphic': { type: 'static', src: "/images/index_graphic.png" },
@@ -363,13 +365,31 @@ export default function HomePage() {
     <>
       {/* @ts-ignore */}
       <style jsx global>{`
+        /* 🔴 核心修正 1：HTML/Body 初始狀態強制黑色，並隱藏滾動條 */
+        html, body { 
+          background-color: #000 !important; 
+          margin: 0; 
+          padding: 0; 
+          overflow-x: hidden;
+        }
+
+        /* 🔴 核心修正 2：初始隱藏主內容 wrapper，直到 JS 載入 */
+        .main-content-wrapper { 
+          opacity: 0 !important; 
+          visibility: hidden !important; 
+          transition: opacity 1s ease-in-out, visibility 1s; 
+        }
+        .main-content-wrapper.loaded { 
+          opacity: 1 !important; 
+          visibility: visible !important; 
+        }
+
         /* PERFORMANCE & RESET */
         * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #050505; background-image: radial-gradient(circle at 50% 30%, #1a1a1a 0%, #000000 70%); min-height: 100vh; overflow-x: hidden; }
+        body { color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-image: radial-gradient(circle at 50% 30%, #1a1a1a 0%, #000000 70%); min-height: 100vh; }
         html.lenis, html.lenis body { height: auto; }
         .lenis.lenis-smooth { scroll-behavior: auto !important; }
         .lenis.lenis-stopped { overflow: hidden; }
-        .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; mix-blend-mode: overlay; opacity: 0.06; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
         
         /* PRELOADER STYLES */
         .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; display: flex; align-items: center; justify-content: center; }
@@ -378,7 +398,7 @@ export default function HomePage() {
         .loader::after { content: ''; box-sizing: border-box; position: absolute; left: 0; top: 0; background: #F4D03F; width: 12px; height: 12px; transform: translate(-50%, 50%); border-radius: 50%; }
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* NAVBAR */
+        /* NAVBAR & CONTENT ... (其餘 CSS 保持不變) */
         .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); padding: 0 30px; display: flex; align-items: center; justify-content: space-between; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; height: 60px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); overflow: hidden; cursor: pointer; }
         .nav-header { display: contents; }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
@@ -400,7 +420,6 @@ export default function HomePage() {
         .smart-nav.collapsed .nav-logo { margin-right: 10px; } 
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
 
-        /* GALLERY MIXED STYLE */
         .mixed-hero-container { position: relative; width: 100%; height: 100%; overflow: hidden; }
         .fg-video-home-wrapper { 
             position: absolute; top: 50%; right: 10%; transform: translateY(-50%) translateX(20px); 
@@ -417,7 +436,18 @@ export default function HomePage() {
         .subtitle { font-size: 1.5vw; font-weight: 400; line-height: 1.4; max-width: 800px; color: #F4D03F; opacity: 0; transform: translateY(20px); transition: all 1s ease; }
         .subtitle.visible { opacity: 1; transform: translateY(0); }
         .char-span, .sub-char { display: inline-block; will-change: transform, opacity, filter, color; }
-        .seamless-hero { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 25vw; height: 35vw; max-width: 350px; max-height: 500px; border-radius: 16px; z-index: 5; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.6); opacity: 0; will-change: width, height, border-radius, opacity; }
+        
+        /* 🔴 核心修正 3：確保 Fixed 背景在 Loading 期間完全不可見 */
+        .seamless-hero { 
+          position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+          width: 25vw; height: 35vw; max-width: 350px; max-height: 500px; 
+          border-radius: 16px; z-index: 5; overflow: hidden; 
+          box-shadow: 0 30px 60px rgba(0,0,0,0.6); 
+          opacity: 0; visibility: hidden;
+          will-change: width, height, border-radius, opacity; 
+        }
+        .main-content-wrapper.loaded .seamless-hero { visibility: visible; }
+
         .hero-inner-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transition: none; }
         .img-bg { z-index: 1; opacity: 0; }
         .img-card { z-index: 2; opacity: 1; }
@@ -499,150 +529,154 @@ export default function HomePage() {
             .qr-container { transform: translateY(20px); }
             .contact-content.shift-layout .qr-container { width: 150px; transform: translateY(0); }
             
-            /* 🔴 Mobile Mixed Block Reset */
             .fg-video-home-wrapper { width: 45vw; right: 5%; }
         }
       `}</style>
 
-      {/* Preloader with Yellow Spinner */}
+      {/* Preloader with Yellow Spinner - 保持 z-index 最高 */}
       <div className={`preloader ${!isLoading ? 'hidden' : ''}`}>
           <span className="loader"></span>
       </div>
 
-      <nav className="smart-nav" id="navbar" onClick={toggleMenu}>
-        <div className="nav-header">
-            <Link href="/" className="nav-logo">SAM CHOW.</Link>
-            <div className="menu-icon" id="menu-btn">
-                <div className="menu-line"></div>
-                <div className="menu-line"></div>
-                <div className="menu-line"></div>
-            </div>
-        </div>
-        <div className="nav-links">
-          <Link href="/uiux" className="nav-item">UI/UX</Link>
-          <Link href="/graphic" className="nav-item">Graphic</Link>
-          <Link href="/3d" className="nav-item">3D</Link>
-          <Link href="/photography" className="nav-item">Photography</Link>
-          <Link href="/video" className="nav-item">Video</Link>
-          <Link href="/ai" className="nav-item">AI Generative</Link>
-        </div>
-      </nav>
-
-      <div className="seamless-hero" id="seamless-hero">
-        <img src="/images/profile.jpg" className="hero-inner-img img-card" alt="Card" />
-        <img src="/profile_bg.png" className="hero-inner-img img-bg" alt="Background" />
-        <div className="hero-overlay" id="hero-overlay"></div>
-      </div>
-
-      <div className="intro-section" id="intro-trigger">
-        <div className="intro-text" id="intro-text-container">
-          <h1 className="main-title">SAM CHOW.</h1>
-          <div className="subtitle">MultiMedia Designer &nbsp;|&nbsp; Work Portfolio</div>
-        </div>
-        <div className="scroll-prompt" id="scroll-prompt">
-          <div className="scroll-text">SCROLL</div>
-          <div className="scroll-line"></div>
-        </div>
-      </div>
-
-      <div className="about-track" id="about-track">
-        <div className="about-sticky-view">
-          <div className="about-grid">
-            <div className="card-target-left" id="profile-anchor"></div>
-            <div className="text-container">
-              <div className="text-layer-1" id="text-reveal-source">
-                I am a <span className="headline-accent">MultiMedia Designer</span>, currently working in a digital marketing agency based in Hong Kong more than 4 years.
-              </div>
-              <div className="text-layer-2" id="text-details-block">
-                <div className="details-text">
-                  I am professional in <span className="headline-accent">UIUX and graphic design</span>, 2D/3D animation design, video and photography editing. I hold a Bachelor of Engineering (Honours) in Product Analysis and Engineering Design from <span className="headline-accent">The Hong Kong Polytechnic University</span>.
+      {/* 🔴 重要修正：透過 Class 控制整個主內容的顯示，預設是隱藏且透明的 */}
+      <div className={`main-content-wrapper ${!isLoading ? 'loaded' : ''}`}>
+          
+          <nav className="smart-nav" id="navbar" onClick={toggleMenu}>
+            <div className="nav-header">
+                <Link href="/" className="nav-logo">SAM CHOW.</Link>
+                <div className="menu-icon" id="menu-btn">
+                    <div className="menu-line"></div>
+                    <div className="menu-line"></div>
+                    <div className="menu-line"></div>
                 </div>
-                <ul className="citation-list">
-                  <li className="citation-item">Nov 2025<span>Senior Graphic Designer</span></li>
-                  <li className="citation-item">Jan 2025<span>Senior Creative & Multimedia Designer</span></li>
-                  <li className="citation-item">Aug 2022<span>Creative & Multimedia Designer</span></li>
-                </ul>
+            </div>
+            <div className="nav-links">
+              <Link href="/uiux" className="nav-item">UI/UX</Link>
+              <Link href="/graphic" className="nav-item">Graphic</Link>
+              <Link href="/3d" className="nav-item">3D</Link>
+              <Link href="/photography" className="nav-item">Photography</Link>
+              <Link href="/video" className="nav-item">Video</Link>
+              <Link href="/ai" className="nav-item">AI Generative</Link>
+            </div>
+          </nav>
+
+          {/* 這張 Fixed 圖是之前閃動的主因，現在它會跟著 loaded class 顯示 */}
+          <div className="seamless-hero" id="seamless-hero">
+            <img src="/images/profile.jpg" className="hero-inner-img img-card" alt="Card" />
+            <img src="/profile_bg.png" className="hero-inner-img img-bg" alt="Background" />
+            <div className="hero-overlay" id="hero-overlay"></div>
+          </div>
+
+          <div className="intro-section" id="intro-trigger">
+            <div className="intro-text" id="intro-text-container">
+              <h1 className="main-title">SAM CHOW.</h1>
+              <div className="subtitle">MultiMedia Designer &nbsp;|&nbsp; Work Portfolio</div>
+            </div>
+            <div className="scroll-prompt" id="scroll-prompt">
+              <div className="scroll-text">SCROLL</div>
+              <div className="scroll-line"></div>
+            </div>
+          </div>
+
+          <div className="about-track" id="about-track">
+            <div className="about-sticky-view">
+              <div className="about-grid">
+                <div className="card-target-left" id="profile-anchor"></div>
+                <div className="text-container">
+                  <div className="text-layer-1" id="text-reveal-source">
+                    I am a <span className="headline-accent">MultiMedia Designer</span>, currently working in a digital marketing agency based in Hong Kong more than 4 years.
+                  </div>
+                  <div className="text-layer-2" id="text-details-block">
+                    <div className="details-text">
+                      I am professional in <span className="headline-accent">UIUX and graphic design</span>, 2D/3D animation design, video and photography editing. I hold a Bachelor of Engineering (Honours) in Product Analysis and Engineering Design from <span className="headline-accent">The Hong Kong Polytechnic University</span>.
+                    </div>
+                    <ul className="citation-list">
+                      <li className="citation-item">Nov 2025<span>Senior Graphic Designer</span></li>
+                      <li className="citation-item">Jan 2025<span>Senior Creative & Multimedia Designer</span></li>
+                      <li className="citation-item">Aug 2022<span>Creative & Multimedia Designer</span></li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className="overview-section" id="overview-section">
-        <div className="overview-title" id="overview-title">WORK OVERVIEW</div>
-        <div className="overview-subtitle" id="overview-subtitle">Select a category to explore details</div>
-        <div className="scroll-prompt">
-          <div className="scroll-text">SCROLL</div>
-          <div className="scroll-line"></div>
-        </div>
-      </div>
-
-      <div className="gallery-wrapper" id="gallery-container">
-        {categories.map((cat) => {
-          const data = portfolioData[cat.id];
-          return (
-            <Link key={cat.id} href={`/${cat.id}`}>
-                <div 
-                    className="hero-section"
-                    onMouseEnter={() => {
-                        if (data?.type === 'yt') setActiveYt(cat.id);
-                    }}
-                    onMouseLeave={() => {
-                        if (data?.type === 'yt') setActiveYt(null);
-                    }}
-                >
-                <div className="hero-img-wrapper">
-                    {data?.type === 'yt' ? (
-                        <>
-                            <img src={`https://img.youtube.com/vi/${data.id}/maxresdefault.jpg`} className="hero-img static-thumb yt-thumb" style={{ opacity: activeYt === cat.id ? 0 : 1 }} alt="YT Cover" />
-                            <div className="yt-container">
-                                {activeYt === cat.id && (
-                                    <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${data.id}?autoplay=1&mute=0&controls=0&modestbranding=1&rel=0`} title="YouTube video player" frameBorder="0" allowFullScreen style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}></iframe>
-                                )}
-                            </div>
-                        </>
-                    ) : data?.type === 'mixed' ? (
-                        /* 🔴 AI MIXED MODE RENDERING */
-                        <div className="mixed-hero-container">
-                            <img src={data.bg} className="hero-img static-thumb" alt="AI BG" />
-                            <div className="fg-video-home-wrapper">
-                                <video src={data.vid} className="fg-video-home" autoPlay loop muted playsInline />
-                            </div>
-                        </div>
-                    ) : (
-                        <img src={data?.src || '/images/placeholder.jpg'} className="hero-img static-thumb" alt={`${cat.label} Cover`} />
-                    )}
-                </div>
-                <div className="hero-category-label">{cat.label}</div>
-                </div>
-            </Link>
-          );
-        })}
-
-        {/* Contact Section */}
-        <div className="hero-section" id="contact-section" style={{ background: '#080808', cursor: 'default' }}>
-            <div className="hero-img-wrapper" style={{ opacity: 0.3 }}>
-                <img src="/images/contact_bg.jpg" className="hero-img" style={{ filter: 'grayscale(100%) brightness(0.4)' }} alt="Contact BG" />
+          <div className="overview-section" id="overview-section">
+            <div className="overview-title" id="overview-title">WORK OVERVIEW</div>
+            <div className="overview-subtitle" id="overview-subtitle">Select a category to explore details</div>
+            <div className="scroll-prompt">
+              <div className="scroll-text">SCROLL</div>
+              <div className="scroll-line"></div>
             </div>
-            <div className="contact-content" id="contact-content-wrapper">
-                <div className="contact-title" id="lets-create-text">Let's Create.</div>
-                <div className="vertical-line"></div>
-                <div className="qr-container" id="qr-target">
-                    <img src="/ig-qrcode.png" alt="Instagram QR Code" className="qr-code-img" />
+          </div>
+
+          <div className="gallery-wrapper" id="gallery-container">
+            {categories.map((cat) => {
+              const data = portfolioData[cat.id];
+              return (
+                <Link key={cat.id} href={`/${cat.id}`}>
+                    <div 
+                        className="hero-section"
+                        onMouseEnter={() => {
+                            if (data?.type === 'yt') setActiveYt(cat.id);
+                        }}
+                        onMouseLeave={() => {
+                            if (data?.type === 'yt') setActiveYt(null);
+                        }}
+                    >
+                    <div className="hero-img-wrapper">
+                        {data?.type === 'yt' ? (
+                            <>
+                                <img src={`https://img.youtube.com/vi/${data.id}/maxresdefault.jpg`} className="hero-img static-thumb yt-thumb" style={{ opacity: activeYt === cat.id ? 0 : 1 }} alt="YT Cover" />
+                                <div className="yt-container">
+                                    {activeYt === cat.id && (
+                                        <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${data.id}?autoplay=1&mute=0&controls=0&modestbranding=1&rel=0`} title="YouTube video player" frameBorder="0" allowFullScreen style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}></iframe>
+                                    )}
+                                </div>
+                            </>
+                        ) : data?.type === 'mixed' ? (
+                            <div className="mixed-hero-container">
+                                <img src={data.bg} className="hero-img static-thumb" alt="AI BG" />
+                                <div className="fg-video-home-wrapper">
+                                    <video src={data.vid} className="fg-video-home" autoPlay loop muted playsInline />
+                                </div>
+                            </div>
+                        ) : (
+                            <img src={data?.src || '/images/placeholder.jpg'} className="hero-img static-thumb" alt={`${cat.label} Cover`} />
+                        )}
+                    </div>
+                    <div className="hero-category-label">{cat.label}</div>
+                    </div>
+                </Link>
+              );
+            })}
+
+            {/* Contact Section */}
+            <div className="hero-section" id="contact-section" style={{ background: '#080808', cursor: 'default' }}>
+                <div className="hero-img-wrapper" style={{ opacity: 0.3 }}>
+                    <img src="/images/contact_bg.jpg" className="hero-img" style={{ filter: 'grayscale(100%) brightness(0.4)' }} alt="Contact BG" />
+                </div>
+                <div className="contact-content" id="contact-content-wrapper">
+                    <div className="contact-title" id="lets-create-text">Let's Create.</div>
+                    <div className="vertical-line"></div>
+                    <div className="qr-container" id="qr-target">
+                        <img src="/ig-qrcode.png" alt="Instagram QR Code" className="qr-code-img" />
+                    </div>
                 </div>
             </div>
-        </div>
-      </div>
+          </div>
 
-      <div className="contact-widget" id="contact-bubble">
-        <div className="contact-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        </div>
-        <div className="contact-details">
-            <a href="https://wa.me/85267012420" target="_blank" className="contact-link" style={{ color: '#fff' }}><span className="label">WHATSAPP</span>6701 2420</a>
-            <a href="mailto:chowfh254281@gmail.com" className="contact-link" style={{ color: '#fff' }}><span className="label">MAIL</span>chowfh254281@gmail.com</a>
-        </div>
-      </div>
+          <div className="contact-widget" id="contact-bubble">
+            <div className="contact-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            </div>
+            <div className="contact-details">
+                <a href="https://wa.me/85267012420" target="_blank" className="contact-link" style={{ color: '#fff' }}><span className="label">WHATSAPP</span>6701 2420</a>
+                <a href="mailto:chowfh254281@gmail.com" className="contact-link" style={{ color: '#fff' }}><span className="label">MAIL</span>chowfh254281@gmail.com</a>
+            </div>
+          </div>
+
+      </div> {/* End of main-content-wrapper */}
     </>
   );
 }
