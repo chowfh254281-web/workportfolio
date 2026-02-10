@@ -370,8 +370,13 @@ export default function HomePage() {
         .lenis.lenis-smooth { scroll-behavior: auto !important; }
         .lenis.lenis-stopped { overflow: hidden; }
         .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; mix-blend-mode: overlay; opacity: 0.06; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
-        .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; }
+        
+        /* PRELOADER STYLES */
+        .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; display: flex; align-items: center; justify-content: center; }
         .preloader.hidden { opacity: 0; }
+        .loader { width: 48px; height: 48px; border: 3px solid rgba(244, 208, 63, 0.2); border-radius: 50%; display: inline-block; position: relative; box-sizing: border-box; animation: rotation 1s linear infinite; }
+        .loader::after { content: ''; box-sizing: border-box; position: absolute; left: 0; top: 0; background: #F4D03F; width: 12px; height: 12px; transform: translate(-50%, 50%); border-radius: 50%; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* NAVBAR */
         .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); padding: 0 30px; display: flex; align-items: center; justify-content: space-between; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; height: 60px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); overflow: hidden; cursor: pointer; }
@@ -406,7 +411,6 @@ export default function HomePage() {
         .hero-section:hover .fg-video-home-wrapper { opacity: 1; transform: translateY(-50%) translateX(0); }
         .fg-video-home { width: 100%; height: 100%; object-fit: cover; }
 
-        /* ... Other existing styles remain same ... */
         .intro-section { height: 100vh; width: 100%; position: relative; overflow: hidden; margin-bottom: 0; z-index: 10; }
         .intro-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 50; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; will-change: opacity, transform, color; }
         .main-title { font-size: 8vw; font-weight: 900; margin: 0 0 20px 0; letter-spacing: -2px; line-height: 1; color: #F4D03F; transition: color 0.1s linear; white-space: nowrap; }
@@ -500,8 +504,10 @@ export default function HomePage() {
         }
       `}</style>
 
-      {/* Preloader */}
-      <div className={`preloader ${!isLoading ? 'hidden' : ''}`}></div>
+      {/* Preloader with Yellow Spinner */}
+      <div className={`preloader ${!isLoading ? 'hidden' : ''}`}>
+          <span className="loader"></span>
+      </div>
 
       <nav className="smart-nav" id="navbar" onClick={toggleMenu}>
         <div className="nav-header">
