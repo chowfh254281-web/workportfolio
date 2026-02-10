@@ -12,8 +12,9 @@ export default function VideoPage() {
   const playersRef = useRef<any[]>([]);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  // Video Data
+  // Video Data - 🔴 新影片已加到第一位
   const videos = [
+    { id: '_yeHdBy8Wzs', title: 'Disco Night', year: '2026' },
     { id: 'DOp19wtL28w', title: 'Cinematic Travel Vlog', year: '2025 TOKYO' },
     { id: 'Dc3phLpndD0', title: 'Japanese Culture Festival', year: '2025' },
     { id: 'rJBpYguoROg', title: 'GoldenFish Bowl', year: '2024' },
@@ -142,7 +143,6 @@ export default function VideoPage() {
     };
   }, []);
 
-  // 🔴 Navbar Toggle Logic (Aligned with other pages)
   const toggleMenu = (e: React.MouseEvent) => {
     const navbar = document.getElementById('navbar');
     const menuBtn = document.getElementById('menu-btn');
@@ -171,7 +171,6 @@ export default function VideoPage() {
     }
   };
 
-  // 🔴 Contact Widget Toggle
   const toggleContact = () => {
     setIsContactExpanded(!isContactExpanded);
   };
@@ -192,7 +191,7 @@ export default function VideoPage() {
         .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; }
         .preloader.hidden { opacity: 0; }
 
-        /* NAVBAR - FULLSCREEN MOBILE OVERLAY */
+        /* NAVBAR */
         .smart-nav { 
             position: fixed; top: 30px; left: 50%; transform: translateX(-50%); 
             padding: 0 30px; display: flex; align-items: center; justify-content: space-between;
@@ -221,7 +220,6 @@ export default function VideoPage() {
         .menu-icon.open .menu-line:nth-child(2) { opacity: 0; }
         .menu-icon.open .menu-line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-        /* DESKTOP ONLY: Hover to expand */
         @media (min-width: 769px) {
             .smart-nav:hover, .smart-nav.force-expand { min-width: 650px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
             .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; gap: 25px !important; pointer-events: auto !important; display: flex !important; } 
@@ -244,7 +242,6 @@ export default function VideoPage() {
         .video-feed { width: 100%; display: flex; flex-direction: column; gap: 0; padding-bottom: 100px; }
         .video-block { width: 100%; height: 90vh; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); background: #000; }
         .video-wrapper { width: 100%; height: 100%; position: relative; pointer-events: auto; }
-        /* iframe handling via CSS */
         .video-wrapper iframe { position: absolute; top: 50%; left: 50%; width: 100vw; height: 56.25vw; min-height: 100vh; min-width: 177.77vh; transform: translate(-50%, -50%); opacity: 1; transition: opacity 0.5s ease; pointer-events: none; }
         
         .video-info-overlay { position: absolute; bottom: 80px; left: 60px; z-index: 20; pointer-events: auto; max-width: 600px; }
@@ -253,9 +250,7 @@ export default function VideoPage() {
         .yt-btn { display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 30px; color: #fff; text-decoration: none; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease; }
         .yt-btn:hover { background: #fff; color: #000; padding-right: 30px; }
         
-        /* MOBILE ADAPTATION */
         @media (max-width: 768px) { 
-            /* Navbar */
             .smart-nav { flex-direction: column !important; align-items: flex-start !important; width: 90% !important; max-width: 350px !important; height: 60px; overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; }
             .smart-nav.mobile-active { position: fixed !important; top: 0 !important; left: 0 !important; transform: none !important; width: 100vw !important; max-width: none !important; height: 100vh !important; border-radius: 0 !important; background: #000 !important; border: none !important; padding: 30px !important; justify-content: flex-start !important; align-items: center !important; z-index: 9000 !important; }
             .nav-header { display: flex !important; width: 100%; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
@@ -264,7 +259,6 @@ export default function VideoPage() {
             .nav-links { display: flex !important; flex-direction: column !important; width: 100% !important; opacity: 0; transform: translateY(20px); transition: all 0.4s ease 0.1s; pointer-events: none; margin-top: 0; height: 100%; justify-content: center; align-items: center; gap: 40px !important; order: unset; margin: 0; }
             .smart-nav.mobile-active .nav-links { opacity: 1 !important; transform: translateY(0) !important; pointer-events: auto !important; visibility: visible !important; }
             .nav-item { font-size: 28px !important; font-weight: 700 !important; letter-spacing: 2px !important; }
-
             .video-title { font-size: 40px; } 
             .video-info-overlay { bottom: 60px; left: 20px; right: 20px; } 
             .video-block { height: 70vh; } 
@@ -277,10 +271,8 @@ export default function VideoPage() {
         .contact-link { color: #ccc; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; transition: color 0.3s; }
         .contact-link:hover { color: #fff; }
         .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #666; margin-right: 10px; width: 60px; font-weight: 700; }
-
         .contact-widget.expanded { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .contact-widget.expanded .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
-
         @media (min-width: 769px) {
             .contact-widget:hover { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
             .contact-widget:hover .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
@@ -292,7 +284,6 @@ export default function VideoPage() {
 
       <div className="noise-overlay"></div>
 
-      {/* Navbar with onClick Handler */}
       <nav className="smart-nav" id="navbar" onClick={toggleMenu}>
         <div className="nav-header">
             <Link href="/" className="nav-logo">SAM CHOW.</Link>
@@ -311,15 +302,6 @@ export default function VideoPage() {
           <Link href="/ai" className="nav-item">AI Generative</Link>
         </div>
       </nav>
-
-      <div className="mobile-menu-overlay" id="mobile-menu">
-        <Link href="/uiux" className="mobile-link">UI/UX</Link>
-        <Link href="/graphic" className="mobile-link">Graphic</Link>
-        <Link href="/3d" className="mobile-link">3D</Link>
-        <Link href="/photography" className="mobile-link">Photography</Link>
-        <Link href="/video" className="mobile-link">Video</Link>
-        <Link href="/ai" className="mobile-link">AI Generative</Link>
-      </div>
 
       <div className="header-section">
         <h1 className="page-title">Video</h1>
