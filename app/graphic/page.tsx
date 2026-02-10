@@ -8,12 +8,13 @@ export default function GraphicPage() {
   // 2. Contact Widget State
   const [isContactExpanded, setIsContactExpanded] = useState(false);
 
-  // Refs for rows
+  // Refs for rows (Added row6Ref)
   const row1Ref = useRef<HTMLDivElement>(null);
   const row2Ref = useRef<HTMLDivElement>(null);
   const row3Ref = useRef<HTMLDivElement>(null);
   const row4Ref = useRef<HTMLDivElement>(null);
   const row5Ref = useRef<HTMLDivElement>(null);
+  const row6Ref = useRef<HTMLDivElement>(null); // New Row
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,7 +43,8 @@ export default function GraphicPage() {
 
     // 2. Desktop Marquee Animation Logic (With Looping)
     const initDesktopAnimation = () => {
-      const rows = [row1Ref.current, row2Ref.current, row3Ref.current, row4Ref.current, row5Ref.current];
+      // Added row6Ref.current to the array
+      const rows = [row1Ref.current, row2Ref.current, row3Ref.current, row4Ref.current, row5Ref.current, row6Ref.current];
       if (!rows[0]) return;
 
       let baseSpeed = 0.5; 
@@ -52,7 +54,7 @@ export default function GraphicPage() {
 
       // Positions
       let pos1 = 0, pos3 = 0, pos5 = 0; // Left moving
-      let pos2 = 0, pos4 = 0; // Right moving
+      let pos2 = 0, pos4 = 0, pos6 = 0; // Right moving (Added pos6)
       
       let lastScrollY = window.scrollY; 
 
@@ -61,8 +63,9 @@ export default function GraphicPage() {
             const items = rows[0].querySelectorAll('.strip-item');
             let totalItemWidth = 0;
             
-            // Sum the first 5 unique items (Assuming 5 items per set)
-            for(let i=0; i<5; i++) {
+            // Sum the first 5 unique items (Assuming ~5 items per set to calculate loop width)
+            // Note: Since we force 1:1, widths are consistent now, calculation is safer
+            for(let i=0; i<items.length && i<5; i++) {
                 if(items[i]) totalItemWidth += items[i].getBoundingClientRect().width;
             }
             
@@ -76,6 +79,7 @@ export default function GraphicPage() {
             if(singleSetWidth > 0) {
                 if(pos2 === 0) pos2 = -singleSetWidth; 
                 if(pos4 === 0) pos4 = -singleSetWidth; 
+                if(pos6 === 0) pos6 = -singleSetWidth; // Init pos6
             }
 
             if (wrapperRef.current) wrapperRef.current.classList.add('loaded');
@@ -104,11 +108,12 @@ export default function GraphicPage() {
         if (pos3 <= -limit) pos3 += limit; if (pos3 > 0) pos3 -= limit;
         if (pos5 <= -limit) pos5 += limit; if (pos5 > 0) pos5 -= limit;
 
-        // --- RIGHT MOVING (Rows 2, 4) ---
-        pos2 += speed; pos4 += speed;
+        // --- RIGHT MOVING (Rows 2, 4, 6) ---
+        pos2 += speed; pos4 += speed; pos6 += speed;
         // Looping Reset
         if (pos2 >= 0) pos2 -= limit; if (pos2 < -limit) pos2 += limit;
         if (pos4 >= 0) pos4 -= limit; if (pos4 < -limit) pos4 += limit;
+        if (pos6 >= 0) pos6 -= limit; if (pos6 < -limit) pos6 += limit;
 
         // Apply transforms
         if(rows[0]) rows[0].style.transform = `translate3d(${pos1.toFixed(2)}px, 0, 0) skewX(${safeSkew.toFixed(2)}deg)`;
@@ -116,6 +121,7 @@ export default function GraphicPage() {
         if(rows[2]) rows[2].style.transform = `translate3d(${pos3.toFixed(2)}px, 0, 0) skewX(${safeSkew.toFixed(2)}deg)`;
         if(rows[3]) rows[3].style.transform = `translate3d(${pos4.toFixed(2)}px, 0, 0) skewX(${safeSkew.toFixed(2)}deg)`;
         if(rows[4]) rows[4].style.transform = `translate3d(${pos5.toFixed(2)}px, 0, 0) skewX(${safeSkew.toFixed(2)}deg)`;
+        if(rows[5]) rows[5].style.transform = `translate3d(${pos6.toFixed(2)}px, 0, 0) skewX(${safeSkew.toFixed(2)}deg)`;
         
         animationFrameId = requestAnimationFrame(animate);
       };
@@ -310,14 +316,17 @@ export default function GraphicPage() {
             transform: translate3d(0, 0, 0); will-change: transform; 
             backface-visibility: hidden; perspective: 1000px;
         }
-        /* DESKTOP ITEM: NATURAL WIDTH */
+        /* DESKTOP ITEM: 1:1 SQUARE - BIGGER SIZE (35vw) */
         .strip-item { 
-            flex-shrink: 0; width: auto; height: 32vw; min-height: 320px; max-height: 640px;
+            flex-shrink: 0; 
+            width: 35vw; /* INCREASED FROM 22vw TO 35vw */
+            height: auto; 
+            aspect-ratio: 1 / 1; /* FORCE SQUARE 1:1 */
             position: relative; border-radius: 8px; overflow: hidden; background-color: #111; 
             transform: translateZ(0);
         }
         .strip-item img { 
-            width: auto; height: 100%; object-fit: cover; 
+            width: 100%; height: 100%; object-fit: cover; /* Ensures image fills square without stretching */
             filter: brightness(0.9); transition: filter 0.3s ease, transform 0.3s ease; 
             will-change: transform, filter; transform: translateZ(0); 
             display: block;
@@ -348,18 +357,18 @@ export default function GraphicPage() {
             .strip-item { 
                 width: 100% !important; 
                 height: auto !important; 
+                aspect-ratio: 1 / 1; /* Keep square on mobile too */
                 max-width: none; 
                 max-height: none;
-                aspect-ratio: auto;
                 margin: 0 auto;
                 filter: brightness(0.9);
                 background-color: transparent;
             }
             .strip-item img { 
                 width: 100%; 
-                height: auto; 
+                height: 100%; /* Fill the square */
                 filter: inherit; 
-                object-fit: contain;
+                object-fit: cover;
             }
             .strip-item.in-view { filter: brightness(1); }
             .strip-item.duplicate { display: none; }
@@ -516,6 +525,26 @@ export default function GraphicPage() {
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/scene1.jpg" alt="23" /><div className="strip-caption">23</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/scene2.jpg" alt="24" /><div className="strip-caption">24</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0414_v2c.jpg" alt="25" /><div className="strip-caption">25</div></div>
+            </div>
+        </div>
+
+        {/* NEW ROW 6 - Added Travel1, Travel2, Study1, Study2 */}
+        <div className="mobile-track">
+            <div className="gallery-strip" id="row-6" ref={row6Ref}>
+                <div className="strip-item"><img src="/images/Graphic_optimized/Travel1.png" alt="26" /><div className="strip-caption">26</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/Travel2.png" alt="27" /><div className="strip-caption">27</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/Study1.png" alt="28" /><div className="strip-caption">28</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/Study2.png" alt="29" /><div className="strip-caption">29</div></div>
+                
+                {/* Repetitions for seamless loop */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Travel1.png" alt="26" /><div className="strip-caption">26</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Travel2.png" alt="27" /><div className="strip-caption">27</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Study1.png" alt="28" /><div className="strip-caption">28</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Study2.png" alt="29" /><div className="strip-caption">29</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Travel1.png" alt="26" /><div className="strip-caption">26</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Travel2.png" alt="27" /><div className="strip-caption">27</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Study1.png" alt="28" /><div className="strip-caption">28</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Study2.png" alt="29" /><div className="strip-caption">29</div></div>
             </div>
         </div>
       </div>
