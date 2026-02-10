@@ -8,26 +8,48 @@ export default function AiPage() {
   // 2. Contact Widget State
   const [isContactExpanded, setIsContactExpanded] = useState(false);
   
-  // 3. Observer Ref (用於自動播放/暫停影片)
+  // 3. Observer Ref
   const observerRef = useRef<IntersectionObserver | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
-  // Video Data
-  const videos = [
-    { src: "/images/AI_optimized/ai_1.mp4", title: 'Sequence 01', year: 'AI GENERATED' },
-    { src: "/images/AI_optimized/ai_2.mp4", title: 'Sequence 02', year: 'AI GENERATED' },
-    { src: "/images/muji.mov", title: 'Sequence 03', year: 'AI GENERATED' }
+  // 🔴 Data Configuration
+  const items = [
+    // ROW 1: Mixed (Img 3 + AI 5 Video - 9:16)
+    { 
+      type: 'mixed', 
+      bg: '/images/AI_optimized/ai_img3.png', 
+      vid: '/images/AI_optimized/ai_5.mp4', 
+      title: 'Sequence 01', 
+      year: 'AI GENERATED' 
+    },
+    // ROW 2: Mixed (Img 4 + Lemon Tea Video - 9:16)
+    { 
+      type: 'mixed', 
+      bg: '/images/AI_optimized/ai_img4.png', 
+      // 🔴 FIXED PATH: Added 'AI_optimized/'
+      vid: '/images/AI_optimized/lemon tea.mp4', 
+      title: 'Sequence 02', 
+      year: 'AI GENERATED' 
+    },
+    // ROW 3: Full Video
+    { type: 'video', src: "/images/AI_optimized/ai_1.mp4", title: 'Sequence 03', year: 'AI GENERATED' },
+    // ROW 4: Full Video
+    { type: 'video', src: "/images/AI_optimized/ai_2.mp4", title: 'Sequence 04', year: 'AI GENERATED' },
+    // ROW 5: Full Video
+    { type: 'video', src: "/images/muji.mov", title: 'Sequence 05', year: 'AI GENERATED' },
+    // 🔴 NEW ROW 6: Full Image
+    { type: 'image', src: "/images/AI_optimized/ai_img1.png", title: 'Sequence 06', year: 'AI GENERATED' },
+    // 🔴 NEW ROW 7: Full Image
+    { type: 'image', src: "/images/AI_optimized/ai_img2.png", title: 'Sequence 07', year: 'AI GENERATED' }
   ];
 
   useEffect(() => {
-    // Preloader
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 500);
 
     let lenis: any;
 
-    // Lenis Smooth Scroll
     import('@studio-freight/lenis').then((Lenis) => {
       lenis = new Lenis.default({
         duration: 1.2,
@@ -42,7 +64,6 @@ export default function AiPage() {
       requestAnimationFrame(raf);
     });
 
-    // Intersection Observer (自動播放/暫停邏輯)
     const observerOptions = {
         root: null,
         rootMargin: '0px',
@@ -52,20 +73,25 @@ export default function AiPage() {
     observerRef.current = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             const video = entry.target as HTMLVideoElement;
+            // 🔴 Safety check: ensure target is actually a video element before calling play()
+            if (video.tagName !== 'VIDEO') return;
+
+            const container = video.closest('.video-block') || video.closest('.mixed-block');
+            
             if (entry.isIntersecting) {
-                video.play().catch(() => {}); // 忽略自動播放限制錯誤
+                video.play().catch(() => {});
+                // Add fade-in class when visible
+                if (container) container.classList.add('in-view');
             } else {
                 video.pause();
             }
         });
     }, observerOptions);
 
-    // 綁定 Observer 到所有影片
     videoRefs.current.forEach(video => {
         if (video) observerRef.current?.observe(video);
     });
 
-    // Navbar Scroll Logic
     const navbar = document.getElementById('navbar');
     const handleScroll = () => {
         if (window.scrollY > 50) {
@@ -87,27 +113,22 @@ export default function AiPage() {
     };
   }, []);
 
-  // 🔴 Navbar Toggle Logic (Aligned with Home/Uiux/Graphic)
   const toggleMenu = (e: React.MouseEvent) => {
     const navbar = document.getElementById('navbar');
     const menuBtn = document.getElementById('menu-btn');
     const target = e.target as HTMLElement;
-    
     if (!navbar || !menuBtn) return;
 
     if (window.innerWidth <= 768) {
         const isActive = navbar.classList.contains('mobile-active');
         const isLogo = target.closest('.nav-logo');
-
         if (isLogo && !isActive) return;
 
         if (isActive) {
-            // Close
             navbar.classList.remove('mobile-active');
             menuBtn.classList.remove('open');
             document.body.style.overflow = ''; 
         } else {
-            // Open
             navbar.classList.remove('collapsed'); 
             navbar.classList.add('mobile-active');
             menuBtn.classList.add('open');
@@ -118,7 +139,6 @@ export default function AiPage() {
     }
   };
 
-  // 🔴 Contact Widget Toggle
   const toggleContact = () => {
     setIsContactExpanded(!isContactExpanded);
   };
@@ -139,7 +159,7 @@ export default function AiPage() {
         .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; }
         .preloader.hidden { opacity: 0; }
 
-        /* NAVBAR - FULLSCREEN MOBILE OVERLAY */
+        /* NAVBAR */
         .smart-nav { 
             position: fixed; top: 30px; left: 50%; transform: translateX(-50%); 
             padding: 0 30px; display: flex; align-items: center; justify-content: space-between;
@@ -148,56 +168,70 @@ export default function AiPage() {
             border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); 
             width: auto; min-width: 450px; height: 60px;
             transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); 
-            overflow: hidden;
-            cursor: pointer;
+            overflow: hidden; cursor: pointer;
         }
-        
         .nav-header { display: contents; }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
         .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; order: 2; margin: 0 40px; }
         .nav-item { text-decoration: none; color: #ccc; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
         .nav-item:hover, .nav-item.active { color: #F4D03F; }
-        
-        .menu-icon { 
-            width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; 
-            pointer-events: none; z-index: 2005; order: 3; margin-left: 0;
-        }
-        .menu-line { 
-            width: 100%; height: 1px; background-color: #fff; 
-            transition: all 0.3s ease; transform-origin: center;
-        }
-        
-        /* HAMBURGER TO X ANIMATION */
+        .menu-icon { width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; pointer-events: none; z-index: 2005; order: 3; margin-left: 0; }
+        .menu-line { width: 100%; height: 1px; background-color: #fff; transition: all 0.3s ease; transform-origin: center; }
         .menu-icon.open .menu-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
         .menu-icon.open .menu-line:nth-child(2) { opacity: 0; }
         .menu-icon.open .menu-line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-        /* 🔴 DESKTOP ONLY: Hover to expand */
         @media (min-width: 769px) {
             .smart-nav:hover, .smart-nav.force-expand { min-width: 650px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
             .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; gap: 25px !important; pointer-events: auto !important; display: flex !important; } 
         }
-        
         .smart-nav.collapsed { min-width: 150px; background: rgba(255, 255, 255, 0.05); padding: 0 20px; } 
         .smart-nav.collapsed .nav-links { max-width: 0; opacity: 0; gap: 0; pointer-events: none; } 
         .smart-nav.collapsed .nav-logo { margin-right: 10px; } 
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
-
         .mobile-menu-overlay { display: none; }
 
-        /* HEADER */
         .header-section { padding: 220px 40px 100px 40px; text-align: center; position: relative; z-index: 10; }
         h1.page-title { font-size: 80px; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -2px; opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.2s; color: #fff; }
         .page-desc { margin-top: 20px; font-size: 16px; color: #888; max-width: 600px; display: inline-block; opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.4s; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* VIDEO FEED */
+        /* FEED LAYOUT */
         .video-feed { width: 100%; display: flex; flex-direction: column; gap: 0; padding-bottom: 100px; }
-        .video-block { width: 100%; height: 90vh; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); background: #000; }
         
-        /* Fullscreen Video Style */
+        /* STANDARD VIDEO BLOCK */
+        .video-block { width: 100%; height: 90vh; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); background: #000; }
         .cover-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.8; transition: opacity 0.5s ease; }
         
+        /* MIXED BLOCK (NEW) */
+        .mixed-block { width: 100%; height: 90vh; position: relative; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); background: #000; }
+        .bg-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.6; filter: grayscale(20%); z-index: 1; }
+        
+        /* 🔴 9:16 PORTRAIT VIDEO WRAPPER */
+        .fg-video-wrapper { 
+            position: absolute; 
+            top: 50%; 
+            right: 20%; 
+            transform: translateY(-50%); 
+            width: 25vw; 
+            aspect-ratio: 9/16; /* 🔴 FORCE 9:16 PORTRAIT */
+            z-index: 5;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            border-radius: 12px;
+            overflow: hidden;
+            opacity: 0; 
+            transition: opacity 1.5s ease, transform 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        
+        .mixed-block.in-view .fg-video-wrapper {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+        }
+        .mixed-block .fg-video-wrapper { transform: translateY(-50%) translateX(50px); }
+
+        .fg-video { width: 100%; height: 100%; object-fit: cover; }
+
+        /* TEXT OVERLAYS */
         .video-info-overlay { position: absolute; bottom: 80px; left: 60px; z-index: 20; pointer-events: auto; max-width: 600px; }
         .video-title { font-size: 3vw; font-weight: 800; line-height: 1.1; margin-bottom: 10px; text-shadow: 0 4px 20px rgba(0,0,0,0.8); }
         .video-meta { font-size: 14px; color: #aaa; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
@@ -205,8 +239,6 @@ export default function AiPage() {
         /* MOBILE ADAPTATION */
         @media (max-width: 768px) {
             .header-section { padding-bottom: 50px; }
-            
-            /* Navbar Fullscreen Overlay & Order Reset */
             .smart-nav { flex-direction: column !important; align-items: flex-start !important; width: 90% !important; max-width: 350px !important; height: 60px; overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; }
             .smart-nav.mobile-active { position: fixed !important; top: 0 !important; left: 0 !important; transform: none !important; width: 100vw !important; max-width: none !important; height: 100vh !important; border-radius: 0 !important; background: #000 !important; border: none !important; padding: 30px !important; justify-content: flex-start !important; align-items: center !important; z-index: 9000 !important; }
             .nav-header { display: flex !important; width: 100%; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
@@ -218,46 +250,36 @@ export default function AiPage() {
 
             .video-title { font-size: 40px; } 
             .video-info-overlay { bottom: 60px; left: 20px; right: 20px; } 
-            .video-block { height: 70vh; }
+            .video-block, .mixed-block { height: 70vh; }
+            
+            /* Mobile Mixed Block */
+            .fg-video-wrapper { 
+                width: 60vw; /* 🔴 Increased width for mobile visibility */
+                right: 5%; 
+                top: 55%; 
+                box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            }
+            .bg-image { opacity: 0.4; }
         }
 
         /* CONTACT WIDGET */
-        /* Base (Shared) */
-        .contact-widget { 
-            position: fixed; bottom: 30px; right: 30px; z-index: 2500; 
-            display: flex; align-items: center; 
-            background: rgba(255, 255, 255, 0.08); 
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
-            border: 1px solid rgba(255,255,255,0.15); 
-            border-radius: 50px; padding: 6px; 
-            width: auto; max-width: 52px; height: 52px; 
-            box-sizing: border-box; overflow: hidden; 
-            transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; 
-            cursor: pointer;
-        }
+        .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; cursor: pointer; }
         .contact-icon { width: 38px; height: 38px; background: #fff; color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         .contact-details { opacity: 0; white-space: nowrap; margin-left: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; pointer-events: none; transition: opacity 0.3s ease 0.1s, margin-left 0.4s ease; }
         .contact-link { color: #ccc; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; transition: color 0.3s; }
         .contact-link:hover { color: #fff; }
         .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #666; margin-right: 10px; width: 60px; font-weight: 700; }
-
-        /* 🔴 Expanded State (Mobile Click / Desktop Click) */
         .contact-widget.expanded { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .contact-widget.expanded .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
-
-        /* 🔴 Desktop Only Hover */
         @media (min-width: 769px) {
             .contact-widget:hover { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
             .contact-widget:hover .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
         }
       `}</style>
 
-      {/* Preloader */}
       <div className={`preloader ${!isLoading ? 'hidden' : ''}`}></div>
-
       <div className="noise-overlay"></div>
 
-      {/* 🔴 Updated Navbar with onClick Handler */}
       <nav className="smart-nav" id="navbar" onClick={toggleMenu}>
         <div className="nav-header">
             <Link href="/" className="nav-logo">SAM CHOW.</Link>
@@ -292,24 +314,69 @@ export default function AiPage() {
       </div>
 
       <div className="video-feed" id="video-feed">
-        {videos.map((vid, index) => (
-            <div key={index} className="video-block">
-                {/* Local Video with object-fit: cover */}
-                <video 
-                    // @ts-ignore
-                    ref={(el) => (videoRefs.current[index] = el)}
-                    src={vid.src} 
-                    className="cover-video" 
-                    muted 
-                    loop 
-                    playsInline 
-                />
-                <div className="video-info-overlay">
-                    <div className="video-title">{vid.title}</div>
-                    <div className="video-meta">{vid.year}</div>
-                </div>
-            </div>
-        ))}
+        {items.map((item, index) => {
+            // 🔴 RENDER MIXED BLOCK (Bg Img + Fade-in Video)
+            if (item.type === 'mixed') {
+                return (
+                    <div key={index} className="mixed-block">
+                        <img src={item.bg} alt="AI Background" className="bg-image" />
+                        <div className="fg-video-wrapper">
+                            <video 
+                                // @ts-ignore
+                                ref={(el) => (videoRefs.current[index] = el)}
+                                src={item.vid} 
+                                className="fg-video" 
+                                muted 
+                                loop 
+                                playsInline 
+                            />
+                        </div>
+                        <div className="video-info-overlay">
+                            <div className="video-title">{item.title}</div>
+                            <div className="video-meta">{item.year}</div>
+                        </div>
+                    </div>
+                );
+            }
+            
+            // 🔴 RENDER STANDARD VIDEO BLOCK
+            if (item.type === 'video') {
+                return (
+                    <div key={index} className="video-block">
+                        <video 
+                            // @ts-ignore
+                            ref={(el) => (videoRefs.current[index] = el)}
+                            src={item.src} 
+                            className="cover-video" 
+                            muted 
+                            loop 
+                            playsInline 
+                        />
+                        <div className="video-info-overlay">
+                            <div className="video-title">{item.title}</div>
+                            <div className="video-meta">{item.year}</div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // 🔴 RENDER FULL IMAGE BLOCK (For Items 6 & 7)
+            if (item.type === 'image') {
+                return (
+                    <div key={index} className="video-block">
+                        <img 
+                            src={item.src} 
+                            className="cover-video" // Reuse video style for full cover effect
+                            alt={item.title}
+                        />
+                        <div className="video-info-overlay">
+                            <div className="video-title">{item.title}</div>
+                            <div className="video-meta">{item.year}</div>
+                        </div>
+                    </div>
+                );
+            }
+        })}
       </div>
 
       <div 
