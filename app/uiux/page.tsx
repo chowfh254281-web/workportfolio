@@ -5,6 +5,8 @@ import Link from 'next/link';
 
 export default function UiuxPage() {
   const [isLoading, setIsLoading] = useState(true);
+  // Contact State
+  const [isContactExpanded, setIsContactExpanded] = useState(false);
 
   // Refs for drag containers
   const galleryRef = useRef<HTMLDivElement>(null);
@@ -196,6 +198,11 @@ export default function UiuxPage() {
     } else {
         navbar.classList.toggle('force-expand');
     }
+  };
+
+  // Contact Widget Toggle
+  const toggleContact = () => {
+    setIsContactExpanded(!isContactExpanded);
   };
 
   return (
@@ -484,6 +491,11 @@ export default function UiuxPage() {
         </div>
       </div>
 
+      {/* MACALLAN SHOWCASE */}
+      <div className="macallan-showcase" style={{ width: '100%', height: '100vh', position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#000', overflow: 'hidden' }}>
+        <img src="/macallan_showcase.gif" alt="The Macallan UI/UX Showcase" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      </div>
+
       {/* KENZO */}
       <div className="kenzo-showcase" id="kenzo-section" ref={kenzoSectionRef}>
         <div className="scroll-container" id="draggable-kenzo" ref={kenzoRef}>
@@ -496,6 +508,19 @@ export default function UiuxPage() {
             <div className="kenzo-item"><img src="/images/uiux/kenzo_6.jpg" alt="Kenzo 6" /></div>
             <div className="kenzo-item"><img src="/images/uiux/kenzo_7.jpg" alt="Kenzo 7" /></div>
           </div>
+        </div>
+      </div>
+      {/* CONTACT WIDGET */}
+      <div 
+        className={`contact-widget ${isContactExpanded ? 'expanded' : ''}`} 
+        id="contact-bubble"
+        onClick={toggleContact}
+        style={{ position: 'fixed', bottom: '30px', right: '30px', zIndex: 2500, display: 'flex', alignItems: 'center', background: 'rgba(255, 255, 255, 0.08)', backdropFilter: 'blur(15px)', WebkitBackdropFilter: 'blur(15px)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '50px', padding: '6px', width: 'auto', maxWidth: '52px', height: '52px', boxSizing: 'border-box', overflow: 'hidden', transition: 'maxWidth 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, boxShadow 0.3s ease, paddingRight 0.6s ease', cursor: 'pointer' }}
+      >
+        <div className="contact-icon" style={{ width: '38px', height: '38px', background: '#fff', color: '#000', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }}><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
+        <div className="contact-details" style={{ opacity: isContactExpanded ? 1 : 0, whiteSpace: 'nowrap', marginLeft: isContactExpanded ? '15px' : 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '4px', pointerEvents: isContactExpanded ? 'auto' : 'none', transition: 'opacity 0.3s ease 0.1s, marginLeft 0.4s ease' }}>
+            <a href="https://wa.me/85267012420" target="_blank" className="contact-link" style={{ color: '#fff', textDecoration: 'none', fontSize: '13px', fontWeight: 500, letterSpacing: '1px', display: 'flex', alignItems: 'center', transition: 'color 0.3s' }}><span className="label" style={{ fontSize: '9px', textTransform: 'uppercase', color: '#666', marginRight: '10px', width: '60px', fontWeight: 700 }}>WHATSAPP</span>6701 2420</a>
+            <a href="mailto:chowfh254281@gmail.com" className="contact-link" style={{ color: '#fff', textDecoration: 'none', fontSize: '13px', fontWeight: 500, letterSpacing: '1px', display: 'flex', alignItems: 'center', transition: 'color 0.3s' }}><span className="label" style={{ fontSize: '9px', textTransform: 'uppercase', color: '#666', marginRight: '10px', width: '60px', fontWeight: 700 }}>MAIL</span>chowfh254281@gmail.com</a>
         </div>
       </div>
     </>
