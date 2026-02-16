@@ -484,6 +484,18 @@ export default function UiuxPage() {
         </div>
       </div>
 
+      {/* MACALLAN SHOWCASE */}
+      <div className="macallan-showcase" style={{ width: '100%', minHeight: '80vh', position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '5vw 0', backgroundColor: '#0a0a0a' }}>
+        <h2 style={{ fontSize: '1.5vw', fontWeight: 700, letterSpacing: '4px', color: '#C5A059', textTransform: 'uppercase', marginBottom: '3vh', textAlign: 'center' }}>PREMIUM BRAND EXPERIENCE</h2>
+        <div style={{ maxWidth: '800px', width: '90%', margin: '0 auto', boxShadow: '0 30px 60px rgba(0,0,0,0.5)', borderRadius: '20px', overflow: 'hidden' }}>
+            <img src="/macallan_showcase.gif" alt="The Macallan UI/UX Showcase" style={{ width: '100%', height: 'auto', display: 'block' }} />
+        </div>
+        <div style={{ maxWidth: '600px', textAlign: 'center', marginTop: '40px', color: '#ccc', lineHeight: '1.6', padding: '0 20px' }}>
+            <h3 style={{ color: '#fff', fontSize: '24px', marginBottom: '10px' }}>The Macallan - Digital Experience</h3>
+            <p>Crafted a sophisticated interface using a warm, whisky-inspired color palette to evoke a sense of luxury and craftsmanship. Featuring seamless navigation and immersive visual storytelling.</p>
+        </div>
+      </div>
+
       {/* KENZO */}
       <div className="kenzo-showcase" id="kenzo-section" ref={kenzoSectionRef}>
         <div className="scroll-container" id="draggable-kenzo" ref={kenzoRef}>
