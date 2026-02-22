@@ -167,7 +167,7 @@ export default function UiuxPage() {
     };
   }, []);
 
-  // 🔴 Navbar Toggle Logic (Aligned with other pages)
+  // Navbar Toggle Logic
   const toggleMenu = (e: React.MouseEvent) => {
     const navbar = document.getElementById('navbar');
     const menuBtn = document.getElementById('menu-btn');
@@ -182,12 +182,10 @@ export default function UiuxPage() {
         if (isLogo && !isActive) return;
 
         if (isActive) {
-            // Close
             navbar.classList.remove('mobile-active');
             menuBtn.classList.remove('open');
             document.body.style.overflow = ''; 
         } else {
-            // Open
             navbar.classList.remove('collapsed'); 
             navbar.classList.add('mobile-active');
             menuBtn.classList.add('open');
@@ -214,7 +212,7 @@ export default function UiuxPage() {
         .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; }
         .preloader.hidden { opacity: 0; }
 
-        /* NAVBAR - FULLSCREEN MOBILE OVERLAY */
+        /* NAVBAR */
         .smart-nav { 
             position: fixed; top: 30px; left: 50%; transform: translateX(-50%); 
             padding: 0 30px; display: flex; align-items: center; justify-content: space-between;
@@ -227,7 +225,6 @@ export default function UiuxPage() {
             cursor: pointer;
         }
         
-        /* DESKTOP NAVBAR ORDER FIX (Align Icon Right) */
         .nav-header { display: contents; }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
         .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; order: 2; margin: 0 40px; }
@@ -239,12 +236,10 @@ export default function UiuxPage() {
             pointer-events: none; z-index: 2005; order: 3; margin-left: 0;
         }
         .menu-line { width: 100%; height: 1px; background-color: #fff; transition: all 0.3s ease; transform-origin: center; }
-        
         .menu-icon.open .menu-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
         .menu-icon.open .menu-line:nth-child(2) { opacity: 0; }
         .menu-icon.open .menu-line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-        /* DESKTOP ONLY: Hover to expand */
         @media (min-width: 769px) {
             .smart-nav:hover, .smart-nav.force-expand { min-width: 650px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
             .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; gap: 25px !important; pointer-events: auto !important; display: flex !important; } 
@@ -319,6 +314,49 @@ export default function UiuxPage() {
         .christmas-item:nth-child(1) { transition-delay: 0s; animation-delay: 0.1s; } .christmas-item:nth-child(2) { transition-delay: 0.2s; animation-delay: 0.6s; } .christmas-item:nth-child(3) { transition-delay: 0.4s; animation-delay: 1.1s; } .christmas-item:nth-child(4) { transition-delay: 0.6s; animation-delay: 1.6s; }
         .christmas-item img { height: 100%; width: auto; object-fit: contain; display: block; pointer-events: none; }
 
+        /* 🔴 MACALLAN FADE-IN/OUT SHOWCASE (UPDATED) */
+        .macallan-fullscreen-gif { 
+            position: relative; 
+            width: 100%; 
+            height: 100vh; 
+            background: #000; 
+            overflow: hidden; 
+        }
+        .macallan-frame {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: contain; /* 改做 cover 都得，視乎你想唔想張圖撐滿 */
+            opacity: 0;
+        }
+        
+        /* 每個 Frame 分配獨立嘅漸變 Keyframe，總長 9 秒，營造柔和交替 */
+        .macallan-frame:nth-child(1) { animation: macFade1 9s infinite; }
+        .macallan-frame:nth-child(2) { animation: macFade2 9s infinite; }
+        .macallan-frame:nth-child(3) { animation: macFade3 9s infinite; }
+        
+        @keyframes macFade1 {
+            0%      { opacity: 1; }
+            22.22%  { opacity: 1; } /* 開始淡出 */
+            33.33%  { opacity: 0; } /* 完全隱藏 */
+            88.88%  { opacity: 0; } /* 開始淡入 */
+            100%    { opacity: 1; }
+        }
+        @keyframes macFade2 {
+            0%      { opacity: 0; }
+            22.22%  { opacity: 0; } /* 開始淡入 */
+            33.33%  { opacity: 1; } /* 完全顯示 */
+            55.55%  { opacity: 1; } /* 開始淡出 */
+            66.66%  { opacity: 0; } /* 完全隱藏 */
+            100%    { opacity: 0; }
+        }
+        @keyframes macFade3 {
+            0%      { opacity: 0; }
+            55.55%  { opacity: 0; } /* 開始淡入 */
+            66.66%  { opacity: 1; } /* 完全顯示 */
+            88.88%  { opacity: 1; } /* 開始淡出 */
+            100%    { opacity: 0; } /* 完全隱藏 */
+        }
+
         /* KENZO */
         .kenzo-showcase { width: 100%; height: 100vh; min-height: 600px; position: relative; background-color: #000; display: flex; align-items: center; }
         .kenzo-strip { display: flex; gap: 40px; padding: 20px 5vw; height: 70vh; align-items: center; width: max-content; pointer-events: none; }
@@ -328,11 +366,10 @@ export default function UiuxPage() {
         .kenzo-item img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
         .kenzo-item:hover { transform: scale(1.05); animation-play-state: paused; }
 
-        /* 🔴 MOBILE ADAPTATION & NAVBAR FIX */
+        /* MOBILE ADAPTATION & NAVBAR FIX */
         @media (max-width: 768px) {
             .header-section { padding-bottom: 40px; }
             
-            /* 🔴 Navbar Fullscreen Overlay & Order Reset */
             .smart-nav { flex-direction: column !important; align-items: flex-start !important; width: 90% !important; max-width: 350px !important; height: 60px; overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; }
             .smart-nav.mobile-active { position: fixed !important; top: 0 !important; left: 0 !important; transform: none !important; width: 100vw !important; max-width: none !important; height: 100vh !important; border-radius: 0 !important; background: #000 !important; border: none !important; padding: 30px !important; justify-content: flex-start !important; align-items: center !important; z-index: 9000 !important; }
             
@@ -344,7 +381,6 @@ export default function UiuxPage() {
             .smart-nav.mobile-active .nav-links { opacity: 1 !important; transform: translateY(0) !important; pointer-events: auto !important; visibility: visible !important; }
             .nav-item { font-size: 28px !important; font-weight: 700 !important; letter-spacing: 2px !important; }
 
-            /* Gallery items adaptation for mobile */
             .uiux-showcase { height: auto; min-height: 450px; padding-bottom: 50px; }
             .uiux-strip { flex-direction: column; height: auto; width: 100%; gap: 40px; padding: 20px 30px; pointer-events: auto; align-items: center; }
             .uiux-strip-item { width: 70% !important; height: auto; aspect-ratio: auto; max-height: none; animation: none; transform: none !important; margin: 0 auto; }
@@ -382,7 +418,6 @@ export default function UiuxPage() {
       <div className={`preloader ${!isLoading ? 'hidden' : ''}`}></div>
       <div className="noise-overlay"></div>
 
-      {/* 🔴 Added onClick to the NAV container */}
       <nav className="smart-nav" id="navbar" onClick={toggleMenu}>
         <div className="nav-header">
             <Link href="/" className="nav-logo">SAM CHOW.</Link>
@@ -482,6 +517,13 @@ export default function UiuxPage() {
             <div className="christmas-item"><img src="/images/uiux/christmas_4.png" alt="Christmas 4" /></div>
           </div>
         </div>
+      </div>
+
+      {/* 🔴 MACALLAN FULLSCREEN FADE-IN/OUT SHOWCASE */}
+      <div className="macallan-fullscreen-gif">
+          <img src="/images/uiux/Macallan_DYE1.png" className="macallan-frame" alt="Macallan Frame 1" />
+          <img src="/images/uiux/Macallan_DYE2.png" className="macallan-frame" alt="Macallan Frame 2" />
+          <img src="/images/uiux/Macallan_DYE3.png" className="macallan-frame" alt="Macallan Frame 3" />
       </div>
 
       {/* KENZO */}

@@ -116,12 +116,26 @@ export default function PhotographyPage() {
     window.addEventListener('resize', handleResize);
 
     const navbar = document.getElementById('navbar');
+    const contactBubble = document.getElementById('contact-bubble');
+    
     const handleScroll = () => {
-        if (window.scrollY > 50) {
+        const scrollY = window.scrollY;
+        
+        // Navbar
+        if (scrollY > 50) {
             if (navbar && !navbar.classList.contains('mobile-active')) navbar.classList.add('collapsed');
         } else {
             navbar?.classList.remove('collapsed');
             navbar?.classList.remove('force-expand');
+        }
+        
+        // Contact Bubble Auto-expand at bottom
+        if (contactBubble) {
+            if ((window.innerHeight + scrollY) >= document.body.offsetHeight - 50) {
+                contactBubble.classList.add('expanded');
+            } else {
+                contactBubble.classList.remove('expanded');
+            }
         }
     };
     window.addEventListener('scroll', handleScroll);
@@ -166,7 +180,7 @@ export default function PhotographyPage() {
         * { box-sizing: border-box; }
         body { text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; margin: 0; padding: 0; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #050505; min-height: 100vh; overflow-x: hidden; }
         
-        /* 🔴 Preloader Style (轉轉圈版本) */
+        /* Preloader */
         .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; transition: opacity 0.8s ease; pointer-events: none; }
         .preloader.hidden { opacity: 0; }
         .loader { width: 48px; height: 48px; border: 3px solid rgba(244, 208, 63, 0.2); border-radius: 50%; display: inline-block; position: relative; animation: rotation 1s linear infinite; }
@@ -177,7 +191,7 @@ export default function PhotographyPage() {
         .main-content-wrapper { opacity: 0; visibility: hidden; transition: opacity 1s ease-in-out; }
         .main-content-wrapper.loaded { opacity: 1; visibility: visible; }
 
-        /* 🔴 Navbar Style (跟首頁對齊) */
+        /* Navbar Style */
         .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); padding: 0 30px; display: flex; align-items: center; justify-content: space-between; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; height: 60px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); overflow: hidden; cursor: pointer; }
         .nav-header { display: contents; }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; order: 1; }
@@ -209,6 +223,29 @@ export default function PhotographyPage() {
         .strip-item:hover img { filter: brightness(1.1); transform: scale(1.05); }
         .strip-caption { position: absolute; bottom: 20px; left: 20px; font-size: 2vw; font-weight: 700; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.5); z-index: 2; }
 
+        /* 🔴 CONTACT WIDGET (ALIGNED WITH ALL PAGES) */
+        .contact-widget { 
+            position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; 
+            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; 
+            width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; 
+            transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; 
+            cursor: pointer; 
+        }
+        .contact-icon { width: 38px; height: 38px; background: #fff; color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+        .contact-details { opacity: 0; white-space: nowrap; margin-left: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; pointer-events: none; transition: opacity 0.3s ease 0.1s, margin-left 0.4s ease; }
+        .contact-link { color: #ccc; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; transition: color 0.3s; }
+        .contact-link:hover { color: #fff; }
+        .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #666; margin-right: 10px; width: 60px; font-weight: 700; }
+        .contact-widget.expanded { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .contact-widget.expanded .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
+        
+        @media (min-width: 769px) {
+            .contact-widget:hover { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+            .contact-widget:hover .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
+        }
+
+        /* MOBILE ADAPTATION */
         @media (max-width: 768px) {
             .header-section { padding-top: 150px; }
             .smart-nav { flex-direction: column !important; width: 90% !important; max-width: 350px !important; height: 60px; }
@@ -220,14 +257,9 @@ export default function PhotographyPage() {
             .strip-item, #row-2 .strip-item, #row-4 .strip-item, #row-6 .strip-item, #row-7 .strip-item { width: 100% !important; aspect-ratio: auto; }
             .strip-item.duplicate { display: none; }
         }
-        .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; transition: 0.6s cubic-bezier(0.22, 1, 0.36, 1); cursor: pointer; }
-        .contact-icon { width: 38px; height: 38px; background: #fff; color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
-        .contact-details { opacity: 0; white-space: nowrap; transition: 0.3s ease 0.1s; }
-        .contact-widget:hover, .contact-widget.expanded { max-width: 380px; padding-right: 25px; }
-        .contact-widget:hover .contact-details, .contact-widget.expanded .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
       `}</style>
 
-      {/* 🔴 Preloader (Spinner only) */}
+      {/* Preloader */}
       <div className={`preloader ${!isLoading ? 'hidden' : ''}`}>
           <span className="loader"></span>
       </div>
@@ -341,7 +373,12 @@ export default function PhotographyPage() {
             </div>
         </div>
 
-        <div className={`contact-widget ${isContactExpanded ? 'expanded' : ''}`} id="contact-bubble" onClick={toggleContact}>
+        {/* 🔴 ALIGNED CONTACT WIDGET */}
+        <div 
+            className={`contact-widget ${isContactExpanded ? 'expanded' : ''}`} 
+            id="contact-bubble"
+            onClick={toggleContact}
+        >
             <div className="contact-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
             <div className="contact-details">
                 <a href="https://wa.me/85267012420" target="_blank" className="contact-link" style={{ color: '#fff' }}><span className="label">WHATSAPP</span>6701 2420</a>

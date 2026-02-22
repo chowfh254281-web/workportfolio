@@ -9,9 +9,13 @@ export default function ThreeDPage() {
   const trackRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const prodRef = useRef<HTMLDivElement>(null);
-  // Removed modelsRef and textRef
   const ueRef = useRef<HTMLDivElement>(null);
   const liveRef = useRef<HTMLDivElement>(null);
+  
+  const ytRef = useRef<HTMLDivElement>(null); // 第一個 YT 場景
+  const yt1Ref = useRef<HTMLDivElement>(null); // 第二個 YT 場景
+  const yt2Ref = useRef<HTMLDivElement>(null); // 第三個 YT 場景
+  
   const freshRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const scrollPromptRef = useRef<HTMLDivElement>(null);
@@ -20,12 +24,11 @@ export default function ThreeDPage() {
   const liveHeaderRef = useRef<HTMLDivElement>(null);
   const liveGalleryRef = useRef<HTMLDivElement>(null);
   const freshGalleryRef = useRef<HTMLDivElement>(null);
-  // Removed revealTextRef
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 500);
+    }, 1000);
 
     let lenis: any;
     let animationFrameId: number;
@@ -43,8 +46,6 @@ export default function ThreeDPage() {
       }
       requestAnimationFrame(raf);
     });
-
-    // Removed splitTextIntoSpans logic as the text layer is deleted
 
     setTimeout(() => { 
         const prodCards = document.querySelectorAll('.production-group .video-card');
@@ -81,91 +82,89 @@ export default function ThreeDPage() {
             const layerLive = liveRef.current;
             const liveHeader = liveHeaderRef.current;
             const liveGallery = liveGalleryRef.current;
+            const layerYT = ytRef.current; 
+            const layerYT1 = yt1Ref.current; 
+            const layerYT2 = yt2Ref.current; 
             const layerFresh = freshRef.current;
             const freshGallery = freshGalleryRef.current;
-            
-            // Removed layerModels and layerText references
 
-            if (cgHero && productionSection && header && layerUE && ueHeader && ueGallery && layerLive && liveHeader && liveGallery && layerFresh && freshGallery) {
+            if (cgHero && productionSection && header && layerUE && ueHeader && ueGallery && layerLive && liveHeader && liveGallery && layerYT && layerYT1 && layerYT2 && layerFresh && freshGallery) {
                 
-                // --- 🔴 MOBILE ANIMATION LOGIC (REVISED) ---
+                // 1. YT HERO & HEADER EXIT -> CG HERO ENTER (0.00 - 0.08)
+                if (progress < 0.08) {
+                    const p = progress / 0.08; 
+                    layerYT.style.opacity = (1 - p).toString();
+                    layerYT.style.transform = `translateY(-${p * 30}vh)`;
+                    
+                    header.style.transform = `translate(-50%, calc(-50% - ${p * 60}vh))`;
+                    header.style.opacity = (1 - p).toString();
 
-                // 1. HERO SCROLL (0.00 - 0.30)
-                if (progress < 0.30) {
-                    const scrollP = progress / 0.30; 
-                    
                     if (isMobile) {
-                        const startY = 15; 
-                        const endY = -130; 
-                        const currentY = startY + (endY - startY) * scrollP;
-                        cgHero.style.transform = `translate(-50%, ${currentY}vh)`;
-                        header.style.transform = `translateY(-${scrollP * 80}vh)`; 
+                        cgHero.style.transform = `translate(-50%, ${100 - p * 100}vh)`;
                     } else {
-                        cgHero.style.transform = `translate(-50%, calc(-50% - ${scrollP * 100}vh))`; 
-                        header.style.transform = `translateY(-${scrollP * 50}vh)`;
+                        cgHero.style.transform = `translate(-50%, calc(-50% + ${100 - p * 100}vh))`; 
                     }
-                    
                     cgHero.style.opacity = '1';
                     productionSection.style.opacity = '0';
                 } 
                 
-                // 2. HERO EXIT / PRODUCTION ENTER (0.30 - 0.35)
-                else if (progress >= 0.30 && progress < 0.35) {
-                    const transP = (progress - 0.30) / 0.05; // 0 to 1
+                // 2. CG HERO ACTIVE (0.08 - 0.15)
+                else if (progress >= 0.08 && progress < 0.15) {
+                    layerYT.style.opacity = '0';
+                    header.style.opacity = '0';
                     
-                    if (isMobile) cgHero.style.transform = `translate(-50%, -130vh)`;
-                    else cgHero.style.transform = `translate(-50%, -150vh)`;
+                    if (isMobile) cgHero.style.transform = `translate(-50%, 0)`;
+                    else cgHero.style.transform = `translate(-50%, -50%)`; 
                     
-                    cgHero.style.opacity = (1 - transP).toString();
-                    productionSection.style.opacity = transP.toString();
-                    
-                    if (isMobile) {
-                        const startY = 50; 
-                        const endY = 20;
-                        const currentY = startY + (endY - startY) * transP;
-                        productionSection.style.transform = `translate(-50%, ${currentY}vh)`; 
-                    } else {
-                        productionSection.style.transform = `translate(-50%, calc(-50% + ${(1-transP)*100}px))`;
-                    }
+                    cgHero.style.opacity = '1';
+                    productionSection.style.opacity = '0';
                 }
 
-                // 3. 🔴 PRODUCTION SCROLL (0.35 - 0.70)
-                else if (progress >= 0.35 && progress < 0.70) {
-                    cgHero.style.opacity = '0';
-                    cgHero.style.transform = `translate(-50%, -500vh)`; 
+                // 3. CG HERO EXIT -> PRODUCTION ENTER (0.15 - 0.20)
+                else if (progress >= 0.15 && progress < 0.20) {
+                    const p = (progress - 0.15) / 0.05; 
                     
+                    if (isMobile) {
+                        cgHero.style.transform = `translate(-50%, -${p * 150}vh)`;
+                        productionSection.style.transform = `translate(-50%, ${50 - p * 30}vh)`; 
+                    } else {
+                        cgHero.style.transform = `translate(-50%, calc(-50% - ${p * 100}vh))`;
+                        productionSection.style.transform = `translate(-50%, calc(-50% + ${(1-p)*100}px))`;
+                    }
+                    
+                    cgHero.style.opacity = (1 - p).toString();
+                    productionSection.style.opacity = p.toString();
+                }
+
+                // 4. PRODUCTION SCROLL (0.20 - 0.35)
+                else if (progress >= 0.20 && progress < 0.35) {
+                    cgHero.style.opacity = '0';
                     productionSection.style.opacity = '1';
                     
                     if (isMobile) {
-                        const prodScrollP = (progress - 0.35) / 0.35; 
-                        const startY = 20; 
-                        const endY = -180; 
-                        const currentY = startY + (endY - startY) * prodScrollP;
-                        
-                        productionSection.style.transform = `translate(-50%, ${currentY}vh)`;
+                        const prodScrollP = (progress - 0.20) / 0.15; 
+                        productionSection.style.transform = `translate(-50%, ${20 - prodScrollP * 200}vh)`;
                     } else {
                         productionSection.style.transform = `translate(-50%, -50%)`;
                     }
-                    
                     layerUE.style.opacity = '0';
                 }
 
-                // 4. PRODUCTION EXIT -> UE ENTER (0.70 - 0.75)
-                else if (progress >= 0.70 && progress < 0.75) {
-                    const exitP = (progress - 0.70) / 0.05;
-                    
-                    productionSection.style.opacity = (1 - exitP).toString();
+                // 5. PRODUCTION EXIT -> UE ENTER (0.35 - 0.40)
+                else if (progress >= 0.35 && progress < 0.40) {
+                    const p = (progress - 0.35) / 0.05;
+                    productionSection.style.opacity = (1 - p).toString();
                     if (isMobile) productionSection.style.transform = `translate(-50%, -200vh)`;
-                    else productionSection.style.transform = `translate(-50%, calc(-50% - ${exitP*100}px))`;
+                    else productionSection.style.transform = `translate(-50%, calc(-50% - ${p*100}px))`;
 
-                    layerUE.style.opacity = exitP.toString();
+                    layerUE.style.opacity = p.toString();
                     layerUE.style.transform = `translateY(0)`;
-                    ueHeader.style.transform = `translateY(${(1-exitP)*30}px)`;
-                    ueGallery.style.transform = `translateY(${(1-exitP)*60}px)`;
+                    ueHeader.style.transform = `translateY(${(1-p)*30}px)`;
+                    ueGallery.style.transform = `translateY(${(1-p)*60}px)`;
                 }
 
-                // 5. UE ACTIVE (0.75 - 0.82)
-                else if (progress >= 0.75 && progress < 0.82) {
+                // 6. UE ACTIVE (0.40 - 0.48)
+                else if (progress >= 0.40 && progress < 0.48) {
                     productionSection.style.opacity = '0';
                     layerUE.style.opacity = '1';
                     ueHeader.style.transform = `translateY(0)`;
@@ -173,36 +172,85 @@ export default function ThreeDPage() {
                     layerLive.style.opacity = '0';
                 }
 
-                // 6. UE EXIT -> LIVE ENTER (0.82 - 0.87)
-                else if (progress >= 0.82 && progress < 0.87) {
-                    const transP = (progress - 0.82) / 0.05;
-                    layerUE.style.opacity = (1 - transP).toString();
-                    layerLive.style.opacity = transP.toString();
-                    liveHeader.style.transform = `translateY(${(1-transP)*30}px)`;
-                    liveGallery.style.transform = `translateY(${(1-transP)*60}px)`;
+                // 7. UE EXIT -> LIVE ENTER (0.48 - 0.53)
+                else if (progress >= 0.48 && progress < 0.53) {
+                    const p = (progress - 0.48) / 0.05;
+                    layerUE.style.opacity = (1 - p).toString();
+                    layerLive.style.opacity = p.toString();
+                    liveHeader.style.transform = `translateY(${(1-p)*30}px)`;
+                    liveGallery.style.transform = `translateY(${(1-p)*60}px)`;
                 }
 
-                // 7. LIVE ACTIVE (0.87 - 0.92)
-                else if (progress >= 0.87 && progress < 0.92) {
+                // 8. LIVE ACTIVE (0.53 - 0.60)
+                else if (progress >= 0.53 && progress < 0.60) {
                     layerUE.style.opacity = '0';
                     layerLive.style.opacity = '1';
                     liveHeader.style.transform = 'translateY(0)';
                     liveGallery.style.transform = 'translateY(0)';
+                    layerYT1.style.opacity = '0';
+                    layerYT1.style.pointerEvents = 'none';
+                }
+
+                // 9. LIVE EXIT -> YT1 ENTER (0.60 - 0.65)
+                else if (progress >= 0.60 && progress < 0.65) {
+                    const p = (progress - 0.60) / 0.05;
+                    layerLive.style.opacity = (1 - p).toString();
+                    
+                    layerYT1.style.opacity = p.toString();
+                    layerYT1.style.transform = `scale(${1.1 - p * 0.1})`;
+                    layerYT1.style.pointerEvents = 'none';
+                }
+
+                // 10. YT1 ACTIVE (0.65 - 0.73)
+                else if (progress >= 0.65 && progress < 0.73) {
+                    layerLive.style.opacity = '0';
+                    layerYT1.style.opacity = '1';
+                    layerYT1.style.transform = 'scale(1)';
+                    layerYT1.style.pointerEvents = 'auto'; // Enable interactions
+                    
+                    layerYT2.style.opacity = '0';
+                    layerYT2.style.pointerEvents = 'none';
+                }
+
+                // 11. YT1 EXIT -> YT2 ENTER (0.73 - 0.78)
+                else if (progress >= 0.73 && progress < 0.78) {
+                    const p = (progress - 0.73) / 0.05;
+                    layerYT1.style.opacity = (1 - p).toString();
+                    layerYT1.style.pointerEvents = 'none';
+                    
+                    layerYT2.style.opacity = p.toString();
+                    layerYT2.style.transform = `scale(${1.1 - p * 0.1})`;
+                    layerYT2.style.pointerEvents = 'none';
+                }
+
+                // 12. YT2 ACTIVE (0.78 - 0.86)
+                else if (progress >= 0.78 && progress < 0.86) {
+                    layerYT1.style.opacity = '0';
+                    layerYT2.style.opacity = '1';
+                    layerYT2.style.transform = 'scale(1)';
+                    layerYT2.style.pointerEvents = 'auto'; // Enable interactions
+                    
                     layerFresh.style.opacity = '0';
                 }
 
-                // 8. LIVE EXIT -> FRESH ENTER (0.92 onwards - Final Stage)
-                else if (progress >= 0.92) {
-                    // Capped at 1 so Fresh stays visible at the end
-                    const transP = Math.min((progress - 0.92) / 0.04, 1); 
+                // 13. YT2 EXIT -> FRESH ENTER (0.86 - 0.91)
+                else if (progress >= 0.86 && progress < 0.91) {
+                    const p = (progress - 0.86) / 0.05;
+                    layerYT2.style.opacity = (1 - p).toString();
+                    layerYT2.style.pointerEvents = 'none';
                     
-                    layerLive.style.opacity = (1 - transP).toString();
-                    
-                    layerFresh.style.opacity = transP.toString();
-                    freshGallery.style.transform = `translateY(${(1-transP)*50}px)`;
+                    layerFresh.style.opacity = p.toString();
+                    freshGallery.style.transform = `translateY(${(1-p)*50}px)`;
                 }
-                
-                // Removed Phase 9 (Models)
+
+                // 14. FRESH ACTIVE (0.91+)
+                else if (progress >= 0.91) {
+                    layerYT2.style.opacity = '0';
+                    layerYT2.style.pointerEvents = 'none';
+                    
+                    layerFresh.style.opacity = '1';
+                    freshGallery.style.transform = `translateY(0)`;
+                }
             }
         }
 
@@ -272,8 +320,6 @@ export default function ThreeDPage() {
 
   return (
     <>
-      {/* Removed Script tag for model-viewer */}
-
       {/* @ts-ignore */}
       <style jsx global>{`
         /* PERFORMANCE & RESET */
@@ -285,8 +331,11 @@ export default function ThreeDPage() {
         .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; mix-blend-mode: overlay; opacity: 0.06; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
         
         /* Preloader */
-        .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; }
+        .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; display: flex; align-items: center; justify-content: center; }
         .preloader.hidden { opacity: 0; }
+        .loader { width: 48px; height: 48px; border: 3px solid rgba(244, 208, 63, 0.2); border-radius: 50%; display: inline-block; position: relative; box-sizing: border-box; animation: rotation 1s linear infinite; }
+        .loader::after { content: ''; box-sizing: border-box; position: absolute; left: 0; top: 0; background: #F4D03F; width: 12px; height: 12px; transform: translate(-50%, 50%); border-radius: 50%; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* NAVBAR */
         .smart-nav { 
@@ -300,8 +349,6 @@ export default function ThreeDPage() {
             overflow: hidden;
             cursor: pointer;
         }
-        
-        /* DESKTOP NAVBAR ORDER FIX (Align Icon Right) */
         .nav-header { display: contents; }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
         .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; order: 2; margin: 0 40px; }
@@ -313,12 +360,10 @@ export default function ThreeDPage() {
             pointer-events: none; z-index: 2005; order: 3; margin-left: 0;
         }
         .menu-line { width: 100%; height: 1px; background-color: #fff; transition: all 0.3s ease; transform-origin: center; }
-        
         .menu-icon.open .menu-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
         .menu-icon.open .menu-line:nth-child(2) { opacity: 0; }
         .menu-icon.open .menu-line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-        /* DESKTOP ONLY: Hover to expand */
         @media (min-width: 769px) {
             .smart-nav:hover, .smart-nav.force-expand { min-width: 650px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
             .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; gap: 25px !important; pointer-events: auto !important; display: flex !important; } 
@@ -331,17 +376,72 @@ export default function ThreeDPage() {
 
         .mobile-menu-overlay { display: none; }
         
-        /* TRACK - REDUCED HEIGHT */
-        .sequence-track { height: 1100vh; position: relative; z-index: 10; }
-        
-        /* 🔴 REDUCED TRACK HEIGHT FOR MOBILE */
-        @media (max-width: 768px) { .sequence-track { height: 1500vh; } } 
+        /* TRACK */
+        .sequence-track { height: 1800vh; position: relative; z-index: 10; }
+        @media (max-width: 768px) { .sequence-track { height: 2200vh; } } 
 
         .sticky-viewport { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        
+        /* YOUTUBE FULLSCREEN LAYERS */
+        .layer-yt { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            pointer-events: none; opacity: 1; 
+            display: flex; align-items: center; justify-content: center; 
+            background: #000; overflow: hidden; 
+        }
+        
+        /* Z-index Management */
+        #layer-yt { z-index: 1; }
+        #layer-yt1 { z-index: 17; opacity: 0; }
+        #layer-yt2 { z-index: 18; opacity: 0; }
+        
+        .layer-yt iframe { 
+            width: 100vw; 
+            height: 56.25vw; /* 16:9 aspect ratio */
+            min-height: 100vh; 
+            min-width: 177.77vh; 
+            position: absolute; 
+            top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); 
+        }
+        .yt-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); 
+            z-index: 2;
+        }
+
+        /* WATCH YOUTUBE BUTTON */
+        .yt-watch-btn {
+            position: absolute;
+            bottom: 12%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 30px;
+            border: 1px solid rgba(255,255,255,0.4);
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-decoration: none;
+            border-radius: 30px;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            z-index: 10;
+            pointer-events: auto;
+        }
+        .yt-watch-btn:hover {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
         /* HEADER */
-        .header-content { text-align: center; width: 100%; position: absolute; top: 10%; left:0; z-index: 5; pointer-events: none; transition: opacity 0.5s ease; }
-        h1.page-title { font-size: 80px; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -2px; color: #fff; opacity: 1; }
-        .page-desc { margin-top: 20px; font-size: 16px; color: #888; max-width: 600px; display: inline-block; opacity: 1; }
+        .header-content { text-align: center; width: 100%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; pointer-events: none; transition: opacity 0.5s ease; }
+        h1.page-title { font-size: 80px; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -2px; color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .page-desc { margin-top: 20px; font-size: 16px; color: #ddd; max-width: 600px; display: inline-block; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
+        
         /* VIDEO CARDS */
         .video-card { width: 100%; height: 100%; border-radius: 8px; overflow: hidden; position: relative; background: #111; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         video { width: 100%; height: 100%; object-fit: cover; }
@@ -350,7 +450,7 @@ export default function ThreeDPage() {
         .video-desc { position: absolute; top: 20px; left: 20px; font-size: 12px; font-weight: 700; letter-spacing: 2px; color: #fff; z-index: 3; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
         
         /* HERO GALLERY */
-        .cg-hero-section { position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); display: flex; justify-content: center; gap: 10px; width: 95vw; height: 50vh; z-index: 30; opacity: 1; }
+        .cg-hero-section { position: absolute; top: 50%; left: 50%; transform: translate(-50%, calc(-50% + 100vh)); display: flex; justify-content: center; gap: 10px; width: 95vw; height: 50vh; z-index: 30; opacity: 0; }
         .hero-strip { flex: 1; height: 100%; transition: flex 0.4s cubic-bezier(0.22, 1, 0.36, 1); position: relative; }
         .hero-strip:hover { flex: 1.5; }
         
@@ -391,8 +491,8 @@ export default function ThreeDPage() {
         .live-label { position: absolute; bottom: 20px; left: 20px; background: rgba(255,255,255,0.9); color: #000; padding: 6px 16px; border-radius: 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); pointer-events: auto; }
         
         /* FRESH METAVERSE GARDEN */
-        .layer-fresh { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 17; pointer-events: none; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
-        .fresh-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; filter: brightness(0.5); }
+        .layer-fresh { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 19; pointer-events: none; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+        .fresh-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; filter: brightness(0.5); pointer-events: none; }
         .fresh-content { position: relative; z-index: 2; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 30px; }
         .fresh-title { font-size: 7vw; font-weight: 900; letter-spacing: -2px; color: #fff; margin: 0; text-shadow: 0 10px 30px rgba(0,0,0,0.5); line-height: 1; }
         .fresh-subtitle { font-size: 1.2vw; font-weight: 700; letter-spacing: 4px; color: #F4D03F; text-transform: uppercase; display: inline-block; background: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 20px; backdrop-filter: blur(5px); }
@@ -400,8 +500,6 @@ export default function ThreeDPage() {
         .fresh-img-wrapper { width: 20vw; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.3s ease; }
         .fresh-img-wrapper:hover { transform: scale(1.05); }
         .fresh-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* Removed .layer-models and .layer-text CSS */
 
         /* CONTACT WIDGET */
         .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; cursor: pointer; }
@@ -418,20 +516,19 @@ export default function ThreeDPage() {
         }
 
         /* SCROLL PROMPT UI */
-        .scroll-prompt { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; pointer-events: none; transition: opacity 0.5s ease, transform 0.5s ease; opacity: 1; }
-        .scroll-prompt.hide { opacity: 0; transform: translate(-50%, 20px); }
-        .scroll-text { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: rgba(255,255,255,0.4); text-transform: uppercase; }
-        .scroll-line { width: 1px; height: 40px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden; }
+        .scroll-prompt { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; pointer-events: none; opacity: 0.8; transition: opacity 0.3s ease; }
+        .scroll-prompt.hide { opacity: 0; }
+        .scroll-text { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: rgba(255,255,255,0.7); text-transform: uppercase; }
+        .scroll-line { width: 1px; height: 40px; background: rgba(255,255,255,0.2); position: relative; overflow: hidden; }
         .scroll-line::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, transparent, #fff, transparent); transform: translateY(-100%); animation: scrollFlow 2s cubic-bezier(0.77, 0, 0.175, 1) infinite; }
         @keyframes scrollFlow { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
 
-        /* 🔴 MOBILE ADAPTATION (VERTICAL LAYOUT) */
+        /* MOBILE ADAPTATION */
         @media (max-width: 768px) {
             .header-section { padding-bottom: 50px; }
             h1.page-title { font-size: 15vw; }
             .page-desc { font-size: 14px; padding: 0 20px; }
 
-            /* Navbar Mobile Reset */
             .smart-nav { flex-direction: column !important; align-items: flex-start !important; width: 90% !important; max-width: 350px !important; height: 60px; overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; }
             .smart-nav.mobile-active { position: fixed !important; top: 0 !important; left: 0 !important; transform: none !important; width: 100vw !important; max-width: none !important; height: 100vh !important; border-radius: 0 !important; background: #000 !important; border: none !important; padding: 30px !important; justify-content: flex-start !important; align-items: center !important; z-index: 9000 !important; }
             .nav-header { display: flex !important; width: 100%; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
@@ -441,27 +538,15 @@ export default function ThreeDPage() {
             .smart-nav.mobile-active .nav-links { opacity: 1 !important; transform: translateY(0) !important; pointer-events: auto !important; visibility: visible !important; }
             .nav-item { font-size: 28px !important; font-weight: 700 !important; letter-spacing: 2px !important; }
 
-            /* 🔴 CG HERO - Vertical Stack - Fixed Start Position */
-            .cg-hero-section { 
-                flex-direction: column; 
-                width: 90vw; 
-                height: auto; 
-                top: 20%; 
-                left: 50%;
-                transform: translateX(-50%); 
-                gap: 30px; 
-                padding-bottom: 20vh; 
-            }
+            .cg-hero-section { top: 50%; left: 50%; transform: translate(-50%, 100vh); flex-direction: column; width: 90vw; height: auto; gap: 30px; padding-bottom: 20vh; }
             .hero-strip { width: 100%; height: 35vh; flex: 1 !important; } 
             .video-card video { object-fit: cover; }
 
-            /* 🔴 PRODUCTION - Vertical Stack */
             .production-section { position: absolute; gap: 30px; height: auto; }
             .production-group { flex-direction: column; width: 100%; gap: 30px; align-items: center; }
             .prod-card-wrap { width: 80vw; aspect-ratio: 9/16; }
             .section-title { font-size: 6vw; margin-bottom: 20px; }
 
-            /* UNREAL ENGINE - Vertical Stack */
             .ue-big-title { font-size: 8vw; }
             .ue-small-subtitle { font-size: 3.5vw; }
             .ue-gallery { display: flex; flex-direction: column; height: auto; width: 90vw; gap: 20px; }
@@ -469,25 +554,23 @@ export default function ThreeDPage() {
             .ue-img-wrapper { width: 100%; height: 30vh; }
             .ue-col-right > .ue-img-wrapper { height: 40vh; }
 
-            /* LIVE - Vertical Stack */
             .live-big-title { font-size: 8vw; }
             .live-gallery { display: flex; flex-direction: column; height: auto; width: 90vw; gap: 20px; }
             .live-col-left, .live-col-right { display: contents; }
             .live-img-wrapper { width: 100%; height: 30vh; }
             .live-col-right > .live-img-wrapper { height: 40vh; }
 
-            /* FRESH - Vertical Stack */
             .fresh-title { font-size: 12vw; }
             .fresh-subtitle { font-size: 3.5vw; }
             .fresh-gallery { flex-direction: column; width: 100%; align-items: center; gap: 30px; }
             .fresh-img-wrapper { width: 80vw; aspect-ratio: 16/9; }
-
-            /* Removed .layer-models media query */
         }
       `}</style>
 
       {/* Preloader */}
-      <div className={`preloader ${!isLoading ? 'hidden' : ''}`}></div>
+      <div className={`preloader ${!isLoading ? 'hidden' : ''}`}>
+        <span className="loader"></span>
+      </div>
 
       <div className="noise-overlay"></div>
       
@@ -522,6 +605,19 @@ export default function ThreeDPage() {
       <div className="sequence-track" id="sequence-track" ref={trackRef}>
         <div className="sticky-viewport">
             
+            {/* 1️⃣ YOUTUBE FULLSCREEN BACKGROUND LAYER (Intro) */}
+            <div className="layer-yt" id="layer-yt" ref={ytRef}>
+                <div className="yt-overlay"></div>
+                <iframe 
+                    src="https://www.youtube.com/embed/RCPgtif9A9U?autoplay=1&mute=1&loop=1&playlist=RCPgtif9A9U&controls=0&modestbranding=1" 
+                    title="Unreal Engine 5: Forest" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowFullScreen
+                ></iframe>
+            </div>
+
+            {/* HEADER (OVERLAY ON TOP OF YT) */}
             <div className="header-content" id="main-header" ref={headerRef}>
                 <h1 className="page-title">3D VISUAL</h1>
                 <div className="page-desc">Motion graphics, simulations, and rendered realities.</div>
@@ -584,6 +680,34 @@ export default function ThreeDPage() {
                 </div>
             </div>
 
+            {/* 🔴 2️⃣ NEW: YT LAYER 1 (After Live Setup) - REMOVED OVERLAY */}
+            <div className="layer-yt" id="layer-yt1" ref={yt1Ref}>
+                <iframe 
+                    src="https://www.youtube.com/embed/n01WI9mwJwc?autoplay=1&mute=1&loop=1&playlist=n01WI9mwJwc&controls=0&modestbranding=1" 
+                    title="YouTube video 1" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowFullScreen
+                ></iframe>
+                <a href="https://youtu.be/n01WI9mwJwc" target="_blank" rel="noopener noreferrer" className="yt-watch-btn">
+                    WATCH ON YOUTUBE
+                </a>
+            </div>
+
+            {/* 🔴 3️⃣ NEW: YT LAYER 2 (After YT 1) - REMOVED OVERLAY */}
+            <div className="layer-yt" id="layer-yt2" ref={yt2Ref}>
+                <iframe 
+                    src="https://www.youtube.com/embed/TLvBs1C6v08?autoplay=1&mute=1&loop=1&playlist=TLvBs1C6v08&controls=0&modestbranding=1" 
+                    title="YouTube video 2" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowFullScreen
+                ></iframe>
+                <a href="https://youtu.be/TLvBs1C6v08" target="_blank" rel="noopener noreferrer" className="yt-watch-btn">
+                    WATCH ON YOUTUBE
+                </a>
+            </div>
+
             <div className="layer-fresh" id="layer-fresh" ref={freshRef}>
                 <img src="/images/freshgarden.png" alt="Fresh Garden" className="fresh-bg" />
                 <div className="fresh-content">
@@ -596,15 +720,13 @@ export default function ThreeDPage() {
                     </div>
                 </div>
             </div>
-
-            {/* Removed layer-models and layer-text divs */}
+            
+            <div className="scroll-prompt" id="scroll-prompt" ref={scrollPromptRef}>
+                <div className="scroll-text">SCROLL</div>
+                <div className="scroll-line"></div>
+            </div>
 
         </div>
-    </div>
-
-    <div className="scroll-prompt" id="scroll-prompt" ref={scrollPromptRef}>
-        <div className="scroll-text">SCROLL</div>
-        <div className="scroll-line"></div>
     </div>
 
     <div 
