@@ -3,21 +3,16 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 export default function HomePage() {
-  // 1. 定義狀態
   const [activeYt, setActiveYt] = useState<string | null>(null); 
   const [isLoading, setIsLoading] = useState(true); 
 
-  // 2. 初始化
   useEffect(() => {
-    // 🔴 Preloader 設定: 稍微延長到 1.5 秒，確保背景資源定位完成
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1500);
-
     return () => clearTimeout(timer);
   }, []);
 
-  // 3. Navbar Toggle Logic
   const toggleMenu = (e: React.MouseEvent) => {
     const navbar = document.getElementById('navbar');
     const menuBtn = document.getElementById('menu-btn');
@@ -28,7 +23,6 @@ export default function HomePage() {
     if (window.innerWidth <= 768) {
         const isActive = navbar.classList.contains('mobile-active');
         const isLogo = target.closest('.nav-logo');
-
         if (isLogo && !isActive) return;
 
         if (isActive) {
@@ -46,19 +40,16 @@ export default function HomePage() {
     }
   };
 
-  // 4. 動畫與邏輯
   useEffect(() => {
-    if (isLoading) return; // 🔴 核心修正：Loading 期間不執行任何 DOM 操作，防止閃動
+    if (isLoading) return;
 
     let lenis: any;
-    
     import('@studio-freight/lenis').then((Lenis) => {
       lenis = new Lenis.default({
         duration: 1.2,
         easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         touchMultiplier: 1.5,
       });
-
       function raf(time: number) {
         lenis.raf(time);
         requestAnimationFrame(raf);
@@ -149,9 +140,7 @@ export default function HomePage() {
       const isMobile = windowWidth <= 768;
 
       if (scrollY > 50) {
-          if (navbar && !navbar.classList.contains('mobile-active')) {
-              navbar.classList.add('collapsed');
-          }
+          if (navbar && !navbar.classList.contains('mobile-active')) navbar.classList.add('collapsed');
       } else {
         navbar?.classList.remove('collapsed');
         navbar?.classList.remove('force-expand');
@@ -225,7 +214,13 @@ export default function HomePage() {
           const swapP = Math.min(p1 * 2.5, 1);
           if (imgCard) imgCard.style.opacity = (1 - swapP).toString();
           if (imgBg) imgBg.style.opacity = swapP.toString();
+          
           if (revealSource) revealSource.style.opacity = '0';
+          if (detailsBlock) {
+             detailsBlock.style.opacity = '0';
+             detailsBlock.style.pointerEvents = 'none';
+          }
+
         } else {
           const growP = (progress - 0.15) / 0.75;
           currentW = midW + (windowWidth - midW) * growP;
@@ -235,32 +230,45 @@ export default function HomePage() {
           if (imgCard) imgCard.style.opacity = '0';
           if (imgBg) imgBg.style.opacity = '1';
 
-          let textFade = 0;
-          if (progress < 0.25) textFade = (progress - 0.15) / 0.10;
-          else if (progress < 0.85) textFade = 1;
-          else textFade = 1 - ((progress - 0.85) / 0.10);
+          let layer1Opacity = 0;
+          if (progress < 0.25) {
+             layer1Opacity = (progress - 0.15) / 0.10;
+          } else if (progress < 0.55) {
+             layer1Opacity = 1;
+          } else {
+             layer1Opacity = 1 - ((progress - 0.55) / 0.10);
+          }
+          
+          if (revealSource) {
+            revealSource.style.opacity = Math.max(0, Math.min(layer1Opacity, 1)).toString();
+            revealSource.style.pointerEvents = layer1Opacity <= 0.1 ? 'none' : 'auto';
+          }
 
           const allWords = revealSource?.querySelectorAll('.word') || [];
-          if (progress >= 0.25 && progress < 0.85) {
-             allWords.forEach(word => word.classList.add('active'));
-          } else if (progress < 0.25) {
-            const readP = Math.max(0, (progress - 0.15) / 0.10);
+          if (progress >= 0.2 && progress < 0.50) {
+            const readP = (progress - 0.2) / 0.30;
             const activeCount = Math.floor(readP * allWords.length);
             allWords.forEach((word, idx) => {
               if (idx <= activeCount) word.classList.add('active');
               else word.classList.remove('active');
             });
+          } else if (progress >= 0.50) {
+            allWords.forEach(word => word.classList.add('active'));
+          } else {
+            allWords.forEach(word => word.classList.remove('active'));
           }
 
-          if (revealSource) revealSource.style.opacity = Math.max(0, textFade).toString();
-
-          let detailsOp = 0;
-          if (progress > 0.85) detailsOp = (progress - 0.85) / 0.10;
+          let layer2Opacity = 0;
+          if (progress > 0.60) {
+             layer2Opacity = (progress - 0.60) / 0.15;
+          }
+          
           if (detailsBlock) {
-              detailsBlock.style.opacity = Math.max(0, Math.min(detailsOp, 1)).toString();
-              if (!isMobile) detailsBlock.style.transform = `translateY(${(1 - Math.min(detailsOp, 1)) * 20}px)`;
-              else detailsBlock.style.transform = `translate(-50%, -50%)`; 
+              const finalOp = Math.max(0, Math.min(layer2Opacity, 1));
+              detailsBlock.style.opacity = finalOp.toString();
+              detailsBlock.style.pointerEvents = finalOp > 0.5 ? 'auto' : 'none';
           }
+
           if (heroOverlay) heroOverlay.style.opacity = (growP * 0.6).toString();
         }
 
@@ -279,7 +287,6 @@ export default function HomePage() {
     };
 
     const startAnim = requestAnimationFrame(animateLoop);
-
     return () => {
       cancelAnimationFrame(startAnim);
       if (lenis) lenis.destroy();
@@ -338,7 +345,6 @@ export default function HomePage() {
     });
   }
 
-  // 🔴 Data Configuration
   const portfolioData: any = {
     'uiux': { type: 'static', src: "/images/index_uiux.png" },
     'graphic': { type: 'static', src: "/images/index_graphic.png" },
@@ -365,7 +371,7 @@ export default function HomePage() {
     <>
       {/* @ts-ignore */}
       <style jsx global>{`
-        /* 🔴 核心修正 1：HTML/Body 初始狀態強制黑色，並隱藏滾動條 */
+        /* HTML/Body Setup */
         html, body { 
           background-color: #000 !important; 
           margin: 0; 
@@ -373,7 +379,6 @@ export default function HomePage() {
           overflow-x: hidden;
         }
 
-        /* 🔴 核心修正 2：初始隱藏主內容 wrapper，直到 JS 載入 */
         .main-content-wrapper { 
           opacity: 0 !important; 
           visibility: hidden !important; 
@@ -391,14 +396,13 @@ export default function HomePage() {
         .lenis.lenis-smooth { scroll-behavior: auto !important; }
         .lenis.lenis-stopped { overflow: hidden; }
         
-        /* PRELOADER STYLES */
         .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; display: flex; align-items: center; justify-content: center; }
         .preloader.hidden { opacity: 0; }
         .loader { width: 48px; height: 48px; border: 3px solid rgba(244, 208, 63, 0.2); border-radius: 50%; display: inline-block; position: relative; box-sizing: border-box; animation: rotation 1s linear infinite; }
         .loader::after { content: ''; box-sizing: border-box; position: absolute; left: 0; top: 0; background: #F4D03F; width: 12px; height: 12px; transform: translate(-50%, 50%); border-radius: 50%; }
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* NAVBAR & CONTENT ... (其餘 CSS 保持不變) */
+        /* NAVBAR & HERO ... */
         .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); padding: 0 30px; display: flex; align-items: center; justify-content: space-between; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; height: 60px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); overflow: hidden; cursor: pointer; }
         .nav-header { display: contents; }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
@@ -437,7 +441,6 @@ export default function HomePage() {
         .subtitle.visible { opacity: 1; transform: translateY(0); }
         .char-span, .sub-char { display: inline-block; will-change: transform, opacity, filter, color; }
         
-        /* 🔴 核心修正 3：確保 Fixed 背景在 Loading 期間完全不可見 */
         .seamless-hero { 
           position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
           width: 25vw; height: 35vw; max-width: 350px; max-height: 500px; 
@@ -457,19 +460,51 @@ export default function HomePage() {
         .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; width: 100%; height: 100%; align-items: center; position: relative; z-index: 2; }
         .card-target-left { width: 100%; aspect-ratio: 0.7; position: relative; visibility: hidden; } 
         .text-container { position: relative; height: auto; min-height: 400px; display: flex; align-items: center; justify-content: center; pointer-events: auto; }
+        
         .text-layer-1 { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; text-align: center; font-size: 3.5vw; font-weight: 800; line-height: 1.2; letter-spacing: -1px; opacity: 0; z-index: 120; color: #fff; }
         .word { display: inline-block; opacity: 0.1; transition: opacity 0.5s ease; white-space: pre-wrap; }
         .word.active { opacity: 1; }
-        .text-layer-2 { position: absolute; top: 50%; transform: translateY(-50%); left: 0; width: 100%; opacity: 0; transition: opacity 0.8s ease; text-align: left; }
-        .details-text { font-size: 2vw; line-height: 1.4; font-weight: 400; color: #ddd; margin-bottom: 40px; }
+        
+        .text-layer-2 { 
+            position: fixed; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            width: 80%;
+            max-width: 900px; 
+            opacity: 0; 
+            text-align: left; 
+            z-index: 121;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+        }
+        
+        .details-text { font-size: 2vw; line-height: 1.4; font-weight: 400; color: #ddd; margin-bottom: 40px; text-align: center; width: 100%; }
+        
+        .experience-list { width: 100%; max-width: 800px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px; }
+        
+        .experience-item { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-end; /* This aligns bottom of left column with right text */
+            padding: 15px 0; 
+            border-bottom: 1px solid rgba(255,255,255,0.05); 
+        }
+        .exp-left { display: flex; flex-direction: column; gap: 4px; text-align: left; }
+        
+        .exp-date { font-size: 13px; color: #F4D03F; text-transform: uppercase; letter-spacing: 1px; }
+        .exp-role { font-size: 18px; color: #fff; font-weight: 500; }
+        .exp-company { font-size: 16px; color: #F4D03F; font-weight: 600; text-align: right; }
+        
         .headline-accent { font-family: 'Times New Roman', serif; font-style: italic; }
-        .citation-list { list-style: none; padding: 0; margin: 0; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px; } 
-        .citation-item { font-size: 16px; color: #F4D03F; margin-bottom: 12px; padding-left: 15px; border-left: 2px solid rgba(244, 208, 63, 0.3); } 
-        .citation-item span { display: block; color: #aaa; font-size: 14px; margin-top: 4px; }
+
         .overview-section { height: 100vh; width: 100%; position: relative; z-index: 30; background-color: #050505; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
         .overview-title { font-size: 6vw; font-weight: 800; letter-spacing: -1px; margin-bottom: 15px; color: #fff; line-height: 1; visibility: visible; }
         .overview-title span { display: inline-block; } 
         .overview-subtitle { font-size: 1.1rem; color: #888; font-weight: 400; letter-spacing: 2px; text-transform: uppercase; visibility: visible; }
+        
         .scroll-prompt { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; pointer-events: none; opacity: 0.6; transition: opacity 0.3s ease; }
         .scroll-prompt.hide { opacity: 0; }
         .scroll-text { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: rgba(255,255,255,0.4); text-transform: uppercase; }
@@ -493,14 +528,22 @@ export default function HomePage() {
         .qr-container { width: 0; opacity: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; transform: translateX(-50px); transition: all 0.5s ease; }
         .contact-content.shift-layout .qr-container { width: 100px; opacity: 1; transform: translateX(0); transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.6s, opacity 0.8s ease 0.9s, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.9s; }
         .qr-code-img { width: 100px; min-width: 100px; height: auto; display: block; border-radius: 8px; }
+        
         .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; }
         .contact-widget:hover, .contact-widget.expanded { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .contact-widget:hover .contact-details, .contact-widget.expanded .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
+        
+        /* 🔴 UPDATED: Icon White BG, Black Color */
         .contact-icon { width: 38px; height: 38px; background: #fff; color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+        
         .contact-details { opacity: 0; white-space: nowrap; margin-left: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; pointer-events: none; transition: opacity 0.3s ease 0.1s, margin-left 0.4s ease; }
-        .contact-link { color: #ccc; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; transition: color 0.3s; }
-        .contact-link:hover { color: #fff; }
-        .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #666; margin-right: 10px; width: 60px; font-weight: 700; }
+        
+        /* 🔴 UPDATED: Content (Number/Email) Off-White -> Hover Bright White */
+        .contact-link { color: #ccc; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; transition: all 0.3s; }
+        .contact-link:hover { color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.6); }
+        
+        /* 🔴 UPDATED: Labels (WhatsApp/Mail) Gold */
+        .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #F4D03F; margin-right: 10px; width: 60px; font-weight: 700; }
 
         @media (max-width: 768px) {
             .about-grid { display: block !important; }
@@ -518,9 +561,16 @@ export default function HomePage() {
             .subtitle { font-size: 16px; padding: 0 20px; }
             .text-container { height: 100vh !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; padding: 0 20px; }
             .text-layer-1 { font-size: 28px; width: 90%; line-height: 1.3; }
-            .text-layer-2 { position: absolute !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 100% !important; display: flex !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; text-align: center !important; padding: 0 20px !important; pointer-events: none; }
+            
+            .text-layer-2 { position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 100% !important; display: flex !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; text-align: center !important; padding: 0 20px !important; pointer-events: none; }
+            
             .details-text { font-size: 16px; line-height: 1.5; color: #eee; text-align: center !important; margin-bottom: 20px; width: 100%; }
-            .citation-list { text-align: left; display: inline-block; margin-top: 10px; width: 100%; max-width: 100% !important; }
+            .experience-list { text-align: left; display: inline-block; margin-top: 10px; width: 100%; max-width: 100% !important; }
+            
+            .experience-item { flex-direction: column; align-items: center; text-align: center; gap: 5px; }
+            .exp-left { align-items: center; text-align: center; }
+            .exp-company { text-align: center; margin-top: 5px; }
+            
             .contact-content { flex-direction: column !important; gap: 30px; }
             .contact-content.shift-layout { gap: 40px; transform: translate(-50%, -60%); }
             .contact-title { font-size: 15vw; white-space: normal; text-align: center; }
@@ -533,12 +583,11 @@ export default function HomePage() {
         }
       `}</style>
 
-      {/* Preloader with Yellow Spinner - 保持 z-index 最高 */}
+      {/* Preloader */}
       <div className={`preloader ${!isLoading ? 'hidden' : ''}`}>
           <span className="loader"></span>
       </div>
 
-      {/* 🔴 重要修正：透過 Class 控制整個主內容的顯示，預設是隱藏且透明的 */}
       <div className={`main-content-wrapper ${!isLoading ? 'loaded' : ''}`}>
           
           <nav className="smart-nav" id="navbar" onClick={toggleMenu}>
@@ -560,7 +609,6 @@ export default function HomePage() {
             </div>
           </nav>
 
-          {/* 這張 Fixed 圖是之前閃動的主因，現在它會跟著 loaded class 顯示 */}
           <div className="seamless-hero" id="seamless-hero">
             <img src="/images/profile.jpg" className="hero-inner-img img-card" alt="Card" />
             <img src="/profile_bg.png" className="hero-inner-img img-bg" alt="Background" />
@@ -583,19 +631,45 @@ export default function HomePage() {
               <div className="about-grid">
                 <div className="card-target-left" id="profile-anchor"></div>
                 <div className="text-container">
+                  
                   <div className="text-layer-1" id="text-reveal-source">
                     I am a <span className="headline-accent">MultiMedia Designer</span>, currently working in a digital marketing agency based in Hong Kong more than 4 years.
                   </div>
+                  
                   <div className="text-layer-2" id="text-details-block">
                     <div className="details-text">
                       I am professional in <span className="headline-accent">UIUX and graphic design</span>, 2D/3D animation design, video and photography editing. I hold a Bachelor of Engineering (Honours) in Product Analysis and Engineering Design from <span className="headline-accent">The Hong Kong Polytechnic University</span>.
                     </div>
-                    <ul className="citation-list">
-                      <li className="citation-item">Nov 2025<span>Senior Graphic Designer</span></li>
-                      <li className="citation-item">Jan 2025<span>Senior Creative & Multimedia Designer</span></li>
-                      <li className="citation-item">Aug 2022<span>Creative & Multimedia Designer</span></li>
-                    </ul>
+                    
+                    <div className="experience-list">
+                        
+                        <div className="experience-item">
+                            <div className="exp-left">
+                                <span className="exp-date">Nov 2025 - Now</span>
+                                <span className="exp-role">Senior Graphic Designer</span>
+                            </div>
+                            <div className="exp-company">RFI (Asia) Limited</div>
+                        </div>
+
+                        <div className="experience-item">
+                            <div className="exp-left">
+                                <span className="exp-date">Jan 2025 - Nov 2025</span>
+                                <span className="exp-role">Senior Creative & Multimedia Designer</span>
+                            </div>
+                            <div className="exp-company">Pontac Digital Limited</div>
+                        </div>
+
+                        <div className="experience-item">
+                            <div className="exp-left">
+                                <span className="exp-date">Aug 2022 - Jan 2025</span>
+                                <span className="exp-role">Creative & Multimedia Designer</span>
+                            </div>
+                            <div className="exp-company">Pontac Digital Limited</div>
+                        </div>
+
+                    </div>
                   </div>
+
                 </div>
               </div>
             </div>
@@ -651,7 +725,6 @@ export default function HomePage() {
               );
             })}
 
-            {/* Contact Section */}
             <div className="hero-section" id="contact-section" style={{ background: '#080808', cursor: 'default' }}>
                 <div className="hero-img-wrapper" style={{ opacity: 0.3 }}>
                     <img src="/images/contact_bg.jpg" className="hero-img" style={{ filter: 'grayscale(100%) brightness(0.4)' }} alt="Contact BG" />
@@ -671,12 +744,12 @@ export default function HomePage() {
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
             </div>
             <div className="contact-details">
-                <a href="https://wa.me/85267012420" target="_blank" className="contact-link" style={{ color: '#fff' }}><span className="label">WHATSAPP</span>6701 2420</a>
-                <a href="mailto:chowfh254281@gmail.com" className="contact-link" style={{ color: '#fff' }}><span className="label">MAIL</span>chowfh254281@gmail.com</a>
+                <a href="https://wa.me/85267012420" target="_blank" className="contact-link"><span className="label">WHATSAPP</span>6701 2420</a>
+                <a href="mailto:chowfh254281@gmail.com" className="contact-link"><span className="label">MAIL</span>chowfh254281@gmail.com</a>
             </div>
           </div>
 
-      </div> {/* End of main-content-wrapper */}
+      </div>
     </>
   );
 }
