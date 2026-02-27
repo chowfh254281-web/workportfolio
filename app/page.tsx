@@ -645,7 +645,7 @@ export default function HomePage() {
                         
                         <div className="experience-item">
                             <div className="exp-left">
-                                <span className="exp-date">Nov 2025 - Now</span>
+                                <span className="exp-date">Aug 2025 - Now</span>
                                 <span className="exp-role">Senior Graphic Designer</span>
                             </div>
                             <div className="exp-company">RFI (Asia) Limited</div>
@@ -653,7 +653,7 @@ export default function HomePage() {
 
                         <div className="experience-item">
                             <div className="exp-left">
-                                <span className="exp-date">Jan 2025 - Nov 2025</span>
+                                <span className="exp-date">Jan 2025 - July 2025</span>
                                 <span className="exp-role">Senior Creative & Multimedia Designer</span>
                             </div>
                             <div className="exp-company">Pontac Digital Limited</div>
@@ -661,7 +661,7 @@ export default function HomePage() {
 
                         <div className="experience-item">
                             <div className="exp-left">
-                                <span className="exp-date">Aug 2022 - Jan 2025</span>
+                                <span className="exp-date">Aug 2022 - Dec 2024</span>
                                 <span className="exp-role">Creative & Multimedia Designer</span>
                             </div>
                             <div className="exp-company">Pontac Digital Limited</div>
