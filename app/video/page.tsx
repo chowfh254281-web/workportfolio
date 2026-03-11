@@ -1,4 +1,4 @@
-'use client';
+'use client'; 
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
@@ -10,12 +10,14 @@ export default function VideoPage() {
   const playersRef = useRef<any[]>([]);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  // Video Data
+  // Video Data (移除了 title 和 year，因為畫面上不再顯示)
   const videos = [
-    { id: 'DOp19wtL28w', title: 'CINEMATIC TRAVEL', year: '2025 TOKYO' },
-    { id: 'Dc3phLpndD0', title: 'CULTURE FESTIVAL', year: '2025 JAPAN' },
-    { id: 'rJBpYguoROg', title: 'GOLDFISH BOWL', year: '2024' },
-    { id: 'cKj_WzwWvfQ', title: 'EAST COAST', year: '2025' }
+    { id: '_yeHdBy8Wzs' },
+    { id: 'Dc3phLpndD0' },
+    { id: 'DOp19wtL28w' },
+    { id: 'rJBpYguoROg' },
+    { id: 'cKj_WzwWvfQ' },
+    { id: 'nZvCxgonaKM' }
   ];
 
   useEffect(() => {
@@ -219,8 +221,10 @@ export default function VideoPage() {
         .nav-header { display: contents; }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; order: 1; }
         .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; max-width: 900px; order: 2; margin: 0 40px; }
-        .nav-item { text-decoration: none; color: #ccc; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; }
+        
+        .nav-item { text-decoration: none; color: #fff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; }
         .nav-item:hover, .nav-item.active { color: #F4D03F; }
+        
         .menu-icon { width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; z-index: 2005; order: 3; }
         .menu-line { width: 100%; height: 1px; background-color: #fff; transition: all 0.3s ease; }
         .menu-icon.open .menu-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
@@ -266,7 +270,6 @@ export default function VideoPage() {
             display: flex; align-items: center; justify-content: center; 
             overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); 
             background: #000;
-            /* scroll-snap-align: start; <-- 移除 */
         }
         
         .video-wrapper { width: 100%; height: 100%; position: relative; pointer-events: auto; }
@@ -279,19 +282,6 @@ export default function VideoPage() {
             justify-content: flex-end; 
             align-items: center;
             padding-bottom: 18%; 
-        }
-        
-        .video-title { 
-            font-size: 40px; 
-            font-weight: 900; line-height: 1.1; margin-bottom: 5px; 
-            text-transform: uppercase; letter-spacing: -1px; color: #fff;
-            text-shadow: 0 4px 30px rgba(0,0,0,0.8); text-align: center;
-        }
-        
-        .video-meta { 
-            font-size: 12px; font-weight: 700; color: #F4D03F; 
-            text-transform: uppercase; letter-spacing: 3px; margin-bottom: 15px; 
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8); text-align: center;
         }
         
         .yt-watch-btn { 
@@ -327,7 +317,6 @@ export default function VideoPage() {
             .video-block { height: 100vh; } 
             
             /* Mobile 調整 */
-            .video-title { font-size: 28px; }
             .yt-watch-btn { bottom: 15%; }
             .video-info-overlay { padding-bottom: 25%; }
         }
@@ -386,9 +375,8 @@ export default function VideoPage() {
                     <div className="video-wrapper">
                         <div id={`player-${index}`}></div>
                     </div>
+                    {/* 只保留 WATCH ON YOUTUBE 區域 */}
                     <div className="video-info-overlay">
-                        <div className="video-title">{vid.title}</div>
-                        <div className="video-meta">{vid.year}</div>
                         <a href={`https://www.youtube.com/watch?v=${vid.id}`} target="_blank" className="yt-watch-btn">
                             WATCH ON YOUTUBE
                         </a>

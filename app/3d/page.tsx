@@ -12,9 +12,10 @@ export default function ThreeDPage() {
   const ueRef = useRef<HTMLDivElement>(null);
   const liveRef = useRef<HTMLDivElement>(null);
   
-  const ytRef = useRef<HTMLDivElement>(null); // 第一個 YT 場景
-  const yt1Ref = useRef<HTMLDivElement>(null); // 第二個 YT 場景
-  const yt2Ref = useRef<HTMLDivElement>(null); // 第三個 YT 場景
+  const ytRef = useRef<HTMLDivElement>(null); // 第一個 場景 (Local Video - capsule mograph)
+  const yt1Ref = useRef<HTMLDivElement>(null); // 第二個 YT 場景 (Forest)
+  const yt2Ref = useRef<HTMLDivElement>(null); // 第三個 YT 場景 (Star Wars)
+  const yt3Ref = useRef<HTMLDivElement>(null); // 第四個 YT 場景 (New Showcase)
   
   const freshRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -85,10 +86,11 @@ export default function ThreeDPage() {
             const layerYT = ytRef.current; 
             const layerYT1 = yt1Ref.current; 
             const layerYT2 = yt2Ref.current; 
+            const layerYT3 = yt3Ref.current; 
             const layerFresh = freshRef.current;
             const freshGallery = freshGalleryRef.current;
 
-            if (cgHero && productionSection && header && layerUE && ueHeader && ueGallery && layerLive && liveHeader && liveGallery && layerYT && layerYT1 && layerYT2 && layerFresh && freshGallery) {
+            if (cgHero && productionSection && header && layerUE && ueHeader && ueGallery && layerLive && liveHeader && liveGallery && layerYT && layerYT1 && layerYT2 && layerYT3 && layerFresh && freshGallery) {
                 
                 // 1. YT HERO & HEADER EXIT -> CG HERO ENTER (0.00 - 0.08)
                 if (progress < 0.08) {
@@ -181,8 +183,8 @@ export default function ThreeDPage() {
                     liveGallery.style.transform = `translateY(${(1-p)*60}px)`;
                 }
 
-                // 8. LIVE ACTIVE (0.53 - 0.60)
-                else if (progress >= 0.53 && progress < 0.60) {
+                // 8. LIVE ACTIVE (0.53 - 0.58)
+                else if (progress >= 0.53 && progress < 0.58) {
                     layerUE.style.opacity = '0';
                     layerLive.style.opacity = '1';
                     liveHeader.style.transform = 'translateY(0)';
@@ -191,9 +193,9 @@ export default function ThreeDPage() {
                     layerYT1.style.pointerEvents = 'none';
                 }
 
-                // 9. LIVE EXIT -> YT1 ENTER (0.60 - 0.65)
-                else if (progress >= 0.60 && progress < 0.65) {
-                    const p = (progress - 0.60) / 0.05;
+                // 9. LIVE EXIT -> YT1 ENTER (0.58 - 0.63)
+                else if (progress >= 0.58 && progress < 0.63) {
+                    const p = (progress - 0.58) / 0.05;
                     layerLive.style.opacity = (1 - p).toString();
                     
                     layerYT1.style.opacity = p.toString();
@@ -201,8 +203,8 @@ export default function ThreeDPage() {
                     layerYT1.style.pointerEvents = 'none';
                 }
 
-                // 10. YT1 ACTIVE (0.65 - 0.73)
-                else if (progress >= 0.65 && progress < 0.73) {
+                // 10. YT1 ACTIVE (0.63 - 0.69)
+                else if (progress >= 0.63 && progress < 0.69) {
                     layerLive.style.opacity = '0';
                     layerYT1.style.opacity = '1';
                     layerYT1.style.transform = 'scale(1)';
@@ -212,9 +214,9 @@ export default function ThreeDPage() {
                     layerYT2.style.pointerEvents = 'none';
                 }
 
-                // 11. YT1 EXIT -> YT2 ENTER (0.73 - 0.78)
-                else if (progress >= 0.73 && progress < 0.78) {
-                    const p = (progress - 0.73) / 0.05;
+                // 11. YT1 EXIT -> YT2 ENTER (0.69 - 0.74)
+                else if (progress >= 0.69 && progress < 0.74) {
+                    const p = (progress - 0.69) / 0.05;
                     layerYT1.style.opacity = (1 - p).toString();
                     layerYT1.style.pointerEvents = 'none';
                     
@@ -223,30 +225,52 @@ export default function ThreeDPage() {
                     layerYT2.style.pointerEvents = 'none';
                 }
 
-                // 12. YT2 ACTIVE (0.78 - 0.86)
-                else if (progress >= 0.78 && progress < 0.86) {
+                // 12. YT2 ACTIVE (0.74 - 0.80)
+                else if (progress >= 0.74 && progress < 0.80) {
                     layerYT1.style.opacity = '0';
                     layerYT2.style.opacity = '1';
                     layerYT2.style.transform = 'scale(1)';
                     layerYT2.style.pointerEvents = 'auto'; // Enable interactions
                     
+                    layerYT3.style.opacity = '0';
+                    layerYT3.style.pointerEvents = 'none';
+                }
+
+                // 13. YT2 EXIT -> YT3 ENTER (0.80 - 0.85)
+                else if (progress >= 0.80 && progress < 0.85) {
+                    const p = (progress - 0.80) / 0.05;
+                    layerYT2.style.opacity = (1 - p).toString();
+                    layerYT2.style.pointerEvents = 'none';
+                    
+                    layerYT3.style.opacity = p.toString();
+                    layerYT3.style.transform = `scale(${1.1 - p * 0.1})`;
+                    layerYT3.style.pointerEvents = 'none';
+                }
+
+                // 14. YT3 ACTIVE (0.85 - 0.91)
+                else if (progress >= 0.85 && progress < 0.91) {
+                    layerYT2.style.opacity = '0';
+                    layerYT3.style.opacity = '1';
+                    layerYT3.style.transform = 'scale(1)';
+                    layerYT3.style.pointerEvents = 'auto'; // Enable interactions
+                    
                     layerFresh.style.opacity = '0';
                 }
 
-                // 13. YT2 EXIT -> FRESH ENTER (0.86 - 0.91)
-                else if (progress >= 0.86 && progress < 0.91) {
-                    const p = (progress - 0.86) / 0.05;
-                    layerYT2.style.opacity = (1 - p).toString();
-                    layerYT2.style.pointerEvents = 'none';
+                // 15. YT3 EXIT -> FRESH ENTER (0.91 - 0.96)
+                else if (progress >= 0.91 && progress < 0.96) {
+                    const p = (progress - 0.91) / 0.05;
+                    layerYT3.style.opacity = (1 - p).toString();
+                    layerYT3.style.pointerEvents = 'none';
                     
                     layerFresh.style.opacity = p.toString();
                     freshGallery.style.transform = `translateY(${(1-p)*50}px)`;
                 }
 
-                // 14. FRESH ACTIVE (0.91+)
-                else if (progress >= 0.91) {
-                    layerYT2.style.opacity = '0';
-                    layerYT2.style.pointerEvents = 'none';
+                // 16. FRESH ACTIVE (0.96+)
+                else if (progress >= 0.96) {
+                    layerYT3.style.opacity = '0';
+                    layerYT3.style.pointerEvents = 'none';
                     
                     layerFresh.style.opacity = '1';
                     freshGallery.style.transform = `translateY(0)`;
@@ -352,7 +376,8 @@ export default function ThreeDPage() {
         .nav-header { display: contents; }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
         .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; order: 2; margin: 0 40px; }
-        .nav-item { text-decoration: none; color: #ccc; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
+        
+        .nav-item { text-decoration: none; color: #fff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
         .nav-item:hover, .nav-item.active { color: #F4D03F; }
         
         .menu-icon { 
@@ -377,12 +402,12 @@ export default function ThreeDPage() {
         .mobile-menu-overlay { display: none; }
         
         /* TRACK */
-        .sequence-track { height: 1800vh; position: relative; z-index: 10; }
-        @media (max-width: 768px) { .sequence-track { height: 2200vh; } } 
+        .sequence-track { height: 2100vh; position: relative; z-index: 10; }
+        @media (max-width: 768px) { .sequence-track { height: 2500vh; } } 
 
         .sticky-viewport { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         
-        /* YOUTUBE FULLSCREEN LAYERS */
+        /* YOUTUBE/VIDEO FULLSCREEN LAYERS */
         .layer-yt { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             pointer-events: none; opacity: 1; 
@@ -394,6 +419,7 @@ export default function ThreeDPage() {
         #layer-yt { z-index: 1; }
         #layer-yt1 { z-index: 17; opacity: 0; }
         #layer-yt2 { z-index: 18; opacity: 0; }
+        #layer-yt3 { z-index: 19; opacity: 0; } 
         
         .layer-yt iframe { 
             width: 100vw; 
@@ -404,10 +430,14 @@ export default function ThreeDPage() {
             top: 50%; left: 50%; 
             transform: translate(-50%, -50%); 
         }
-        .yt-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); 
-            z-index: 2;
+
+        .layer-yt video.bg-video {
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
         }
 
         /* WATCH YOUTUBE BUTTON */
@@ -490,8 +520,8 @@ export default function ThreeDPage() {
         .live-img-wrapper:hover img { transform: scale(1.05); }
         .live-label { position: absolute; bottom: 20px; left: 20px; background: rgba(255,255,255,0.9); color: #000; padding: 6px 16px; border-radius: 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); pointer-events: auto; }
         
-        /* FRESH METAVERSE GARDEN */
-        .layer-fresh { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 19; pointer-events: none; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+        /* FRESH METAVERSE GARDEN - Z-INDEX BUMPED TO 20 */
+        .layer-fresh { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
         .fresh-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; filter: brightness(0.5); pointer-events: none; }
         .fresh-content { position: relative; z-index: 2; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 30px; }
         .fresh-title { font-size: 7vw; font-weight: 900; letter-spacing: -2px; color: #fff; margin: 0; text-shadow: 0 10px 30px rgba(0,0,0,0.5); line-height: 1; }
@@ -605,19 +635,19 @@ export default function ThreeDPage() {
       <div className="sequence-track" id="sequence-track" ref={trackRef}>
         <div className="sticky-viewport">
             
-            {/* 1️⃣ YOUTUBE FULLSCREEN BACKGROUND LAYER (Intro) */}
+            {/* 1️⃣ BASE VIDEO BACKGROUND LAYER (Intro) - 已加回原生的 loop 屬性 */}
             <div className="layer-yt" id="layer-yt" ref={ytRef}>
-                <div className="yt-overlay"></div>
-                <iframe 
-                    src="https://www.youtube.com/embed/RCPgtif9A9U?autoplay=1&mute=1&loop=1&playlist=RCPgtif9A9U&controls=0&modestbranding=1" 
-                    title="Unreal Engine 5: Forest" 
-                    frameBorder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    allowFullScreen
-                ></iframe>
+                <video 
+                    src="/images/3dvideo/capsule mograph.mp4" 
+                    className="bg-video" 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline
+                ></video>
             </div>
 
-            {/* HEADER (OVERLAY ON TOP OF YT) */}
+            {/* HEADER (OVERLAY ON TOP OF BG VIDEO) */}
             <div className="header-content" id="main-header" ref={headerRef}>
                 <h1 className="page-title">3D VISUAL</h1>
                 <div className="page-desc">Motion graphics, simulations, and rendered realities.</div>
@@ -680,21 +710,21 @@ export default function ThreeDPage() {
                 </div>
             </div>
 
-            {/* 🔴 2️⃣ NEW: YT LAYER 1 (After Live Setup) - REMOVED OVERLAY */}
+            {/* 🔴 2️⃣ YT LAYER 1 (Forest Video) */}
             <div className="layer-yt" id="layer-yt1" ref={yt1Ref}>
                 <iframe 
-                    src="https://www.youtube.com/embed/n01WI9mwJwc?autoplay=1&mute=1&loop=1&playlist=n01WI9mwJwc&controls=0&modestbranding=1" 
-                    title="YouTube video 1" 
+                    src="https://www.youtube.com/embed/RCPgtif9A9U?autoplay=1&mute=1&loop=1&playlist=RCPgtif9A9U&controls=0&modestbranding=1" 
+                    title="Unreal Engine 5: Forest" 
                     frameBorder="0" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                     allowFullScreen
                 ></iframe>
-                <a href="https://youtu.be/n01WI9mwJwc" target="_blank" rel="noopener noreferrer" className="yt-watch-btn">
+                <a href="https://youtu.be/RCPgtif9A9U" target="_blank" rel="noopener noreferrer" className="yt-watch-btn">
                     WATCH ON YOUTUBE
                 </a>
             </div>
 
-            {/* 🔴 3️⃣ NEW: YT LAYER 2 (After YT 1) - REMOVED OVERLAY */}
+            {/* 🔴 3️⃣ YT LAYER 2 (Star Wars Video) */}
             <div className="layer-yt" id="layer-yt2" ref={yt2Ref}>
                 <iframe 
                     src="https://www.youtube.com/embed/TLvBs1C6v08?autoplay=1&mute=1&loop=1&playlist=TLvBs1C6v08&controls=0&modestbranding=1" 
@@ -704,6 +734,20 @@ export default function ThreeDPage() {
                     allowFullScreen
                 ></iframe>
                 <a href="https://youtu.be/TLvBs1C6v08" target="_blank" rel="noopener noreferrer" className="yt-watch-btn">
+                    WATCH ON YOUTUBE
+                </a>
+            </div>
+
+            {/* 🔴 4️⃣ NEW: YT LAYER 3 (New Showcase Video) */}
+            <div className="layer-yt" id="layer-yt3" ref={yt3Ref}>
+                <iframe 
+                    src="https://www.youtube.com/embed/9PNM7YJtU2U?autoplay=1&mute=1&loop=1&playlist=9PNM7YJtU2U&controls=0&modestbranding=1" 
+                    title="YouTube video 3" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowFullScreen
+                ></iframe>
+                <a href="https://youtu.be/9PNM7YJtU2U" target="_blank" rel="noopener noreferrer" className="yt-watch-btn">
                     WATCH ON YOUTUBE
                 </a>
             </div>
