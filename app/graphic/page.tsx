@@ -3,22 +3,19 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
 export default function GraphicPage() {
-  // 1. Loading 狀態
   const [isLoading, setIsLoading] = useState(true);
-  // 2. Contact Widget State
   const [isContactExpanded, setIsContactExpanded] = useState(false);
 
-  // Refs for rows (Added row6Ref)
   const row1Ref = useRef<HTMLDivElement>(null);
   const row2Ref = useRef<HTMLDivElement>(null);
   const row3Ref = useRef<HTMLDivElement>(null);
   const row4Ref = useRef<HTMLDivElement>(null);
   const row5Ref = useRef<HTMLDivElement>(null);
-  const row6Ref = useRef<HTMLDivElement>(null); // New Row
+  const row6Ref = useRef<HTMLDivElement>(null); 
+  const row7Ref = useRef<HTMLDivElement>(null); 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Preloader Timer
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 500);
@@ -26,7 +23,6 @@ export default function GraphicPage() {
     let lenis: any;
     let animationFrameId: number;
 
-    // 1. Initialize Lenis Smooth Scroll
     import('@studio-freight/lenis').then((Lenis) => {
       lenis = new Lenis.default({
         duration: 1.2,
@@ -41,49 +37,47 @@ export default function GraphicPage() {
       requestAnimationFrame(raf);
     });
 
-    // 2. Desktop Marquee Animation Logic (With Looping)
+    // 🟢 終極無縫防跳動 + 置中進場邏輯
     const initDesktopAnimation = () => {
-      // Added row6Ref.current to the array
-      const rows = [row1Ref.current, row2Ref.current, row3Ref.current, row4Ref.current, row5Ref.current, row6Ref.current];
+      const rows = [row1Ref.current, row2Ref.current, row3Ref.current, row4Ref.current, row5Ref.current, row6Ref.current, row7Ref.current];
       if (!rows[0]) return;
 
       let baseSpeed = 0.5; 
       let scrollVelocity = 0; 
       let skewStrength = 0;
-      let singleSetWidth = 0;
-
-      // Positions
-      let pos1 = 0, pos3 = 0, pos5 = 0; // Left moving
-      let pos2 = 0, pos4 = 0, pos6 = 0; // Right moving (Added pos6)
+      
+      let positions = [0, 0, 0, 0, 0, 0, 0]; 
+      let rowLimits = [0, 0, 0, 0, 0, 0, 0];
       
       let lastScrollY = window.scrollY; 
 
       const calculateWidth = () => {
-        if(rows[0]) {
-            const items = rows[0].querySelectorAll('.strip-item');
-            let totalItemWidth = 0;
+        rows.forEach((row, index) => {
+            if(!row) return;
+            const items = row.children;
+            // 每行都嚴格分為 3 組 (1 原版 + 2 複製品)，獲取單組真實數量
+            const uniqueCount = Math.floor(items.length / 3);
             
-            // Sum the first 5 unique items (Assuming ~5 items per set to calculate loop width)
-            // Note: Since we force 1:1, widths are consistent now, calculation is safer
-            for(let i=0; i<items.length && i<5; i++) {
-                if(items[i]) totalItemWidth += items[i].getBoundingClientRect().width;
+            if (uniqueCount > 0 && items[uniqueCount]) {
+                // 使用 offsetLeft 精準獲取物理距離，徹底消除 CSS 小數點誤差導致的跳動
+                const firstItem = items[0] as HTMLElement;
+                const secondSetItem = items[uniqueCount] as HTMLElement;
+                rowLimits[index] = secondSetItem.offsetLeft - firstItem.offsetLeft;
             }
             
-            const style = window.getComputedStyle(rows[0]);
-            const gap = parseFloat(style.gap) || 15;
-            
-            // Total width of one "set"
-            singleSetWidth = totalItemWidth + (gap * 5);
-            
-            // Reset Right Moving Rows offset to ensure seamless loop start
-            if(singleSetWidth > 0) {
-                if(pos2 === 0) pos2 = -singleSetWidth; 
-                if(pos4 === 0) pos4 = -singleSetWidth; 
-                if(pos6 === 0) pos6 = -singleSetWidth; // Init pos6
+            // 讓所有行數一開始就「由中間開始」(充滿左右緩衝區，不留空位)
+            if(rowLimits[index] > 0 && positions[index] === 0) {
+                // 加入一點視覺交錯(Stagger)，讓每行圖片不會生硬地垂直對齊
+                const stagger = (rowLimits[index] / 5) * (index % 5);
+                if (index % 2 === 0) { // 向左移動的行
+                    positions[index] = -rowLimits[index] - stagger;
+                } else { // 向右移動的行
+                    positions[index] = -rowLimits[index] + stagger;
+                }
             }
+        });
 
-            if (wrapperRef.current) wrapperRef.current.classList.add('loaded');
-        }
+        if (wrapperRef.current) wrapperRef.current.classList.add('loaded');
       };
 
       const animate = () => {
@@ -91,42 +85,35 @@ export default function GraphicPage() {
         const delta = currentScrollY - lastScrollY; 
         lastScrollY = currentScrollY;
         
-        // Smoothed Velocity
         scrollVelocity += (delta * 0.1 - scrollVelocity) * 0.1;
-        
         const speed = baseSpeed + (scrollVelocity * 5); 
-        const limit = singleSetWidth || 3000; 
         
-        // Skew
         skewStrength += ((scrollVelocity * 2) - skewStrength) * 0.1;
         const safeSkew = Math.max(Math.min(skewStrength, 5), -5);
 
-        // --- LEFT MOVING (Rows 1, 3, 5) ---
-        pos1 -= speed; pos3 -= speed; pos5 -= speed;
-        // Looping Reset
-        if (pos1 <= -limit) pos1 += limit; if (pos1 > 0) pos1 -= limit;
-        if (pos3 <= -limit) pos3 += limit; if (pos3 > 0) pos3 -= limit;
-        if (pos5 <= -limit) pos5 += limit; if (pos5 > 0) pos5 -= limit;
+        rows.forEach((row, i) => {
+            if(!row) return;
+            const limit = rowLimits[i] || 3000;
+            const isLeftMoving = i % 2 === 0; 
 
-        // --- RIGHT MOVING (Rows 2, 4, 6) ---
-        pos2 += speed; pos4 += speed; pos6 += speed;
-        // Looping Reset
-        if (pos2 >= 0) pos2 -= limit; if (pos2 < -limit) pos2 += limit;
-        if (pos4 >= 0) pos4 -= limit; if (pos4 < -limit) pos4 += limit;
-        if (pos6 >= 0) pos6 -= limit; if (pos6 < -limit) pos6 += limit;
-
-        // Apply transforms
-        if(rows[0]) rows[0].style.transform = `translate3d(${pos1.toFixed(2)}px, 0, 0) skewX(${safeSkew.toFixed(2)}deg)`;
-        if(rows[1]) rows[1].style.transform = `translate3d(${pos2.toFixed(2)}px, 0, 0) skewX(${safeSkew.toFixed(2)}deg)`;
-        if(rows[2]) rows[2].style.transform = `translate3d(${pos3.toFixed(2)}px, 0, 0) skewX(${safeSkew.toFixed(2)}deg)`;
-        if(rows[3]) rows[3].style.transform = `translate3d(${pos4.toFixed(2)}px, 0, 0) skewX(${safeSkew.toFixed(2)}deg)`;
-        if(rows[4]) rows[4].style.transform = `translate3d(${pos5.toFixed(2)}px, 0, 0) skewX(${safeSkew.toFixed(2)}deg)`;
-        if(rows[5]) rows[5].style.transform = `translate3d(${pos6.toFixed(2)}px, 0, 0) skewX(${safeSkew.toFixed(2)}deg)`;
+            if (isLeftMoving) {
+                positions[i] -= speed;
+                // 向左無縫循環
+                if (positions[i] <= -(limit * 2)) positions[i] += limit;
+                if (positions[i] > -limit) positions[i] -= limit;
+            } else { 
+                positions[i] += speed;
+                // 向右無縫循環
+                if (positions[i] >= 0) positions[i] -= limit;
+                if (positions[i] < -limit) positions[i] += limit;
+            }
+            
+            row.style.transform = `translate3d(${positions[i].toFixed(2)}px, 0, 0) skewX(${safeSkew.toFixed(2)}deg)`;
+        });
         
         animationFrameId = requestAnimationFrame(animate);
       };
 
-      // Initialization
       calculateWidth();
       window.addEventListener('resize', calculateWidth);
       if (document.readyState === 'complete') {
@@ -144,7 +131,6 @@ export default function GraphicPage() {
       };
     };
 
-    // 3. Mobile Logic (Intersection Observer)
     const initMobileVerticalLogic = () => {
         if (wrapperRef.current) wrapperRef.current.classList.add('loaded');
         const observerOptions = { root: null, rootMargin: '-20% 0px -20% 0px', threshold: 0 };
@@ -176,10 +162,15 @@ export default function GraphicPage() {
     const handleResizeSwitch = () => { };
     window.addEventListener('resize', handleResizeSwitch);
 
-    // Navbar Scroll Logic
+    // 🟢 更新咗 Scroll 事件：加入 Contact Bubble 自動展開邏輯
     const navbar = document.getElementById('navbar');
+    const contactBubble = document.getElementById('contact-bubble');
+
     const handleScroll = () => {
-        if (window.scrollY > 50) {
+        const scrollY = window.scrollY;
+
+        // 處理 Navbar
+        if (scrollY > 50) {
             if (navbar && !navbar.classList.contains('mobile-active')) {
                 navbar.classList.add('collapsed');
             }
@@ -187,7 +178,18 @@ export default function GraphicPage() {
             navbar?.classList.remove('collapsed');
             navbar?.classList.remove('force-expand');
         }
+
+        // 處理 Contact Widget 自動展開
+        if (contactBubble) {
+            // 當 (視窗高度 + 已滾動距離) 大於等於 (整個網頁高度 - 50px 緩衝) 時
+            if ((window.innerHeight + scrollY) >= document.body.offsetHeight - 50) {
+                contactBubble.classList.add('expanded');
+            } else {
+                contactBubble.classList.remove('expanded');
+            }
+        }
     };
+    
     window.addEventListener('scroll', handleScroll);
 
     return () => {
@@ -200,7 +202,6 @@ export default function GraphicPage() {
     };
   }, []);
 
-  // Navbar Toggle Logic
   const toggleMenu = (e: React.MouseEvent) => {
     const navbar = document.getElementById('navbar');
     const menuBtn = document.getElementById('menu-btn');
@@ -229,16 +230,12 @@ export default function GraphicPage() {
     }
   };
 
-  // Contact Widget Toggle
-  const toggleContact = () => {
-    setIsContactExpanded(!isContactExpanded);
-  };
+  const toggleContact = () => setIsContactExpanded(!isContactExpanded);
 
   return (
     <>
       {/* @ts-ignore */}
       <style jsx global>{`
-        /* PERFORMANCE & RESET */
         * { box-sizing: border-box; }
         body { text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; margin: 0; padding: 0; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #050505; background-image: radial-gradient(circle at 50% 30%, #1a1a1a 0%, #000000 70%); min-height: 100vh; overflow-x: hidden; }
         html.lenis, html.lenis body { height: auto; }
@@ -246,50 +243,25 @@ export default function GraphicPage() {
         .lenis.lenis-stopped { overflow: hidden; }
         .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; mix-blend-mode: overlay; opacity: 0.06; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
         
-        /* Preloader */
         .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; }
         .preloader.hidden { opacity: 0; }
 
-        /* NAVBAR - FULLSCREEN MOBILE OVERLAY */
-        .smart-nav { 
-            position: fixed; top: 30px; left: 50%; transform: translateX(-50%); 
-            padding: 0 30px; display: flex; align-items: center; justify-content: space-between;
-            z-index: 2000; background: rgba(255, 255, 255, 0.05); 
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
-            border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); 
-            width: auto; min-width: 450px; height: 60px;
-            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); 
-            overflow: hidden;
-            cursor: pointer;
-        }
-        
-        /* DESKTOP NAVBAR ORDER FIX (Align Icon Right) */
+        .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); padding: 0 30px; display: flex; align-items: center; justify-content: space-between; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; height: 60px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); overflow: hidden; cursor: pointer; }
         .nav-header { display: contents; }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
         .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; order: 2; margin: 0 40px; }
-        .nav-item { text-decoration: none; color: #ccc; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
+        .nav-item { text-decoration: none; color: #fff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
         .nav-item:hover, .nav-item.active { color: #F4D03F; }
-        
-        .menu-icon { 
-            width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; 
-            pointer-events: none; z-index: 2005; order: 3; margin-left: 0;
-        }
-        .menu-line { 
-            width: 100%; height: 1px; background-color: #fff; 
-            transition: all 0.3s ease; transform-origin: center;
-        }
-        
-        /* HAMBURGER TO X ANIMATION */
+        .menu-icon { width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; pointer-events: none; z-index: 2005; order: 3; margin-left: 0; }
+        .menu-line { width: 100%; height: 1px; background-color: #fff; transition: all 0.3s ease; transform-origin: center; }
         .menu-icon.open .menu-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
         .menu-icon.open .menu-line:nth-child(2) { opacity: 0; }
         .menu-icon.open .menu-line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-        /* DESKTOP ONLY: Hover to expand */
         @media (min-width: 769px) {
             .smart-nav:hover, .smart-nav.force-expand { min-width: 650px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
             .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; gap: 25px !important; pointer-events: auto !important; display: flex !important; } 
         }
-        
         .smart-nav.collapsed { min-width: 150px; background: rgba(255, 255, 255, 0.05); padding: 0 20px; } 
         .smart-nav.collapsed .nav-links { max-width: 0; opacity: 0; gap: 0; pointer-events: none; } 
         .smart-nav.collapsed .nav-logo { margin-right: 10px; } 
@@ -297,48 +269,22 @@ export default function GraphicPage() {
 
         .mobile-menu-overlay { display: none; }
 
-        /* HEADER */
         .header-section { padding: 220px 40px 100px 40px; text-align: center; position: relative; z-index: 10; }
         h1.page-title { font-size: 80px; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -2px; opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.2s; color: #fff; }
         .page-desc { margin-top: 20px; font-size: 16px; color: #888; max-width: 600px; display: inline-block; opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.4s; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* KINETIC GALLERY (Desktop Marquee) */
-        .kinetic-wrapper { 
-            position: relative; width: 100%; overflow: hidden; padding-bottom: 200px; 
-            display: flex; flex-direction: column; gap: 15px; 
-            opacity: 0; transition: opacity 1.5s ease;
-        }
+        .kinetic-wrapper { position: relative; width: 100%; overflow: hidden; padding-bottom: 200px; display: flex; flex-direction: column; gap: 15px; opacity: 0; transition: opacity 1.5s ease; }
         .kinetic-wrapper.loaded { opacity: 1; }
         .mobile-track { display: contents; }
-        .gallery-strip { 
-            display: flex; gap: 15px; width: max-content; 
-            transform: translate3d(0, 0, 0); will-change: transform; 
-            backface-visibility: hidden; perspective: 1000px;
-        }
-        /* DESKTOP ITEM: 1:1 SQUARE - BIGGER SIZE (35vw) */
-        .strip-item { 
-            flex-shrink: 0; 
-            width: 35vw; /* INCREASED FROM 22vw TO 35vw */
-            height: auto; 
-            aspect-ratio: 1 / 1; /* FORCE SQUARE 1:1 */
-            position: relative; border-radius: 8px; overflow: hidden; background-color: #111; 
-            transform: translateZ(0);
-        }
-        .strip-item img { 
-            width: 100%; height: 100%; object-fit: cover; /* Ensures image fills square without stretching */
-            filter: brightness(0.9); transition: filter 0.3s ease, transform 0.3s ease; 
-            will-change: transform, filter; transform: translateZ(0); 
-            display: block;
-        }
-        .strip-item:hover img { filter: brightness(1.1) !important; transform: scale(1.05); }
+        .gallery-strip { display: flex; gap: 15px; width: max-content; transform: translate3d(0, 0, 0); will-change: transform; backface-visibility: hidden; perspective: 1000px; }
+        .strip-item { flex-shrink: 0; width: 35vw; height: auto; aspect-ratio: 1 / 1; position: relative; border-radius: 8px; overflow: hidden; background-color: #111; transform: translateZ(0); }
+        .strip-item img, .strip-item video { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.9); transition: filter 0.3s ease, transform 0.3s ease; will-change: transform, filter; transform: translateZ(0); display: block; }
+        .strip-item:hover img, .strip-item:hover video { filter: brightness(1.1) !important; transform: scale(1.05); }
         .strip-caption { position: absolute; bottom: 20px; left: 20px; font-size: 3vw; font-weight: 700; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.5); z-index: 2; pointer-events: none; }
         
-        /* MOBILE ADAPTATION */
         @media (max-width: 768px) {
             .header-section { padding-bottom: 50px; }
-            
-            /* Navbar Fullscreen Overlay & Order Reset */
             .smart-nav { flex-direction: column !important; align-items: flex-start !important; width: 90% !important; max-width: 350px !important; height: 60px; overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; }
             .smart-nav.mobile-active { position: fixed !important; top: 0 !important; left: 0 !important; transform: none !important; width: 100vw !important; max-width: none !important; height: 100vh !important; border-radius: 0 !important; background: #000 !important; border: none !important; padding: 30px !important; justify-content: flex-start !important; align-items: center !important; z-index: 9000 !important; }
             .nav-header { display: flex !important; width: 100%; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
@@ -348,41 +294,23 @@ export default function GraphicPage() {
             .smart-nav.mobile-active .nav-links { opacity: 1 !important; transform: translateY(0) !important; pointer-events: auto !important; visibility: visible !important; }
             .nav-item { font-size: 28px !important; font-weight: 700 !important; letter-spacing: 2px !important; }
 
-            /* Gallery Layout Fix */
             .kinetic-wrapper { gap: 40px; padding: 0 0 100px 0; display: flex; flex-direction: column; align-items: center; }
             .mobile-track { display: block; margin-bottom: 0; width: 100%; }
             .gallery-strip { display: flex; flex-direction: column; gap: 40px; width: 100%; transform: none !important; overflow: visible; align-items: center; }
             
-            /* Image Styling: 100% Width */
-            .strip-item { 
-                width: 100% !important; 
-                height: auto !important; 
-                aspect-ratio: 1 / 1; /* Keep square on mobile too */
-                max-width: none; 
-                max-height: none;
-                margin: 0 auto;
-                filter: brightness(0.9);
-                background-color: transparent;
-            }
-            .strip-item img { 
-                width: 100%; 
-                height: 100%; /* Fill the square */
-                filter: inherit; 
-                object-fit: cover;
-            }
+            .strip-item { width: 100% !important; height: auto !important; aspect-ratio: 1 / 1; max-width: none; max-height: none; margin: 0 auto; filter: brightness(0.9); background-color: transparent; }
+            .strip-item img, .strip-item video { width: 100%; height: 100%; filter: inherit; object-fit: cover; }
             .strip-item.in-view { filter: brightness(1); }
             .strip-item.duplicate { display: none; }
             .strip-caption { font-size: 40px; }
         }
 
-        /* CONTACT WIDGET */
         .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; cursor: pointer; }
         .contact-icon { width: 38px; height: 38px; background: #fff; color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         .contact-details { opacity: 0; white-space: nowrap; margin-left: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; pointer-events: none; transition: opacity 0.3s ease 0.1s, margin-left 0.4s ease; }
         .contact-link { color: #ccc; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; transition: color 0.3s; }
         .contact-link:hover { color: #fff; }
         .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #666; margin-right: 10px; width: 60px; font-weight: 700; }
-
         .contact-widget.expanded { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .contact-widget.expanded .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
 
@@ -392,12 +320,9 @@ export default function GraphicPage() {
         }
       `}</style>
 
-      {/* Preloader */}
       <div className={`preloader ${!isLoading ? 'hidden' : ''}`}></div>
-
       <div className="noise-overlay"></div>
 
-      {/* Navbar with onClick Handler */}
       <nav className="smart-nav" id="navbar" onClick={toggleMenu}>
         <div className="nav-header">
             <Link href="/" className="nav-logo">SAM CHOW.</Link>
@@ -423,128 +348,179 @@ export default function GraphicPage() {
       </div>
 
       <div className="kinetic-wrapper" id="kinetic-wrapper" ref={wrapperRef}>
+        
+        {/* ROW 1 (5 items) : 01 to 05 */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-1" ref={row1Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/02.jpg" alt="01" /><div className="strip-caption">01</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/24card1.jpg" alt="02" /><div className="strip-caption">02</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/300x600_1.jpg" alt="03" /><div className="strip-caption">03</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/0320_b.jpg" alt="04" /><div className="strip-caption">04</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/0414_v1.jpg" alt="05" /><div className="strip-caption">05</div></div>
-                {/* Duplicates for Loop */}
+                <div className="strip-item"><img src="/images/Graphic_optimized/123214.jpg" alt="02" /><div className="strip-caption">02</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_01.jpg" alt="03" /><div className="strip-caption">03</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_02.jpg" alt="04" /><div className="strip-caption">04</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_03.jpg" alt="05" /><div className="strip-caption">05</div></div>
+                
+                {/* SET 2 */}
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/02.jpg" alt="01" /><div className="strip-caption">01</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/24card1.jpg" alt="02" /><div className="strip-caption">02</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/300x600_1.jpg" alt="03" /><div className="strip-caption">03</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0320_b.jpg" alt="04" /><div className="strip-caption">04</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0414_v1.jpg" alt="05" /><div className="strip-caption">05</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/123214.jpg" alt="02" /><div className="strip-caption">02</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_01.jpg" alt="03" /><div className="strip-caption">03</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_02.jpg" alt="04" /><div className="strip-caption">04</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_03.jpg" alt="05" /><div className="strip-caption">05</div></div>
+                
+                {/* SET 3 */}
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/02.jpg" alt="01" /><div className="strip-caption">01</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/24card1.jpg" alt="02" /><div className="strip-caption">02</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/300x600_1.jpg" alt="03" /><div className="strip-caption">03</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0320_b.jpg" alt="04" /><div className="strip-caption">04</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0414_v1.jpg" alt="05" /><div className="strip-caption">05</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/123214.jpg" alt="02" /><div className="strip-caption">02</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_01.jpg" alt="03" /><div className="strip-caption">03</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_02.jpg" alt="04" /><div className="strip-caption">04</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_03.jpg" alt="05" /><div className="strip-caption">05</div></div>
             </div>
         </div>
 
+        {/* ROW 2 (4 items) : 06 to 09 */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-2" ref={row2Ref}>
-                <div className="strip-item"><img src="/images/Graphic_optimized/0529_challenge_1-1_1b_2-1.jpg" alt="06" /><div className="strip-caption">06</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/967_1-1.jpg" alt="07" /><div className="strip-caption">07</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/122414.jpg" alt="08" /><div className="strip-caption">08</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/123214.jpg" alt="09" /><div className="strip-caption">09</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/HSBC Life x HKFC sponsorship video thumbnail_1.jpg" alt="10" /><div className="strip-caption">10</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/asahifootball 2.jpg" alt="06" /><div className="strip-caption">06</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/DragonBoat.jpg" alt="07" /><div className="strip-caption">07</div></div>
+                <div className="strip-item">
+                    <video autoPlay loop muted playsInline><source src="/images/Graphic_optimized/v22SFX_2.mp4" type="video/mp4" /></video>
+                    <div className="strip-caption">08</div>
+                </div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/post-4-5_V5a.jpg" alt="09" /><div className="strip-caption">09</div></div>
+
+                {/* SET 2 */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/asahifootball 2.jpg" alt="06" /><div className="strip-caption">06</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DragonBoat.jpg" alt="07" /><div className="strip-caption">07</div></div>
+                <div className="strip-item duplicate">
+                    <video autoPlay loop muted playsInline><source src="/images/Graphic_optimized/v22SFX_2.mp4" type="video/mp4" /></video>
+                    <div className="strip-caption">08</div>
+                </div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/post-4-5_V5a.jpg" alt="09" /><div className="strip-caption">09</div></div>
                 
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0529_challenge_1-1_1b_2-1.jpg" alt="06" /><div className="strip-caption">06</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/967_1-1.jpg" alt="07" /><div className="strip-caption">07</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/122414.jpg" alt="08" /><div className="strip-caption">08</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/123214.jpg" alt="09" /><div className="strip-caption">09</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/HSBC Life x HKFC sponsorship video thumbnail_1.jpg" alt="10" /><div className="strip-caption">10</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0529_challenge_1-1_1b_2-1.jpg" alt="06" /><div className="strip-caption">06</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/967_1-1.jpg" alt="07" /><div className="strip-caption">07</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/122414.jpg" alt="08" /><div className="strip-caption">08</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/123214.jpg" alt="09" /><div className="strip-caption">09</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/HSBC Life x HKFC sponsorship video thumbnail_1.jpg" alt="10" /><div className="strip-caption">10</div></div>
+                {/* SET 3 */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/asahifootball 2.jpg" alt="06" /><div className="strip-caption">06</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DragonBoat.jpg" alt="07" /><div className="strip-caption">07</div></div>
+                <div className="strip-item duplicate">
+                    <video autoPlay loop muted playsInline><source src="/images/Graphic_optimized/v22SFX_2.mp4" type="video/mp4" /></video>
+                    <div className="strip-caption">08</div>
+                </div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/post-4-5_V5a.jpg" alt="09" /><div className="strip-caption">09</div></div>
             </div>
         </div>
 
+        {/* ROW 3 (5 items) : 10 to 14 */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-3" ref={row3Ref}>
-                <div className="strip-item"><img src="/images/Graphic_optimized/INGREDIENTS_4-5.jpg" alt="11" /><div className="strip-caption">11</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/june6_2.jpg" alt="12" /><div className="strip-caption">12</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_01.jpg" alt="13" /><div className="strip-caption">13</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_02.jpg" alt="14" /><div className="strip-caption">14</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_03.jpg" alt="15" /><div className="strip-caption">15</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/Travel1.png" alt="10" /><div className="strip-caption">10</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/Travel2.png" alt="11" /><div className="strip-caption">11</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/Study1.png" alt="12" /><div className="strip-caption">12</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/Study2.png" alt="13" /><div className="strip-caption">13</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/HSBC Life x HKFC sponsorship video thumbnail_1.jpg" alt="14" /><div className="strip-caption">14</div></div>
                 
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/INGREDIENTS_4-5.jpg" alt="11" /><div className="strip-caption">11</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/june6_2.jpg" alt="12" /><div className="strip-caption">12</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_01.jpg" alt="13" /><div className="strip-caption">13</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_02.jpg" alt="14" /><div className="strip-caption">14</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_03.jpg" alt="15" /><div className="strip-caption">15</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/INGREDIENTS_4-5.jpg" alt="11" /><div className="strip-caption">11</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/june6_2.jpg" alt="12" /><div className="strip-caption">12</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_01.jpg" alt="13" /><div className="strip-caption">13</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_02.jpg" alt="14" /><div className="strip-caption">14</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_03.jpg" alt="15" /><div className="strip-caption">15</div></div>
+                {/* SET 2 */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Travel1.png" alt="10" /><div className="strip-caption">10</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Travel2.png" alt="11" /><div className="strip-caption">11</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Study1.png" alt="12" /><div className="strip-caption">12</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Study2.png" alt="13" /><div className="strip-caption">13</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/HSBC Life x HKFC sponsorship video thumbnail_1.jpg" alt="14" /><div className="strip-caption">14</div></div>
+                
+                {/* SET 3 */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Travel1.png" alt="10" /><div className="strip-caption">10</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Travel2.png" alt="11" /><div className="strip-caption">11</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Study1.png" alt="12" /><div className="strip-caption">12</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Study2.png" alt="13" /><div className="strip-caption">13</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/HSBC Life x HKFC sponsorship video thumbnail_1.jpg" alt="14" /><div className="strip-caption">14</div></div>
             </div>
         </div>
 
+        {/* ROW 4 (6 items) : 15 to 20 */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-4" ref={row4Ref}>
-                <div className="strip-item"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_04.jpg" alt="16" /><div className="strip-caption">16</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_05.jpg" alt="17" /><div className="strip-caption">17</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_06.jpg" alt="18" /><div className="strip-caption">18</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/p1.jpg" alt="19" /><div className="strip-caption">19</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/p3_6.jpg" alt="20" /><div className="strip-caption">20</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/june6_2.jpg" alt="15" /><div className="strip-caption">15</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/300x600_1.jpg" alt="16" /><div className="strip-caption">16</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/p1.jpg" alt="17" /><div className="strip-caption">17</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/p3_6.jpg" alt="18" /><div className="strip-caption">18</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/p3b_3.jpg" alt="19" /><div className="strip-caption">19</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/0414_v2c.jpg" alt="20" /><div className="strip-caption">20</div></div>
 
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_04.jpg" alt="16" /><div className="strip-caption">16</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_05.jpg" alt="17" /><div className="strip-caption">17</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_06.jpg" alt="18" /><div className="strip-caption">18</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/p1.jpg" alt="19" /><div className="strip-caption">19</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/p3_6.jpg" alt="20" /><div className="strip-caption">20</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_04.jpg" alt="16" /><div className="strip-caption">16</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_05.jpg" alt="17" /><div className="strip-caption">17</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_06.jpg" alt="18" /><div className="strip-caption">18</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/p1.jpg" alt="19" /><div className="strip-caption">19</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/p3_6.jpg" alt="20" /><div className="strip-caption">20</div></div>
+                {/* SET 2 */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/june6_2.jpg" alt="15" /><div className="strip-caption">15</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/300x600_1.jpg" alt="16" /><div className="strip-caption">16</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/p1.jpg" alt="17" /><div className="strip-caption">17</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/p3_6.jpg" alt="18" /><div className="strip-caption">18</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/p3b_3.jpg" alt="19" /><div className="strip-caption">19</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0414_v2c.jpg" alt="20" /><div className="strip-caption">20</div></div>
+                
+                {/* SET 3 */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/june6_2.jpg" alt="15" /><div className="strip-caption">15</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/300x600_1.jpg" alt="16" /><div className="strip-caption">16</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/p1.jpg" alt="17" /><div className="strip-caption">17</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/p3_6.jpg" alt="18" /><div className="strip-caption">18</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/p3b_3.jpg" alt="19" /><div className="strip-caption">19</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0414_v2c.jpg" alt="20" /><div className="strip-caption">20</div></div>
             </div>
         </div>
 
+        {/* ROW 5 (4 items) : 21 to 24 */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-5" ref={row5Ref}>
-                <div className="strip-item"><img src="/images/Graphic_optimized/p3b_3.jpg" alt="21" /><div className="strip-caption">21</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/post-4-5_V5a.jpg" alt="22" /><div className="strip-caption">22</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/scene1.jpg" alt="23" /><div className="strip-caption">23</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/scene2.jpg" alt="24" /><div className="strip-caption">24</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/0414_v2c.jpg" alt="25" /><div className="strip-caption">25</div></div>
-
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/p3b_3.jpg" alt="21" /><div className="strip-caption">21</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/post-4-5_V5a.jpg" alt="22" /><div className="strip-caption">22</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/scene1.jpg" alt="23" /><div className="strip-caption">23</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/scene2.jpg" alt="24" /><div className="strip-caption">24</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0414_v2c.jpg" alt="25" /><div className="strip-caption">25</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/p3b_3.jpg" alt="21" /><div className="strip-caption">21</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/post-4-5_V5a.jpg" alt="22" /><div className="strip-caption">22</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/scene1.jpg" alt="23" /><div className="strip-caption">23</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/scene2.jpg" alt="24" /><div className="strip-caption">24</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0414_v2c.jpg" alt="25" /><div className="strip-caption">25</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/122414.jpg" alt="21" /><div className="strip-caption">21</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_04.jpg" alt="22" /><div className="strip-caption">22</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_05.jpg" alt="23" /><div className="strip-caption">23</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_06.jpg" alt="24" /><div className="strip-caption">24</div></div>
+                
+                {/* SET 2 */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/122414.jpg" alt="21" /><div className="strip-caption">21</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_04.jpg" alt="22" /><div className="strip-caption">22</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_05.jpg" alt="23" /><div className="strip-caption">23</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_06.jpg" alt="24" /><div className="strip-caption">24</div></div>
+                
+                {/* SET 3 */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/122414.jpg" alt="21" /><div className="strip-caption">21</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_04.jpg" alt="22" /><div className="strip-caption">22</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_05.jpg" alt="23" /><div className="strip-caption">23</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_06.jpg" alt="24" /><div className="strip-caption">24</div></div>
             </div>
         </div>
 
-        {/* NEW ROW 6 - Added Travel1, Travel2, Study1, Study2 */}
+        {/* ROW 6 (4 items) : 25 to 28 */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-6" ref={row6Ref}>
-                <div className="strip-item"><img src="/images/Graphic_optimized/Travel1.png" alt="26" /><div className="strip-caption">26</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/Travel2.png" alt="27" /><div className="strip-caption">27</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/Study1.png" alt="28" /><div className="strip-caption">28</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/Study2.png" alt="29" /><div className="strip-caption">29</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/0529_challenge_1-1_1b_2-1.jpg" alt="25" /><div className="strip-caption">25</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/967_1-1.jpg" alt="26" /><div className="strip-caption">26</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/24card1.jpg" alt="27" /><div className="strip-caption">27</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/INGREDIENTS_4-5.jpg" alt="28" /><div className="strip-caption">28</div></div>
+
+                {/* SET 2 */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0529_challenge_1-1_1b_2-1.jpg" alt="25" /><div className="strip-caption">25</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/967_1-1.jpg" alt="26" /><div className="strip-caption">26</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/24card1.jpg" alt="27" /><div className="strip-caption">27</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/INGREDIENTS_4-5.jpg" alt="28" /><div className="strip-caption">28</div></div>
                 
-                {/* Repetitions for seamless loop */}
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Travel1.png" alt="26" /><div className="strip-caption">26</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Travel2.png" alt="27" /><div className="strip-caption">27</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Study1.png" alt="28" /><div className="strip-caption">28</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Study2.png" alt="29" /><div className="strip-caption">29</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Travel1.png" alt="26" /><div className="strip-caption">26</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Travel2.png" alt="27" /><div className="strip-caption">27</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Study1.png" alt="28" /><div className="strip-caption">28</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Study2.png" alt="29" /><div className="strip-caption">29</div></div>
+                {/* SET 3 */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0529_challenge_1-1_1b_2-1.jpg" alt="25" /><div className="strip-caption">25</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/967_1-1.jpg" alt="26" /><div className="strip-caption">26</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/24card1.jpg" alt="27" /><div className="strip-caption">27</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/INGREDIENTS_4-5.jpg" alt="28" /><div className="strip-caption">28</div></div>
+            </div>
+        </div>
+
+        {/* ROW 7 (4 items) : 29 to 32 */}
+        <div className="mobile-track">
+            <div className="gallery-strip" id="row-7" ref={row7Ref}>
+                <div className="strip-item"><img src="/images/Graphic_optimized/0320_b.jpg" alt="29" /><div className="strip-caption">29</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/0414_v1.jpg" alt="30" /><div className="strip-caption">30</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/scene1.jpg" alt="31" /><div className="strip-caption">31</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/scene2.jpg" alt="32" /><div className="strip-caption">32</div></div>
+
+                {/* SET 2 */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0320_b.jpg" alt="29" /><div className="strip-caption">29</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0414_v1.jpg" alt="30" /><div className="strip-caption">30</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/scene1.jpg" alt="31" /><div className="strip-caption">31</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/scene2.jpg" alt="32" /><div className="strip-caption">32</div></div>
+                
+                {/* SET 3 */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0320_b.jpg" alt="29" /><div className="strip-caption">29</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0414_v1.jpg" alt="30" /><div className="strip-caption">30</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/scene1.jpg" alt="31" /><div className="strip-caption">31</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/scene2.jpg" alt="32" /><div className="strip-caption">32</div></div>
             </div>
         </div>
       </div>

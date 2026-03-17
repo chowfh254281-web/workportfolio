@@ -17,26 +17,25 @@ export default function HomePage() {
     const navbar = document.getElementById('navbar');
     const menuBtn = document.getElementById('menu-btn');
     const target = e.target as HTMLElement;
-    
     if (!navbar || !menuBtn) return;
 
     if (window.innerWidth <= 768) {
-        const isActive = navbar.classList.contains('mobile-active');
-        const isLogo = target.closest('.nav-logo');
-        if (isLogo && !isActive) return;
+      const isActive = navbar.classList.contains('mobile-active');
+      const isLogo = target.closest('.nav-logo');
+      if (isLogo && !isActive) return;
 
-        if (isActive) {
-            navbar.classList.remove('mobile-active');
-            menuBtn.classList.remove('open');
-            document.body.style.overflow = ''; 
-        } else {
-            navbar.classList.remove('collapsed'); 
-            navbar.classList.add('mobile-active');
-            menuBtn.classList.add('open');
-            document.body.style.overflow = 'hidden'; 
-        }
+      if (isActive) {
+        navbar.classList.remove('mobile-active');
+        menuBtn.classList.remove('open');
+        document.body.style.overflow = ''; 
+      } else {
+        navbar.classList.remove('collapsed'); 
+        navbar.classList.add('mobile-active');
+        menuBtn.classList.add('open');
+        document.body.style.overflow = 'hidden'; 
+      }
     } else {
-        navbar.classList.toggle('force-expand');
+      navbar.classList.toggle('force-expand');
     }
   };
 
@@ -73,41 +72,42 @@ export default function HomePage() {
     const overviewTitle = document.getElementById('overview-title');
 
     function splitTextIntoSpans(element: HTMLElement) {
-        const childNodes = Array.from(element.childNodes);
-        element.innerHTML = '';
-        childNodes.forEach(node => {
-          if (node.nodeType === 3) {
-            const words = (node.textContent || '').split(/(\s+)/);
-            words.forEach(word => {
-              if (word.trim().length > 0) {
-                const span = document.createElement('span');
-                span.classList.add('word');
-                span.textContent = word;
-                element.appendChild(span);
-              } else {
-                element.appendChild(document.createTextNode(word));
-              }
-            });
-          } else if (node.nodeType === 1) {
-            const wrapperSpan = node.cloneNode(false) as HTMLElement;
-            const innerWords = (node.textContent || '').split(/(\s+)/);
-            innerWords.forEach(w => {
-              if (w.trim().length > 0) {
-                const wordSpan = document.createElement('span');
-                wordSpan.classList.add('word');
-                wordSpan.textContent = w;
-                wrapperSpan.appendChild(wordSpan);
-              } else {
-                wrapperSpan.appendChild(document.createTextNode(w));
-              }
-            });
-            element.appendChild(wrapperSpan);
-          }
-        });
+      const childNodes = Array.from(element.childNodes);
+      element.innerHTML = '';
+      childNodes.forEach(node => {
+        if (node.nodeType === 3) {
+          const words = (node.textContent || '').split(/(\s+)/);
+          words.forEach(word => {
+            if (word.trim().length > 0) {
+              const span = document.createElement('span');
+              span.classList.add('word');
+              span.textContent = word;
+              element.appendChild(span);
+            } else {
+              element.appendChild(document.createTextNode(word));
+            }
+          });
+        } else if (node.nodeType === 1) {
+          const wrapperSpan = node.cloneNode(false) as HTMLElement;
+          const innerWords = (node.textContent || '').split(/(\s+)/);
+          innerWords.forEach(w => {
+            if (w.trim().length > 0) {
+              const wordSpan = document.createElement('span');
+              wordSpan.classList.add('word');
+              wordSpan.textContent = w;
+              wrapperSpan.appendChild(wordSpan);
+            } else {
+              wrapperSpan.appendChild(document.createTextNode(w));
+            }
+          });
+          element.appendChild(wrapperSpan);
+        }
+      });
     }
 
     if (revealSource) splitTextIntoSpans(revealSource);
 
+    // 🔴 100% 使用你原本提供嘅寫法
     if (title && !title.classList.contains('split-done')) {
       const text = title.textContent || '';
       title.innerHTML = text.replace(/\S/g, "<span class='char-span'>$&</span>");
@@ -166,6 +166,7 @@ export default function HomePage() {
       if (title) title.style.color = colorString;
       if (subtitle) subtitle.style.color = colorString;
 
+      // 🔴 100% 使用你原本提供嘅算式
       const charSpans = document.querySelectorAll('.char-span, .sub-char');
       if (charSpans.length > 0) {
         charSpans.forEach((span: any, i) => {
@@ -352,9 +353,10 @@ export default function HomePage() {
     'photography': { type: 'static', src: "/images/index_photo.png" },
     'video': { type: 'yt', id: 'DOp19wtL28w' },
     'ai': { 
-      type: 'mixed', 
-      bg: "/images/AI_optimized/ai_img3.png", 
-      vid: "/images/AI_optimized/ai_5.mp4" 
+      type: 'casio_display', 
+      img1: "/images/AI_optimized/casio normal.jpg", 
+      img2: "/images/AI_optimized/casio decompose.jpeg",
+      vid: "/images/AI_optimized/Casio Watch.mp4"
     }
   };
 
@@ -424,23 +426,16 @@ export default function HomePage() {
         .smart-nav.collapsed .nav-logo { margin-right: 10px; } 
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
 
-        .mixed-hero-container { position: relative; width: 100%; height: 100%; overflow: hidden; }
-        .fg-video-home-wrapper { 
-            position: absolute; top: 50%; right: 10%; transform: translateY(-50%) translateX(20px); 
-            width: 18vw; aspect-ratio: 9/16; border-radius: 8px; overflow: hidden; 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8); opacity: 0; 
-            transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1); z-index: 15; 
-        }
-        .hero-section:hover .fg-video-home-wrapper { opacity: 1; transform: translateY(-50%) translateX(0); }
-        .fg-video-home { width: 100%; height: 100%; object-fit: cover; }
+        .mobile-menu-overlay { display: none; }
 
+        /* 🔴 完璧補回：INTRO SECTION 專屬 CSS，確保絕對置中 */
         .intro-section { height: 100vh; width: 100%; position: relative; overflow: hidden; margin-bottom: 0; z-index: 10; }
         .intro-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 50; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; will-change: opacity, transform, color; }
         .main-title { font-size: 8vw; font-weight: 900; margin: 0 0 20px 0; letter-spacing: -2px; line-height: 1; color: #F4D03F; transition: color 0.1s linear; white-space: nowrap; }
         .subtitle { font-size: 1.5vw; font-weight: 400; line-height: 1.4; max-width: 800px; color: #F4D03F; opacity: 0; transform: translateY(20px); transition: all 1s ease; }
         .subtitle.visible { opacity: 1; transform: translateY(0); }
         .char-span, .sub-char { display: inline-block; will-change: transform, opacity, filter, color; }
-        
+
         .seamless-hero { 
           position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
           width: 25vw; height: 35vw; max-width: 350px; max-height: 500px; 
@@ -488,7 +483,7 @@ export default function HomePage() {
         .experience-item { 
             display: flex; 
             justify-content: space-between; 
-            align-items: flex-end; /* This aligns bottom of left column with right text */
+            align-items: flex-end;
             padding: 15px 0; 
             border-bottom: 1px solid rgba(255,255,255,0.05); 
         }
@@ -514,11 +509,31 @@ export default function HomePage() {
         .gallery-wrapper { position: relative; width: 100%; z-index: 200; background: #050505; box-shadow: 0 -50px 100px rgba(0,0,0,1); }
         .hero-section { width: 100%; height: 70vh; position: relative; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; background: #050505; cursor: pointer; }
         .hero-img-wrapper { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+        
+        /* 🔴 1. 更新 Hover 動畫效果 (Non-hover 0.95 opacity) */
         .hero-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.8s ease, filter 0.5s ease, opacity 0.5s ease; }
-        .hero-img.static-thumb { filter: brightness(0.6); transform: scale(1); }
-        .hero-category-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -30%); font-size: 8vw; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 20; pointer-events: none; text-align: center; width: 100%; opacity: 0; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
-        .hero-section:hover .hero-category-label { opacity: 1; transform: translate(-50%, -50%); }
+        /* 預設: 0.95 Opacity */
+        .hero-img.static-thumb { opacity: 0.95; transform: scale(1); filter: grayscale(20%); }
+        /* Hover: 全彩變亮 (1 Opacity) */
+        .hero-section:hover .hero-img.static-thumb { opacity: 1; transform: scale(1.05); filter: grayscale(0%); }
+        
+        /* 預設: Category Name 顯示 */
+        .hero-category-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8vw; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 20; pointer-events: none; text-align: center; width: 100%; opacity: 1; transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+        /* Hover: Category Name 消失 */
+        .hero-section:hover .hero-category-label { opacity: 0; }
+
         .yt-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        
+        /* 🔴 2. Casio Display 佈局 (Non-hover 0.95 opacity) */
+        .casio-display-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; gap: 2vw; background: #050505; opacity: 0.95; transition: opacity 0.5s ease; filter: grayscale(20%); }
+        .hero-section:hover .casio-display-container { opacity: 1; filter: grayscale(0%); }
+        .casio-item { width: 18vw; aspect-ratio: 9/16; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.5s ease; }
+        .casio-item img, .casio-item video { width: 100%; height: 100%; object-fit: cover; }
+        .casio-item:nth-child(1) { transform: translateY(20px) rotate(-2deg); }
+        .casio-item:nth-child(2) { transform: translateY(-20px) scale(1.05); z-index: 2; box-shadow: 0 15px 40px rgba(0,0,0,0.8); }
+        .casio-item:nth-child(3) { transform: translateY(20px) rotate(2deg); }
+        .hero-section:hover .casio-item { transform: translateY(0) scale(1) rotate(0); }
+
         .contact-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 30; width: 100%; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 0; transition: gap 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
         .contact-content.shift-layout { gap: 50px; }
         .contact-title { font-size: 80px; font-weight: 900; color: #333; margin: 0; letter-spacing: -2px; display: inline-block; white-space: nowrap; }
@@ -533,22 +548,19 @@ export default function HomePage() {
         .contact-widget:hover, .contact-widget.expanded { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .contact-widget:hover .contact-details, .contact-widget.expanded .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
         
-        /* 🔴 UPDATED: Icon White BG, Black Color */
         .contact-icon { width: 38px; height: 38px; background: #fff; color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         
         .contact-details { opacity: 0; white-space: nowrap; margin-left: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; pointer-events: none; transition: opacity 0.3s ease 0.1s, margin-left 0.4s ease; }
         
-        /* 🔴 UPDATED: Content (Number/Email) Off-White -> Hover Bright White */
         .contact-link { color: #ccc; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; transition: all 0.3s; }
         .contact-link:hover { color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.6); }
         
-        /* 🔴 UPDATED: Labels (WhatsApp/Mail) Gold */
         .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #F4D03F; margin-right: 10px; width: 60px; font-weight: 700; }
 
         @media (max-width: 768px) {
             .about-grid { display: block !important; }
             .card-target-left { display: none !important; }
-            .hero-category-label { opacity: 1 !important; transform: translate(-50%, -50%) !important; }
+            .hero-category-label { opacity: 1 !important; transform: translate(-50%, -50%) !important; color: #fff; }
             .smart-nav { flex-direction: column !important; align-items: flex-start !important; width: 90% !important; max-width: 350px !important; height: 60px; overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; }
             .smart-nav.mobile-active { position: fixed !important; top: 0 !important; left: 0 !important; transform: none !important; width: 100vw !important; max-width: none !important; height: 100vh !important; border-radius: 0 !important; background: #000 !important; border: none !important; padding: 30px !important; justify-content: flex-start !important; align-items: center !important; z-index: 9000 !important; }
             .nav-header { display: flex !important; width: 100%; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
@@ -557,8 +569,12 @@ export default function HomePage() {
             .nav-links { display: flex !important; flex-direction: column !important; width: 100% !important; opacity: 0; transform: translateY(20px); transition: all 0.4s ease 0.1s; pointer-events: none; margin-top: 0; height: 100%; justify-content: center; align-items: center; gap: 40px !important; order: unset; margin: 0; }
             .smart-nav.mobile-active .nav-links { opacity: 1 !important; transform: translateY(0) !important; pointer-events: auto !important; visibility: visible !important; }
             .nav-item { font-size: 28px !important; font-weight: 700 !important; letter-spacing: 2px !important; }
+            
+            /* 🔴 補回 Mobile 的字體大小 */
             .main-title { font-size: 13vw; }
             .subtitle { font-size: 16px; padding: 0 20px; }
+            .intro-text { position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 100% !important; padding: 0 20px; }
+
             .text-container { height: 100vh !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; padding: 0 20px; }
             .text-layer-1 { font-size: 28px; width: 90%; line-height: 1.3; }
             
@@ -579,7 +595,8 @@ export default function HomePage() {
             .qr-container { transform: translateY(20px); }
             .contact-content.shift-layout .qr-container { width: 150px; transform: translateY(0); }
             
-            .fg-video-home-wrapper { width: 45vw; right: 5%; }
+            .casio-display-container { gap: 4vw; }
+            .casio-item { width: 28vw; }
         }
       `}</style>
 
@@ -617,6 +634,7 @@ export default function HomePage() {
 
           <div className="intro-section" id="intro-trigger">
             <div className="intro-text" id="intro-text-container">
+              {/* 原汁原味嘅 HTML，完全交比 JS 去𠝹字同飛散 */}
               <h1 className="main-title">SAM CHOW.</h1>
               <div className="subtitle">MultiMedia Designer &nbsp;|&nbsp; Work Portfolio</div>
             </div>
@@ -701,18 +719,24 @@ export default function HomePage() {
                     <div className="hero-img-wrapper">
                         {data?.type === 'yt' ? (
                             <>
-                                <img src={`https://img.youtube.com/vi/${data.id}/maxresdefault.jpg`} className="hero-img static-thumb yt-thumb" style={{ opacity: activeYt === cat.id ? 0 : 1 }} alt="YT Cover" />
+                                {/* YT 縮圖設定維持 0.95 */}
+                                <img src={`https://img.youtube.com/vi/${data.id}/maxresdefault.jpg`} className="hero-img static-thumb yt-thumb" style={activeYt === cat.id ? { opacity: 0 } : {}} alt="YT Cover" />
                                 <div className="yt-container">
                                     {activeYt === cat.id && (
                                         <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${data.id}?autoplay=1&mute=0&controls=0&modestbranding=1&rel=0`} title="YouTube video player" frameBorder="0" allowFullScreen style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}></iframe>
                                     )}
                                 </div>
                             </>
-                        ) : data?.type === 'mixed' ? (
-                            <div className="mixed-hero-container">
-                                <img src={data.bg} className="hero-img static-thumb" alt="AI BG" />
-                                <div className="fg-video-home-wrapper">
-                                    <video src={data.vid} className="fg-video-home" autoPlay loop muted playsInline />
+                        ) : data?.type === 'casio_display' ? (
+                            <div className="casio-display-container">
+                                <div className="casio-item">
+                                    <img src={data.img1} alt="Casio Normal" />
+                                </div>
+                                <div className="casio-item">
+                                    <video src={data.vid} autoPlay loop muted playsInline />
+                                </div>
+                                <div className="casio-item">
+                                    <img src={data.img2} alt="Casio Decompose" />
                                 </div>
                             </div>
                         ) : (
@@ -726,8 +750,8 @@ export default function HomePage() {
             })}
 
             <div className="hero-section" id="contact-section" style={{ background: '#080808', cursor: 'default' }}>
-                <div className="hero-img-wrapper" style={{ opacity: 0.3 }}>
-                    <img src="/images/contact_bg.jpg" className="hero-img" style={{ filter: 'grayscale(100%) brightness(0.4)' }} alt="Contact BG" />
+                <div className="hero-img-wrapper">
+                    <img src="/images/contact_bg.jpg" className="hero-img" style={{ filter: 'grayscale(100%) brightness(0.4)', opacity: 0.3 }} alt="Contact BG" />
                 </div>
                 <div className="contact-content" id="contact-content-wrapper">
                     <div className="contact-title" id="lets-create-text">Let's Create.</div>

@@ -11,13 +11,14 @@ export default function VideoPage() {
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   // Video Data (移除了 title 和 year，因為畫面上不再顯示)
+  // 🟢 已將 Sheseido (nZvCxgonaKM) 更新並調前至第 3 條片
   const videos = [
     { id: '_yeHdBy8Wzs' },
     { id: 'Dc3phLpndD0' },
-    { id: 'DOp19wtL28w' },
+    { id: 'nZvCxgonaKM' }, // 第 3 條：Sheseido 
     { id: 'rJBpYguoROg' },
     { id: 'cKj_WzwWvfQ' },
-    { id: 'nZvCxgonaKM' }
+    { id: 'DOp19wtL28w' }  // 最底：日本旅行
   ];
 
   useEffect(() => {
