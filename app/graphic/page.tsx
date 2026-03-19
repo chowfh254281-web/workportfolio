@@ -6,13 +6,15 @@ export default function GraphicPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isContactExpanded, setIsContactExpanded] = useState(false);
 
+  // 🟢 更新咗所有 Ref 變量
   const row1Ref = useRef<HTMLDivElement>(null);
   const row2Ref = useRef<HTMLDivElement>(null);
   const row3Ref = useRef<HTMLDivElement>(null);
-  const row4Ref = useRef<HTMLDivElement>(null);
-  const row5Ref = useRef<HTMLDivElement>(null);
+  const row4Ref = useRef<HTMLDivElement>(null); 
+  const row5Ref = useRef<HTMLDivElement>(null); 
   const row6Ref = useRef<HTMLDivElement>(null); 
   const row7Ref = useRef<HTMLDivElement>(null); 
+  const row8Ref = useRef<HTMLDivElement>(null); 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,15 +41,15 @@ export default function GraphicPage() {
 
     // 🟢 終極無縫防跳動 + 置中進場邏輯
     const initDesktopAnimation = () => {
-      const rows = [row1Ref.current, row2Ref.current, row3Ref.current, row4Ref.current, row5Ref.current, row6Ref.current, row7Ref.current];
+      const rows = [row1Ref.current, row2Ref.current, row3Ref.current, row4Ref.current, row5Ref.current, row6Ref.current, row7Ref.current, row8Ref.current];
       if (!rows[0]) return;
 
       let baseSpeed = 0.5; 
       let scrollVelocity = 0; 
       let skewStrength = 0;
       
-      let positions = [0, 0, 0, 0, 0, 0, 0]; 
-      let rowLimits = [0, 0, 0, 0, 0, 0, 0];
+      let positions = [0, 0, 0, 0, 0, 0, 0, 0]; 
+      let rowLimits = [0, 0, 0, 0, 0, 0, 0, 0];
       
       let lastScrollY = window.scrollY; 
 
@@ -55,23 +57,19 @@ export default function GraphicPage() {
         rows.forEach((row, index) => {
             if(!row) return;
             const items = row.children;
-            // 每行都嚴格分為 3 組 (1 原版 + 2 複製品)，獲取單組真實數量
             const uniqueCount = Math.floor(items.length / 3);
             
             if (uniqueCount > 0 && items[uniqueCount]) {
-                // 使用 offsetLeft 精準獲取物理距離，徹底消除 CSS 小數點誤差導致的跳動
                 const firstItem = items[0] as HTMLElement;
                 const secondSetItem = items[uniqueCount] as HTMLElement;
                 rowLimits[index] = secondSetItem.offsetLeft - firstItem.offsetLeft;
             }
             
-            // 讓所有行數一開始就「由中間開始」(充滿左右緩衝區，不留空位)
             if(rowLimits[index] > 0 && positions[index] === 0) {
-                // 加入一點視覺交錯(Stagger)，讓每行圖片不會生硬地垂直對齊
                 const stagger = (rowLimits[index] / 5) * (index % 5);
-                if (index % 2 === 0) { // 向左移動的行
+                if (index % 2 === 0) {
                     positions[index] = -rowLimits[index] - stagger;
-                } else { // 向右移動的行
+                } else {
                     positions[index] = -rowLimits[index] + stagger;
                 }
             }
@@ -98,12 +96,10 @@ export default function GraphicPage() {
 
             if (isLeftMoving) {
                 positions[i] -= speed;
-                // 向左無縫循環
                 if (positions[i] <= -(limit * 2)) positions[i] += limit;
                 if (positions[i] > -limit) positions[i] -= limit;
             } else { 
                 positions[i] += speed;
-                // 向右無縫循環
                 if (positions[i] >= 0) positions[i] -= limit;
                 if (positions[i] < -limit) positions[i] += limit;
             }
@@ -162,14 +158,12 @@ export default function GraphicPage() {
     const handleResizeSwitch = () => { };
     window.addEventListener('resize', handleResizeSwitch);
 
-    // 🟢 更新咗 Scroll 事件：加入 Contact Bubble 自動展開邏輯
     const navbar = document.getElementById('navbar');
     const contactBubble = document.getElementById('contact-bubble');
 
     const handleScroll = () => {
         const scrollY = window.scrollY;
 
-        // 處理 Navbar
         if (scrollY > 50) {
             if (navbar && !navbar.classList.contains('mobile-active')) {
                 navbar.classList.add('collapsed');
@@ -179,9 +173,7 @@ export default function GraphicPage() {
             navbar?.classList.remove('force-expand');
         }
 
-        // 處理 Contact Widget 自動展開
         if (contactBubble) {
-            // 當 (視窗高度 + 已滾動距離) 大於等於 (整個網頁高度 - 50px 緩衝) 時
             if ((window.innerHeight + scrollY) >= document.body.offsetHeight - 50) {
                 contactBubble.classList.add('expanded');
             } else {
@@ -283,6 +275,34 @@ export default function GraphicPage() {
         .strip-item:hover img, .strip-item:hover video { filter: brightness(1.1) !important; transform: scale(1.05); }
         .strip-caption { position: absolute; bottom: 20px; left: 20px; font-size: 3vw; font-weight: 700; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.5); z-index: 2; pointer-events: none; }
         
+        /* 🟢 IG Iframe 專用 CSS 處理：完美 1:1 裁切 (隱藏白底 Header) */
+        .ig-container { 
+            background-color: #fff; 
+            position: relative;
+        }
+        /* 呢個係控制左邊 4:5 Post 嘅 CSS */
+        .ig-container iframe { 
+            position: absolute;
+            top: -28%; /* 向上推多啲，收埋個 IG header */
+            left: 0;
+            width: 100%; 
+            height: 148%; /* 加高去填滿返個底 */
+            border: none; 
+            pointer-events: none; 
+            transition: all 0.3s ease; 
+        }
+        .ig-container:hover iframe { 
+            pointer-events: auto; 
+        }
+
+        /* 🟢 IG Reel 專用裁切 (9:16) - 對齊左邊文字高度 */
+        .ig-container.ig-reel iframe {
+            width: 150%; 
+            left: -25%; 
+            height: 170%; 
+            top: -60%; /* 由 -42% 降到 -38%，令文字向下移少少，對齊返左邊 */
+        }
+
         @media (max-width: 768px) {
             .header-section { padding-bottom: 50px; }
             .smart-nav { flex-direction: column !important; align-items: flex-start !important; width: 90% !important; max-width: 350px !important; height: 60px; overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; }
@@ -303,6 +323,17 @@ export default function GraphicPage() {
             .strip-item.in-view { filter: brightness(1); }
             .strip-item.duplicate { display: none; }
             .strip-caption { font-size: 40px; }
+            
+            /* 手機版：直接可以互動 */
+            .ig-container iframe { pointer-events: auto; } 
+
+            /* 確保手機版 Reel 的 CSS 權重足夠 */
+            .ig-container.ig-reel iframe {
+                width: 150%;
+                left: -25%;
+                height: 170%;
+                top: -38%; /* 同步微調 */
+            }
         }
 
         .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; cursor: pointer; }
@@ -349,7 +380,7 @@ export default function GraphicPage() {
 
       <div className="kinetic-wrapper" id="kinetic-wrapper" ref={wrapperRef}>
         
-        {/* ROW 1 (5 items) : 01 to 05 */}
+        {/* ROW 1 (5 items) */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-1" ref={row1Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/02.jpg" alt="01" /><div className="strip-caption">01</div></div>
@@ -374,7 +405,7 @@ export default function GraphicPage() {
             </div>
         </div>
 
-        {/* ROW 2 (4 items) : 06 to 09 */}
+        {/* ROW 2 (4 items) */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-2" ref={row2Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/asahifootball 2.jpg" alt="06" /><div className="strip-caption">06</div></div>
@@ -405,7 +436,7 @@ export default function GraphicPage() {
             </div>
         </div>
 
-        {/* ROW 3 (5 items) : 10 to 14 */}
+        {/* ROW 3 (5 items) */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-3" ref={row3Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/Travel1.png" alt="10" /><div className="strip-caption">10</div></div>
@@ -430,9 +461,44 @@ export default function GraphicPage() {
             </div>
         </div>
 
-        {/* ROW 4 (6 items) : 15 to 20 */}
+        {/* ROW 4: IG link + 1 New Image */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-4" ref={row4Ref}>
+                {/* IG Post (左) */}
+                <div className="strip-item ig-container">
+                    <iframe src="https://www.instagram.com/p/DV-bPSlF12t/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                {/* IG Reel (右) - 完美對齊版 */}
+                <div className="strip-item ig-container ig-reel">
+                    <iframe src="https://www.instagram.com/reel/DSKmwqRlrWc/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                
+                {/* 新圖 */}
+                <div className="strip-item"><img src="/images/Graphic_optimized/travelluckydraw2026.jpg" alt="Travel Lucky Draw" /><div className="strip-caption">New</div></div>
+
+                {/* SET 2 */}
+                <div className="strip-item ig-container duplicate">
+                    <iframe src="https://www.instagram.com/p/DV-bPSlF12t/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                <div className="strip-item ig-container ig-reel duplicate">
+                    <iframe src="https://www.instagram.com/reel/DSKmwqRlrWc/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/travelluckydraw2026.jpg" alt="Travel Lucky Draw" /><div className="strip-caption">New</div></div>
+
+                {/* SET 3 */}
+                <div className="strip-item ig-container duplicate">
+                    <iframe src="https://www.instagram.com/p/DV-bPSlF12t/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                <div className="strip-item ig-container ig-reel duplicate">
+                    <iframe src="https://www.instagram.com/reel/DSKmwqRlrWc/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/travelluckydraw2026.jpg" alt="Travel Lucky Draw" /><div className="strip-caption">New</div></div>
+            </div>
+        </div>
+
+        {/* ROW 5 (6 items) */}
+        <div className="mobile-track">
+            <div className="gallery-strip" id="row-5" ref={row5Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/june6_2.jpg" alt="15" /><div className="strip-caption">15</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/300x600_1.jpg" alt="16" /><div className="strip-caption">16</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/p1.jpg" alt="17" /><div className="strip-caption">17</div></div>
@@ -458,9 +524,9 @@ export default function GraphicPage() {
             </div>
         </div>
 
-        {/* ROW 5 (4 items) : 21 to 24 */}
+        {/* ROW 6 (4 items) */}
         <div className="mobile-track">
-            <div className="gallery-strip" id="row-5" ref={row5Ref}>
+            <div className="gallery-strip" id="row-6" ref={row6Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/122414.jpg" alt="21" /><div className="strip-caption">21</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_04.jpg" alt="22" /><div className="strip-caption">22</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_05.jpg" alt="23" /><div className="strip-caption">23</div></div>
@@ -480,9 +546,9 @@ export default function GraphicPage() {
             </div>
         </div>
 
-        {/* ROW 6 (4 items) : 25 to 28 */}
+        {/* ROW 7 (4 items) */}
         <div className="mobile-track">
-            <div className="gallery-strip" id="row-6" ref={row6Ref}>
+            <div className="gallery-strip" id="row-7" ref={row7Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/0529_challenge_1-1_1b_2-1.jpg" alt="25" /><div className="strip-caption">25</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/967_1-1.jpg" alt="26" /><div className="strip-caption">26</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/24card1.jpg" alt="27" /><div className="strip-caption">27</div></div>
@@ -502,9 +568,9 @@ export default function GraphicPage() {
             </div>
         </div>
 
-        {/* ROW 7 (4 items) : 29 to 32 */}
+        {/* ROW 8 (4 items) */}
         <div className="mobile-track">
-            <div className="gallery-strip" id="row-7" ref={row7Ref}>
+            <div className="gallery-strip" id="row-8" ref={row8Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/0320_b.jpg" alt="29" /><div className="strip-caption">29</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/0414_v1.jpg" alt="30" /><div className="strip-caption">30</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/scene1.jpg" alt="31" /><div className="strip-caption">31</div></div>

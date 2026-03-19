@@ -352,12 +352,8 @@ export default function HomePage() {
     '3d': { type: 'static', src: "/images/index_3d.png" },
     'photography': { type: 'static', src: "/images/index_photo.png" },
     'video': { type: 'yt', id: 'DOp19wtL28w' },
-    'ai': { 
-      type: 'casio_display', 
-      img1: "/images/AI_optimized/casio normal.jpg", 
-      img2: "/images/AI_optimized/casio decompose.jpeg",
-      vid: "/images/AI_optimized/Casio Watch.mp4"
-    }
+    // 🟢 已經將 AI 區塊換成 gundam 影片
+    'ai': { type: 'local_vid', src: "/images/AI_optimized/gundam.mp4" }
   };
 
   const categories = [
@@ -524,16 +520,6 @@ export default function HomePage() {
 
         .yt-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
         
-        /* 🔴 2. Casio Display 佈局 (Non-hover 0.95 opacity) */
-        .casio-display-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; gap: 2vw; background: #050505; opacity: 0.95; transition: opacity 0.5s ease; filter: grayscale(20%); }
-        .hero-section:hover .casio-display-container { opacity: 1; filter: grayscale(0%); }
-        .casio-item { width: 18vw; aspect-ratio: 9/16; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.5s ease; }
-        .casio-item img, .casio-item video { width: 100%; height: 100%; object-fit: cover; }
-        .casio-item:nth-child(1) { transform: translateY(20px) rotate(-2deg); }
-        .casio-item:nth-child(2) { transform: translateY(-20px) scale(1.05); z-index: 2; box-shadow: 0 15px 40px rgba(0,0,0,0.8); }
-        .casio-item:nth-child(3) { transform: translateY(20px) rotate(2deg); }
-        .hero-section:hover .casio-item { transform: translateY(0) scale(1) rotate(0); }
-
         .contact-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 30; width: 100%; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 0; transition: gap 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
         .contact-content.shift-layout { gap: 50px; }
         .contact-title { font-size: 80px; font-weight: 900; color: #333; margin: 0; letter-spacing: -2px; display: inline-block; white-space: nowrap; }
@@ -594,9 +580,6 @@ export default function HomePage() {
             .contact-content.shift-layout .vertical-line { height: 60px !important; }
             .qr-container { transform: translateY(20px); }
             .contact-content.shift-layout .qr-container { width: 150px; transform: translateY(0); }
-            
-            .casio-display-container { gap: 4vw; }
-            .casio-item { width: 28vw; }
         }
       `}</style>
 
@@ -727,18 +710,16 @@ export default function HomePage() {
                                     )}
                                 </div>
                             </>
-                        ) : data?.type === 'casio_display' ? (
-                            <div className="casio-display-container">
-                                <div className="casio-item">
-                                    <img src={data.img1} alt="Casio Normal" />
-                                </div>
-                                <div className="casio-item">
-                                    <video src={data.vid} autoPlay loop muted playsInline />
-                                </div>
-                                <div className="casio-item">
-                                    <img src={data.img2} alt="Casio Decompose" />
-                                </div>
-                            </div>
+                        ) : data?.type === 'local_vid' ? (
+                            /* 🟢 支援本地影片全螢幕，直接套用 static-thumb 動畫 */
+                            <video 
+                                src={data.src} 
+                                className="hero-img static-thumb" 
+                                autoPlay 
+                                loop 
+                                muted 
+                                playsInline 
+                            />
                         ) : (
                             <img src={data?.src || '/images/placeholder.jpg'} className="hero-img static-thumb" alt={`${cat.label} Cover`} />
                         )}

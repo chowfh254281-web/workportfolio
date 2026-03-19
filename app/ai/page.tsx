@@ -6,14 +6,12 @@ export default function AiPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isContactExpanded, setIsContactExpanded] = useState(false);
   
-  // 🔴 1. 新增：控制 Casio Section 的入場動畫狀態
+  // 控制 Casio Section 的入場動畫狀態
   const [casioVisible, setCasioVisible] = useState(false);
 
   // Refs
   const observerRef = useRef<IntersectionObserver | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
-  
-  // 🔴 2. 新增：獨立的 Ref 給 Casio Video 確保能被選中
   const casioVideoRef = useRef<HTMLVideoElement | null>(null);
 
   // Data
@@ -31,7 +29,6 @@ export default function AiPage() {
     // Loading & Casio Fade In Trigger
     const timer = setTimeout(() => {
       setIsLoading(false);
-      // 🔴 延遲一點點讓 Casio 開始淡入 (配合 Loading 結束)
       setTimeout(() => setCasioVisible(true), 100); 
     }, 500);
 
@@ -66,7 +63,6 @@ export default function AiPage() {
             const container = video.closest('.video-block') || video.closest('.mixed-block');
             
             if (entry.isIntersecting) {
-                // 🔴 確保播放
                 const playPromise = video.play();
                 if (playPromise !== undefined) {
                     playPromise.catch(() => {});
@@ -83,20 +79,24 @@ export default function AiPage() {
         if (video) observerRef.current?.observe(video);
     });
 
-    // 🔴 3. 確保 Casio Video 也被 Observe (自動播放)
+    // 確保 Casio Video 也被 Observe (自動播放)
     if (casioVideoRef.current) {
         observerRef.current.observe(casioVideoRef.current);
     }
 
     const navbar = document.getElementById('navbar');
+    const scrollPrompt = document.getElementById('scroll-prompt');
+
     const handleScroll = () => {
         if (window.scrollY > 50) {
             if (navbar && !navbar.classList.contains('mobile-active')) {
                 navbar.classList.add('collapsed');
             }
+            scrollPrompt?.classList.add('hide');
         } else {
             navbar?.classList.remove('collapsed');
             navbar?.classList.remove('force-expand');
+            scrollPrompt?.classList.remove('hide');
         }
     };
     window.addEventListener('scroll', handleScroll);
@@ -187,10 +187,25 @@ export default function AiPage() {
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
         .mobile-menu-overlay { display: none; }
 
-        .header-section { padding: 220px 40px 100px 40px; text-align: center; position: relative; z-index: 10; }
-        h1.page-title { font-size: 80px; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -2px; opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.2s; color: #fff; }
-        .page-desc { margin-top: 20px; font-size: 16px; color: #888; max-width: 600px; display: inline-block; opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.4s; }
+        /* 🔴 VIDEO HERO (Replace old header-section) */
+        .video-hero { 
+            position: relative; width: 100%; height: 100vh; overflow: hidden; 
+            margin-bottom: 60px; /* 給 Casio Section 一點呼吸空間 */
+        }
+        .video-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+        .video-bg video { width: 100%; height: 100%; object-fit: cover; }
+        .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1; pointer-events: none; }
+        .hero-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; text-align: center; width: 100%; pointer-events: none; }
+        h1.page-title { font-size: 80px; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -2px; color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.8); opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.2s; }
+        .page-desc { margin-top: 20px; font-size: 16px; color: #ddd; max-width: 600px; display: inline-block; text-shadow: 0 2px 10px rgba(0,0,0,0.8); opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.4s; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+        .scroll-prompt { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 10; opacity: 0.7; transition: opacity 0.3s ease; pointer-events: none;}
+        .scroll-prompt.hide { opacity: 0; }
+        .scroll-text { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: #fff; text-transform: uppercase; }
+        .scroll-line { width: 1px; height: 40px; background: rgba(255,255,255,0.2); position: relative; overflow: hidden; }
+        .scroll-line::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fff; transform: translateY(-100%); animation: scrollFlow 2s cubic-bezier(0.77, 0, 0.175, 1) infinite; }
+        @keyframes scrollFlow { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
         
         /* CASIO SECTION STYLE */
         .casio-showcase {
@@ -204,8 +219,7 @@ export default function AiPage() {
             margin: 0 auto;
         }
         
-        /* 🔴 4. SMOOTH FADE IN LOGIC */
-        /* 使用 Transition 代替 Keyframes，效果更平滑 */
+        /* SMOOTH FADE IN LOGIC */
         .casio-card {
             width: 25vw;
             max-width: 300px;
@@ -214,22 +228,16 @@ export default function AiPage() {
             overflow: hidden;
             position: relative;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            
-            /* 初始狀態 */
             opacity: 0;
-            transform: translateY(60px); /* 距離拉大一點，讓上升過程更明顯 */
-            
-            /* 🔴 非常柔順的 Transition */
+            transform: translateY(60px);
             transition: opacity 1.8s cubic-bezier(0.22, 1, 0.36, 1), transform 1.8s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        /* 觸發狀態 */
         .casio-card.visible {
             opacity: 1;
             transform: translateY(0);
         }
 
-        /* 🔴 錯落的延遲 (Staggered Delay) */
         .casio-card:nth-child(1) { transition-delay: 0s; }
         .casio-card:nth-child(2) { transition-delay: 0.2s; }
         .casio-card:nth-child(3) { transition-delay: 0.4s; }
@@ -247,7 +255,7 @@ export default function AiPage() {
         .video-block { width: 100%; height: 90vh; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); background: #000; }
         .cover-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.8; transition: opacity 0.5s ease; }
         
-        /* MIXED BLOCK (NEW) */
+        /* MIXED BLOCK */
         .mixed-block { width: 100%; height: 90vh; position: relative; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); background: #000; }
         .bg-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.6; filter: grayscale(20%); z-index: 1; }
         
@@ -279,7 +287,6 @@ export default function AiPage() {
         .video-meta { font-size: 14px; color: #aaa; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
         
         @media (max-width: 768px) {
-            .header-section { padding-bottom: 50px; }
             .smart-nav { flex-direction: column !important; align-items: flex-start !important; width: 90% !important; max-width: 350px !important; height: 60px; overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; }
             .smart-nav.mobile-active { position: fixed !important; top: 0 !important; left: 0 !important; transform: none !important; width: 100vw !important; max-width: none !important; height: 100vh !important; border-radius: 0 !important; background: #000 !important; border: none !important; padding: 30px !important; justify-content: flex-start !important; align-items: center !important; z-index: 9000 !important; }
             .nav-header { display: flex !important; width: 100%; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
@@ -288,6 +295,9 @@ export default function AiPage() {
             .nav-links { display: flex !important; flex-direction: column !important; width: 100% !important; opacity: 0; transform: translateY(20px); transition: all 0.4s ease 0.1s; pointer-events: none; margin-top: 0; height: 100%; justify-content: center; align-items: center; gap: 40px !important; order: unset; margin: 0; }
             .smart-nav.mobile-active .nav-links { opacity: 1 !important; transform: translateY(0) !important; pointer-events: auto !important; visibility: visible !important; }
             .nav-item { font-size: 28px !important; font-weight: 700 !important; letter-spacing: 2px !important; }
+
+            h1.page-title { font-size: 13vw; }
+            .page-desc { font-size: 14px; padding: 0 20px; }
 
             .video-title { font-size: 40px; } 
             .video-info-overlay { bottom: 60px; left: 20px; right: 20px; } 
@@ -350,9 +360,26 @@ export default function AiPage() {
         <Link href="/ai" className="mobile-link">AI Generative</Link>
       </div>
 
-      <div className="header-section">
-        <h1 className="page-title">AI Generative</h1>
-        <div className="page-desc">Exploring the frontier of machine creativity.</div>
+      {/* 🔴 NEW VIDEO HERO SECTION */}
+      <div className="video-hero">
+        <div className="video-bg">
+            <video 
+                src="/images/AI_optimized/gundam.mp4" 
+                autoPlay 
+                loop 
+                muted 
+                playsInline
+            ></video>
+        </div>
+        <div className="hero-overlay"></div>
+        <div className="hero-content">
+            <h1 className="page-title">AI Generative</h1>
+            <div className="page-desc">Exploring the frontier of machine creativity.</div>
+        </div>
+        <div className="scroll-prompt" id="scroll-prompt">
+            <div className="scroll-text">SCROLL</div>
+            <div className="scroll-line"></div>
+        </div>
       </div>
 
       {/* CASIO SHOWCASE SECTION */}
@@ -365,7 +392,7 @@ export default function AiPage() {
         </div>
         <div className={`casio-card ${casioVisible ? 'visible' : ''}`}>
             <video 
-                ref={casioVideoRef} /* 🔴 加入 Ref */
+                ref={casioVideoRef}
                 src="/images/AI_optimized/Casio Watch.mp4" 
                 className="casio-media" 
                 muted 
