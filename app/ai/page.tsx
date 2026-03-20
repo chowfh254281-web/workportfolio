@@ -1,35 +1,26 @@
 'use client';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 export default function AiPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isContactExpanded, setIsContactExpanded] = useState(false);
-  
-  // 控制 Casio Section 的入場動畫狀態
-  const [casioVisible, setCasioVisible] = useState(false);
 
-  // Refs
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
-  const casioVideoRef = useRef<HTMLVideoElement | null>(null);
-
-  // Data
+  // Data (將 Casio 整合入陣列中，排在 Chanel Ring 之後)
   const items = [
-    { type: 'mixed', bg: '/images/AI_optimized/ai_img3.png', vid: '/images/AI_optimized/ai_5.mp4', title: 'Sequence 01', year: 'AI GENERATED' },
-    { type: 'mixed', bg: '/images/AI_optimized/ai_img4.png', vid: '/images/AI_optimized/lemon tea.mp4', title: 'Sequence 02', year: 'AI GENERATED' },
-    { type: 'video', src: "/images/AI_optimized/ai_1.mp4", title: 'Sequence 03', year: 'AI GENERATED' },
-    { type: 'video', src: "/images/AI_optimized/ai_2.mp4", title: 'Sequence 04', year: 'AI GENERATED' },
-    { type: 'video', src: "/images/muji.mov", title: 'Sequence 05', year: 'AI GENERATED' },
-    { type: 'image', src: "/images/AI_optimized/ai_img1.png", title: 'Sequence 06', year: 'AI GENERATED' },
-    { type: 'image', src: "/images/AI_optimized/ai_img2.png", title: 'Sequence 07', year: 'AI GENERATED' }
+    { type: 'video', src: '/images/AI_optimized/chanel ring.mp4', year: 'AI GENERATED' },
+    { type: 'casio' }, // Casio Showcase 整行
+    { type: 'video', src: "/images/AI_optimized/ai_1.mp4", year: 'AI GENERATED' },
+    { type: 'video', src: "/images/AI_optimized/ai_2.mp4", year: 'AI GENERATED' },
+    { type: 'video', src: "/images/muji.mov", year: 'AI GENERATED' },
+    { type: 'image', src: "/images/AI_optimized/ai_img1.png", year: 'AI GENERATED' },
+    { type: 'image', src: "/images/AI_optimized/ai_img2.png", year: 'AI GENERATED' }
   ];
 
   useEffect(() => {
-    // Loading & Casio Fade In Trigger
+    // 移除載入畫面
     const timer = setTimeout(() => {
       setIsLoading(false);
-      setTimeout(() => setCasioVisible(true), 100); 
     }, 500);
 
     let lenis: any;
@@ -48,42 +39,39 @@ export default function AiPage() {
       requestAnimationFrame(raf);
     });
 
-    const observerOptions = {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.25
-    };
-
-    // Video Auto-play Observer
-    observerRef.current = new IntersectionObserver((entries) => {
+    // 1. 影片自動播放的 Observer (改用 Class 選擇器，更穩定)
+    const videoObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             const video = entry.target as HTMLVideoElement;
-            if (video.tagName !== 'VIDEO') return;
-
             const container = video.closest('.video-block') || video.closest('.mixed-block');
             
             if (entry.isIntersecting) {
                 const playPromise = video.play();
                 if (playPromise !== undefined) {
-                    playPromise.catch(() => {});
+                    playPromise.catch(() => { /* 忽略瀏覽器 autoplay 限制的報錯 */ });
                 }
                 if (container) container.classList.add('in-view');
             } else {
                 video.pause();
             }
         });
-    }, observerOptions);
+    }, { threshold: 0.15 });
 
-    // Observe Feed Videos
-    videoRefs.current.forEach(video => {
-        if (video) observerRef.current?.observe(video);
-    });
+    // 取得所有帶有 .auto-play-video 的影片並進行觀察
+    document.querySelectorAll('.auto-play-video').forEach(vid => videoObserver.observe(vid));
 
-    // 確保 Casio Video 也被 Observe (自動播放)
-    if (casioVideoRef.current) {
-        observerRef.current.observe(casioVideoRef.current);
-    }
+    // 2. Casio 卡片滾動浮現的 Observer
+    const casioObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.2 });
 
+    document.querySelectorAll('.casio-card').forEach(card => casioObserver.observe(card));
+
+    // Navbar & Scroll Prompt 邏輯
     const navbar = document.getElementById('navbar');
     const scrollPrompt = document.getElementById('scroll-prompt');
 
@@ -104,7 +92,8 @@ export default function AiPage() {
     return () => {
         clearTimeout(timer);
         if (lenis) lenis.destroy();
-        if (observerRef.current) observerRef.current.disconnect();
+        videoObserver.disconnect();
+        casioObserver.disconnect();
         window.removeEventListener('scroll', handleScroll);
     };
   }, []);
@@ -187,10 +176,9 @@ export default function AiPage() {
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
         .mobile-menu-overlay { display: none; }
 
-        /* 🔴 VIDEO HERO (Replace old header-section) */
+        /* VIDEO HERO */
         .video-hero { 
             position: relative; width: 100%; height: 100vh; overflow: hidden; 
-            margin-bottom: 60px; /* 給 Casio Section 一點呼吸空間 */
         }
         .video-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
         .video-bg video { width: 100%; height: 100%; object-fit: cover; }
@@ -207,19 +195,25 @@ export default function AiPage() {
         .scroll-line::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fff; transform: translateY(-100%); animation: scrollFlow 2s cubic-bezier(0.77, 0, 0.175, 1) infinite; }
         @keyframes scrollFlow { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
         
-        /* CASIO SECTION STYLE */
+        /* FEED LAYOUT */
+        .video-feed { width: 100%; display: flex; flex-direction: column; gap: 0; padding-bottom: 100px; }
+        
+        /* CASIO SECTION STYLE (Now inside the feed flow) */
+        .casio-showcase-container {
+            width: 100%;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            background: #000;
+        }
         .casio-showcase {
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 20px;
-            padding: 0 40px 100px 40px;
+            padding: 100px 40px;
             width: 100%;
             max-width: 1200px;
             margin: 0 auto;
         }
-        
-        /* SMOOTH FADE IN LOGIC */
         .casio-card {
             width: 25vw;
             max-width: 300px;
@@ -232,30 +226,15 @@ export default function AiPage() {
             transform: translateY(60px);
             transition: opacity 1.8s cubic-bezier(0.22, 1, 0.36, 1), transform 1.8s cubic-bezier(0.22, 1, 0.36, 1);
         }
-
-        .casio-card.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
+        .casio-card.visible { opacity: 1; transform: translateY(0); }
         .casio-card:nth-child(1) { transition-delay: 0s; }
         .casio-card:nth-child(2) { transition-delay: 0.2s; }
         .casio-card:nth-child(3) { transition-delay: 0.4s; }
+        .casio-media { width: 100%; height: 100%; object-fit: cover; }
 
-        .casio-media {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* FEED LAYOUT */
-        .video-feed { width: 100%; display: flex; flex-direction: column; gap: 0; padding-bottom: 100px; }
-        
-        /* STANDARD VIDEO BLOCK */
         .video-block { width: 100%; height: 90vh; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); background: #000; }
         .cover-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.8; transition: opacity 0.5s ease; }
         
-        /* MIXED BLOCK */
         .mixed-block { width: 100%; height: 90vh; position: relative; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); background: #000; }
         .bg-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.6; filter: grayscale(20%); z-index: 1; }
         
@@ -274,16 +253,11 @@ export default function AiPage() {
             transition: opacity 1.5s ease, transform 1.5s cubic-bezier(0.22, 1, 0.36, 1);
         }
         
-        .mixed-block.in-view .fg-video-wrapper {
-            opacity: 1;
-            transform: translateY(-50%) translateX(0);
-        }
+        .mixed-block.in-view .fg-video-wrapper { opacity: 1; transform: translateY(-50%) translateX(0); }
         .mixed-block .fg-video-wrapper { transform: translateY(-50%) translateX(50px); }
-
         .fg-video { width: 100%; height: 100%; object-fit: cover; }
 
         .video-info-overlay { position: absolute; bottom: 80px; left: 60px; z-index: 20; pointer-events: auto; max-width: 600px; }
-        .video-title { font-size: 3vw; font-weight: 800; line-height: 1.1; margin-bottom: 10px; text-shadow: 0 4px 20px rgba(0,0,0,0.8); }
         .video-meta { font-size: 14px; color: #aaa; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
         
         @media (max-width: 768px) {
@@ -299,19 +273,13 @@ export default function AiPage() {
             h1.page-title { font-size: 13vw; }
             .page-desc { font-size: 14px; padding: 0 20px; }
 
-            .video-title { font-size: 40px; } 
             .video-info-overlay { bottom: 60px; left: 20px; right: 20px; } 
             .video-block, .mixed-block { height: 70vh; }
             
-            .fg-video-wrapper { 
-                width: 60vw;
-                right: 5%; 
-                top: 55%; 
-                box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            }
+            .fg-video-wrapper { width: 60vw; right: 5%; top: 55%; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
             .bg-image { opacity: 0.4; }
 
-            .casio-showcase { flex-direction: column; gap: 20px; padding-bottom: 50px; }
+            .casio-showcase { flex-direction: column; gap: 20px; padding: 50px 20px; }
             .casio-card { width: 80vw; max-width: none; }
         }
 
@@ -360,7 +328,6 @@ export default function AiPage() {
         <Link href="/ai" className="mobile-link">AI Generative</Link>
       </div>
 
-      {/* 🔴 NEW VIDEO HERO SECTION */}
       <div className="video-hero">
         <div className="video-bg">
             <video 
@@ -382,45 +349,47 @@ export default function AiPage() {
         </div>
       </div>
 
-      {/* CASIO SHOWCASE SECTION */}
-      <div className="casio-showcase">
-        <div className={`casio-card ${casioVisible ? 'visible' : ''}`}>
-            <img src="/images/AI_optimized/casio normal.jpg" alt="Casio Normal" className="casio-media" />
-        </div>
-        <div className={`casio-card ${casioVisible ? 'visible' : ''}`}>
-            <img src="/images/AI_optimized/casio decompose.jpeg" alt="Casio Decompose" className="casio-media" />
-        </div>
-        <div className={`casio-card ${casioVisible ? 'visible' : ''}`}>
-            <video 
-                ref={casioVideoRef}
-                src="/images/AI_optimized/Casio Watch.mp4" 
-                className="casio-media" 
-                muted 
-                loop 
-                playsInline
-            />
-        </div>
-      </div>
-
+      {/* 將全部內容放入 feed 容器順序顯示 */}
       <div className="video-feed" id="video-feed">
         {items.map((item, index) => {
+            if (item.type === 'casio') {
+                return (
+                    <div key={index} className="casio-showcase-container">
+                        <div className="casio-showcase">
+                            <div className="casio-card">
+                                <img src="/images/AI_optimized/casio normal.jpg" alt="Casio Normal" className="casio-media" />
+                            </div>
+                            <div className="casio-card">
+                                <img src="/images/AI_optimized/casio decompose.jpeg" alt="Casio Decompose" className="casio-media" />
+                            </div>
+                            <div className="casio-card">
+                                <video 
+                                    src="/images/AI_optimized/Casio Watch.mp4" 
+                                    className="casio-media auto-play-video" 
+                                    muted 
+                                    loop 
+                                    playsInline
+                                />
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
             if (item.type === 'mixed') {
                 return (
                     <div key={index} className="mixed-block">
-                        <img src={item.bg} alt="AI Background" className="bg-image" />
+                        <img src={(item as any).bg} alt="AI Background" className="bg-image" />
                         <div className="fg-video-wrapper">
                             <video 
-                                // @ts-ignore
-                                ref={(el) => (videoRefs.current[index] = el)}
-                                src={item.vid} 
-                                className="fg-video" 
+                                src={(item as any).vid} 
+                                className="fg-video auto-play-video" 
                                 muted 
                                 loop 
                                 playsInline 
                             />
                         </div>
                         <div className="video-info-overlay">
-                            <div className="video-title">{item.title}</div>
                             <div className="video-meta">{item.year}</div>
                         </div>
                     </div>
@@ -431,16 +400,13 @@ export default function AiPage() {
                 return (
                     <div key={index} className="video-block">
                         <video 
-                            // @ts-ignore
-                            ref={(el) => (videoRefs.current[index] = el)}
                             src={item.src} 
-                            className="cover-video" 
+                            className="cover-video auto-play-video" 
                             muted 
                             loop 
                             playsInline 
                         />
                         <div className="video-info-overlay">
-                            <div className="video-title">{item.title}</div>
                             <div className="video-meta">{item.year}</div>
                         </div>
                     </div>
@@ -453,10 +419,9 @@ export default function AiPage() {
                         <img 
                             src={item.src} 
                             className="cover-video"
-                            alt={item.title}
+                            alt="AI Generated"
                         />
                         <div className="video-info-overlay">
-                            <div className="video-title">{item.title}</div>
                             <div className="video-meta">{item.year}</div>
                         </div>
                     </div>
