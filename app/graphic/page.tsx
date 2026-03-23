@@ -6,7 +6,6 @@ export default function GraphicPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isContactExpanded, setIsContactExpanded] = useState(false);
 
-  // 🟢 更新咗所有 Ref 變量
   const row1Ref = useRef<HTMLDivElement>(null);
   const row2Ref = useRef<HTMLDivElement>(null);
   const row3Ref = useRef<HTMLDivElement>(null);
@@ -15,6 +14,7 @@ export default function GraphicPage() {
   const row6Ref = useRef<HTMLDivElement>(null); 
   const row7Ref = useRef<HTMLDivElement>(null); 
   const row8Ref = useRef<HTMLDivElement>(null); 
+  const row9Ref = useRef<HTMLDivElement>(null); 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,17 +39,16 @@ export default function GraphicPage() {
       requestAnimationFrame(raf);
     });
 
-    // 🟢 終極無縫防跳動 + 置中進場邏輯
     const initDesktopAnimation = () => {
-      const rows = [row1Ref.current, row2Ref.current, row3Ref.current, row4Ref.current, row5Ref.current, row6Ref.current, row7Ref.current, row8Ref.current];
+      const rows = [row1Ref.current, row2Ref.current, row3Ref.current, row4Ref.current, row5Ref.current, row6Ref.current, row7Ref.current, row8Ref.current, row9Ref.current];
       if (!rows[0]) return;
 
       let baseSpeed = 0.5; 
       let scrollVelocity = 0; 
       let skewStrength = 0;
       
-      let positions = [0, 0, 0, 0, 0, 0, 0, 0]; 
-      let rowLimits = [0, 0, 0, 0, 0, 0, 0, 0];
+      let positions = [0, 0, 0, 0, 0, 0, 0, 0, 0]; 
+      let rowLimits = [0, 0, 0, 0, 0, 0, 0, 0, 0];
       
       let lastScrollY = window.scrollY; 
 
@@ -275,18 +274,16 @@ export default function GraphicPage() {
         .strip-item:hover img, .strip-item:hover video { filter: brightness(1.1) !important; transform: scale(1.05); }
         .strip-caption { position: absolute; bottom: 20px; left: 20px; font-size: 3vw; font-weight: 700; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.5); z-index: 2; pointer-events: none; }
         
-        /* 🟢 IG Iframe 專用 CSS 處理：完美 1:1 裁切 (隱藏白底 Header) */
         .ig-container { 
             background-color: #fff; 
             position: relative;
         }
-        /* 呢個係控制左邊 4:5 Post 嘅 CSS */
         .ig-container iframe { 
             position: absolute;
-            top: -28%; /* 向上推多啲，收埋個 IG header */
+            top: -28%; 
             left: 0;
             width: 100%; 
-            height: 148%; /* 加高去填滿返個底 */
+            height: 148%; 
             border: none; 
             pointer-events: none; 
             transition: all 0.3s ease; 
@@ -295,12 +292,20 @@ export default function GraphicPage() {
             pointer-events: auto; 
         }
 
-        /* 🟢 IG Reel 專用裁切 (9:16) - 對齊左邊文字高度 */
+        /* 🟢 IG Reel 專用裁切 (9:16) */
         .ig-container.ig-reel iframe {
             width: 150%; 
             left: -25%; 
             height: 170%; 
-            top: -60%; /* 由 -42% 降到 -38%，令文字向下移少少，對齊返左邊 */
+            top: -60%; 
+        }
+
+        /* 🟢 新增：IG 4:5 影片/貼文專用裁切 (特意放大) */
+        .ig-container.ig-4x5 iframe {
+            width: 135%;       /* 比普通貼文再放闊啲 */
+            left: -17.5%;      /* 置中對齊 */
+            height: 175%;      /* 拉高以遮蔽預設白邊同 Header */
+            top: -42%;         /* 向上移去避開底頂部資訊 */
         }
 
         @media (max-width: 768px) {
@@ -324,15 +329,21 @@ export default function GraphicPage() {
             .strip-item.duplicate { display: none; }
             .strip-caption { font-size: 40px; }
             
-            /* 手機版：直接可以互動 */
             .ig-container iframe { pointer-events: auto; } 
 
-            /* 確保手機版 Reel 的 CSS 權重足夠 */
             .ig-container.ig-reel iframe {
                 width: 150%;
                 left: -25%;
                 height: 170%;
-                top: -38%; /* 同步微調 */
+                top: -38%;
+            }
+
+            /* 手機版 4:5 影片微調 */
+            .ig-container.ig-4x5 iframe {
+                width: 135%;
+                left: -17.5%;
+                height: 175%;
+                top: -36%; 
             }
         }
 
@@ -461,19 +472,15 @@ export default function GraphicPage() {
             </div>
         </div>
 
-        {/* ROW 4: IG link + 1 New Image */}
+        {/* ROW 4 */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-4" ref={row4Ref}>
-                {/* IG Post (左) */}
                 <div className="strip-item ig-container">
                     <iframe src="https://www.instagram.com/p/DV-bPSlF12t/embed" frameBorder="0" scrolling="no"></iframe>
                 </div>
-                {/* IG Reel (右) - 完美對齊版 */}
                 <div className="strip-item ig-container ig-reel">
                     <iframe src="https://www.instagram.com/reel/DSKmwqRlrWc/embed" frameBorder="0" scrolling="no"></iframe>
                 </div>
-                
-                {/* 新圖 */}
                 <div className="strip-item"><img src="/images/Graphic_optimized/travelluckydraw2026.jpg" alt="Travel Lucky Draw" /><div className="strip-caption">New</div></div>
 
                 {/* SET 2 */}
@@ -496,9 +503,61 @@ export default function GraphicPage() {
             </div>
         </div>
 
-        {/* ROW 5 (6 items) */}
+        {/* ROW 5 (加咗 ig-4x5 喺第4條 link) */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-5" ref={row5Ref}>
+                <div className="strip-item ig-container">
+                    <iframe src="https://www.instagram.com/p/DGu6Ks7oshn/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                <div className="strip-item ig-container">
+                    <iframe src="https://www.instagram.com/p/DKqpYN-MgHw/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                <div className="strip-item ig-container">
+                    <iframe src="https://www.instagram.com/p/DHdQ9UitIm6/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                {/* 🟢 套用咗 ig-4x5 特效放大填滿屏幕 */}
+                <div className="strip-item ig-container ig-4x5">
+                    <iframe src="https://www.instagram.com/p/DHDjQl8P3DW/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/Venchi.png" alt="Venchi" /><div className="strip-caption">Venchi</div></div>
+
+                {/* SET 2 */}
+                <div className="strip-item ig-container duplicate">
+                    <iframe src="https://www.instagram.com/p/DGu6Ks7oshn/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                <div className="strip-item ig-container duplicate">
+                    <iframe src="https://www.instagram.com/p/DKqpYN-MgHw/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                <div className="strip-item ig-container duplicate">
+                    <iframe src="https://www.instagram.com/p/DHdQ9UitIm6/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                {/* 🟢 套用咗 ig-4x5 */}
+                <div className="strip-item ig-container ig-4x5 duplicate">
+                    <iframe src="https://www.instagram.com/p/DHDjQl8P3DW/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Venchi.png" alt="Venchi" /><div className="strip-caption">Venchi</div></div>
+                
+                {/* SET 3 */}
+                <div className="strip-item ig-container duplicate">
+                    <iframe src="https://www.instagram.com/p/DGu6Ks7oshn/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                <div className="strip-item ig-container duplicate">
+                    <iframe src="https://www.instagram.com/p/DKqpYN-MgHw/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                <div className="strip-item ig-container duplicate">
+                    <iframe src="https://www.instagram.com/p/DHdQ9UitIm6/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                {/* 🟢 套用咗 ig-4x5 */}
+                <div className="strip-item ig-container ig-4x5 duplicate">
+                    <iframe src="https://www.instagram.com/p/DHDjQl8P3DW/embed" frameBorder="0" scrolling="no"></iframe>
+                </div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Venchi.png" alt="Venchi" /><div className="strip-caption">Venchi</div></div>
+            </div>
+        </div>
+
+        {/* ROW 6 */}
+        <div className="mobile-track">
+            <div className="gallery-strip" id="row-6" ref={row6Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/june6_2.jpg" alt="15" /><div className="strip-caption">15</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/300x600_1.jpg" alt="16" /><div className="strip-caption">16</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/p1.jpg" alt="17" /><div className="strip-caption">17</div></div>
@@ -524,9 +583,9 @@ export default function GraphicPage() {
             </div>
         </div>
 
-        {/* ROW 6 (4 items) */}
+        {/* ROW 7 */}
         <div className="mobile-track">
-            <div className="gallery-strip" id="row-6" ref={row6Ref}>
+            <div className="gallery-strip" id="row-7" ref={row7Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/122414.jpg" alt="21" /><div className="strip-caption">21</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_04.jpg" alt="22" /><div className="strip-caption">22</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/meadjohnson_socialmedia_05.jpg" alt="23" /><div className="strip-caption">23</div></div>
@@ -546,9 +605,9 @@ export default function GraphicPage() {
             </div>
         </div>
 
-        {/* ROW 7 (4 items) */}
+        {/* ROW 8 */}
         <div className="mobile-track">
-            <div className="gallery-strip" id="row-7" ref={row7Ref}>
+            <div className="gallery-strip" id="row-8" ref={row8Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/0529_challenge_1-1_1b_2-1.jpg" alt="25" /><div className="strip-caption">25</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/967_1-1.jpg" alt="26" /><div className="strip-caption">26</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/24card1.jpg" alt="27" /><div className="strip-caption">27</div></div>
@@ -568,9 +627,9 @@ export default function GraphicPage() {
             </div>
         </div>
 
-        {/* ROW 8 (4 items) */}
+        {/* ROW 9 */}
         <div className="mobile-track">
-            <div className="gallery-strip" id="row-8" ref={row8Ref}>
+            <div className="gallery-strip" id="row-9" ref={row9Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/0320_b.jpg" alt="29" /><div className="strip-caption">29</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/0414_v1.jpg" alt="30" /><div className="strip-caption">30</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/scene1.jpg" alt="31" /><div className="strip-caption">31</div></div>

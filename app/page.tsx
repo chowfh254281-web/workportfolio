@@ -150,7 +150,7 @@ export default function HomePage() {
         else scrollPrompt.classList.remove('hide');
       }
 
-      const scatterProgress = Math.min(scrollY / (windowHeight * 0.6), 1);
+      const scatterProgress = Math.min(scrollY / (windowHeight * 1.2), 1);
       if (introText) {
         introText.style.opacity = (1 - scatterProgress).toString();
         introText.style.transform = `translate(-50%, -50%)`;
@@ -169,14 +169,18 @@ export default function HomePage() {
       if (charSpans.length > 0) {
         charSpans.forEach((span: any, i) => {
           const randomAngle = (i * 137.5) % 360;
-          const distance = scrollY * 2.5;
+          
+          // 🟢 已經移除咗 Math.pow 指數加速，改用純 Linear (線性) 距離計算
+          // distance 直接同 scrollY 掛鉤，碌幾多郁幾多，感覺更加平均同受控
+          const distance = scrollY * 2.5; 
+          
           const x = Math.cos(randomAngle * Math.PI / 180) * distance;
           const y = Math.sin(randomAngle * Math.PI / 180) * distance;
-          const rotation = scrollY * (i % 2 === 0 ? 0.5 : -0.5);
-          const blur = scrollY * 0.05;
-          const powerDist = Math.pow(distance * 0.02, 2) * 50;
+          const rotation = scrollY * (i % 2 === 0 ? 0.2 : -0.2); 
+          const blur = scrollY * 0.03; 
 
-          span.style.transform = `translate(${x * (powerDist / distance)}px, ${y * (powerDist / distance)}px) rotate(${rotation}deg)`;
+          // 直接 translate，唔再疊加加速 factor
+          span.style.transform = `translate(${x}px, ${y}px) rotate(${rotation}deg)`;
           span.style.filter = `blur(${blur}px)`;
           span.style.color = colorString;
           span.style.opacity = (1 - scatterProgress).toString();
@@ -397,7 +401,7 @@ export default function HomePage() {
         .loader::after { content: ''; box-sizing: border-box; position: absolute; left: 0; top: 0; background: #F4D03F; width: 12px; height: 12px; transform: translate(-50%, 50%); border-radius: 50%; }
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* NAVBAR & HERO ... */
+        /* NAVBAR & HERO */
         .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); padding: 0 30px; display: flex; align-items: center; justify-content: space-between; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; height: 60px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); overflow: hidden; cursor: pointer; }
         .nav-header { display: contents; }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
@@ -427,6 +431,24 @@ export default function HomePage() {
         .subtitle { font-size: 1.5vw; font-weight: 400; line-height: 1.4; max-width: 800px; color: #F4D03F; opacity: 0; transform: translateY(20px); transition: all 1s ease; }
         .subtitle.visible { opacity: 1; transform: translateY(0); }
         .char-span, .sub-char { display: inline-block; will-change: transform, opacity, filter, color; }
+
+        .scroll-prompt { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; pointer-events: none; opacity: 0.6; transition: opacity 0.3s ease; }
+        .scroll-prompt.hide { opacity: 0; }
+        
+        .credit-text {
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .scroll-text { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: rgba(255,255,255,0.4); text-transform: uppercase; }
+        .scroll-line { width: 1px; height: 40px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden; }
+        .scroll-line::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, transparent, #fff, transparent); transform: translateY(-100%); animation: scrollFlow 2s cubic-bezier(0.77, 0, 0.175, 1) infinite; }
+        @keyframes scrollFlow { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
 
         .seamless-hero { 
           position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
@@ -492,12 +514,6 @@ export default function HomePage() {
         .overview-title span { display: inline-block; } 
         .overview-subtitle { font-size: 1.1rem; color: #888; font-weight: 400; letter-spacing: 2px; text-transform: uppercase; visibility: visible; }
         
-        .scroll-prompt { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; pointer-events: none; opacity: 0.6; transition: opacity 0.3s ease; }
-        .scroll-prompt.hide { opacity: 0; }
-        .scroll-text { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: rgba(255,255,255,0.4); text-transform: uppercase; }
-        .scroll-line { width: 1px; height: 40px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden; }
-        .scroll-line::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, transparent, #fff, transparent); transform: translateY(-100%); animation: scrollFlow 2s cubic-bezier(0.77, 0, 0.175, 1) infinite; }
-        @keyframes scrollFlow { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
         .gallery-wrapper { position: relative; width: 100%; z-index: 200; background: #050505; box-shadow: 0 -50px 100px rgba(0,0,0,1); }
         .hero-section { width: 100%; height: 70vh; position: relative; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; background: #050505; cursor: pointer; }
         .hero-img-wrapper { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
@@ -550,6 +566,11 @@ export default function HomePage() {
             .main-title { font-size: 13vw; }
             .subtitle { font-size: 16px; padding: 0 20px; }
             .intro-text { position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 100% !important; padding: 0 20px; }
+
+            .credit-text {
+                font-size: 9px;
+                margin-bottom: 15px;
+            }
 
             .text-container { height: 100vh !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; padding: 0 20px; }
             .text-layer-1 { font-size: 28px; width: 90%; line-height: 1.3; }
@@ -610,7 +631,9 @@ export default function HomePage() {
               <h1 className="main-title">SAM CHOW.</h1>
               <div className="subtitle">MultiMedia Designer &nbsp;|&nbsp; Work Portfolio</div>
             </div>
+            
             <div className="scroll-prompt" id="scroll-prompt">
+              <div className="credit-text">Website Designed & Developed by Sam Chow</div>
               <div className="scroll-text">SCROLL</div>
               <div className="scroll-line"></div>
             </div>

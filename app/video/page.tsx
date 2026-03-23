@@ -10,13 +10,13 @@ export default function VideoPage() {
   const playersRef = useRef<any[]>([]);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  // Video Data (移除了 title 和 year，因為畫面上不再顯示)
-  // 🟢 將原本的 Landing 影片 (2MvFryTKJoI) 放入列表第一位，其餘順延
+  // Video Data 
+  // 🟢 將 Shiseido 影片 (nZvCxgonaKM) 調到上第一條
   const videos = [
-    { id: '2MvFryTKJoI' }, // 原本的 Landing 影片順延至此
+    { id: 'nZvCxgonaKM' }, // 第 1 條：Shiseido
+    { id: '2MvFryTKJoI' }, // 原本的 Landing 影片順延至第 2 條
     { id: '_yeHdBy8Wzs' },
     { id: 'Dc3phLpndD0' },
-    { id: 'nZvCxgonaKM' }, // 第 4 條：Sheseido (原本第 3 條)
     { id: 'rJBpYguoROg' },
     { id: 'cKj_WzwWvfQ' },
     { id: 'DOp19wtL28w' }  // 最底：日本旅行
@@ -31,16 +31,10 @@ export default function VideoPage() {
 
     import('@studio-freight/lenis').then((Lenis) => {
       lenis = new Lenis.default({
-        // 🔴 1. 增加 Duration (滑動慣性時間變長，感覺更長氣)
         duration: 2.5, 
-        
-        // 🔴 2. 增加 Multiplier (減少阻力，輕輕一撥就去好遠)
         wheelMultiplier: 1.2, 
         touchMultiplier: 2.0, 
-        
-        // 使用更自然的 Easing
         easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
-        
         infinite: false, 
         smoothWheel: true,
       });
@@ -193,9 +187,7 @@ export default function VideoPage() {
       <style jsx global>{`
         * { box-sizing: border-box; }
         
-        /* 🔴 移除強制 Snap，改用純平滑滾動 */
         html { 
-            /* scroll-snap-type: y mandatory;  <-- 移除這行，減少強制阻力 */
         }
         
         body { 
@@ -242,7 +234,6 @@ export default function VideoPage() {
         /* HERO & VIDEO FEED */
         .video-hero { 
             position: relative; width: 100%; height: 100vh; overflow: hidden; 
-            /* scroll-snap-align: start; <-- 移除 */
         }
         .video-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
         
@@ -352,7 +343,6 @@ export default function VideoPage() {
         {/* Video Hero */}
         <div className="video-hero">
             <div className="video-bg">
-                {/* 🟢 更新了這裡的 YouTube Embed ID 為 oil1eYqmIXo */}
                 <iframe 
                     src="https://www.youtube.com/embed/oil1eYqmIXo?autoplay=1&mute=1&controls=0&loop=1&playlist=oil1eYqmIXo&showinfo=0&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&disablekb=1" 
                     frameBorder="0" 
