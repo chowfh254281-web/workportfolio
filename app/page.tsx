@@ -107,7 +107,6 @@ export default function HomePage() {
 
     if (revealSource) splitTextIntoSpans(revealSource);
 
-    // 🔴 100% 使用你原本提供嘅寫法
     if (title && !title.classList.contains('split-done')) {
       const text = title.textContent || '';
       title.innerHTML = text.replace(/\S/g, "<span class='char-span'>$&</span>");
@@ -166,7 +165,6 @@ export default function HomePage() {
       if (title) title.style.color = colorString;
       if (subtitle) subtitle.style.color = colorString;
 
-      // 🔴 100% 使用你原本提供嘅算式
       const charSpans = document.querySelectorAll('.char-span, .sub-char');
       if (charSpans.length > 0) {
         charSpans.forEach((span: any, i) => {
@@ -351,9 +349,8 @@ export default function HomePage() {
     'graphic': { type: 'static', src: "/images/index_graphic.png" },
     '3d': { type: 'static', src: "/images/index_3d.png" },
     'photography': { type: 'static', src: "/images/index_photo.png" },
-    'video': { type: 'yt', id: 'DOp19wtL28w' },
-    // 🟢 已經將 AI 區塊換成 gundam 影片
-    'ai': { type: 'local_vid', src: "/images/AI_optimized/gundam.mp4" }
+    'video': { type: 'yt', id: 'oil1eYqmIXo' },
+    'ai': { type: 'local_vid', src: "/images/AI_optimized/chanel ring.mp4" }
   };
 
   const categories = [
@@ -405,7 +402,7 @@ export default function HomePage() {
         .nav-header { display: contents; }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
         .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; order: 2; margin: 0 40px; }
-        .nav-item { text-decoration: none; color: #ccc; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
+        .nav-item { text-decoration: none; color: #fff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
         .nav-item:hover, .nav-item.active { color: #F4D03F; }
         .menu-icon { width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; pointer-events: none; z-index: 2005; order: 3; margin-left: 0; }
         .menu-line { width: 100%; height: 1px; background-color: #fff; transition: all 0.3s ease; transform-origin: center; }
@@ -424,7 +421,6 @@ export default function HomePage() {
 
         .mobile-menu-overlay { display: none; }
 
-        /* 🔴 完璧補回：INTRO SECTION 專屬 CSS，確保絕對置中 */
         .intro-section { height: 100vh; width: 100%; position: relative; overflow: hidden; margin-bottom: 0; z-index: 10; }
         .intro-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 50; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; will-change: opacity, transform, color; }
         .main-title { font-size: 8vw; font-weight: 900; margin: 0 0 20px 0; letter-spacing: -2px; line-height: 1; color: #F4D03F; transition: color 0.1s linear; white-space: nowrap; }
@@ -506,16 +502,11 @@ export default function HomePage() {
         .hero-section { width: 100%; height: 70vh; position: relative; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; background: #050505; cursor: pointer; }
         .hero-img-wrapper { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
         
-        /* 🔴 1. 更新 Hover 動畫效果 (Non-hover 0.95 opacity) */
         .hero-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.8s ease, filter 0.5s ease, opacity 0.5s ease; }
-        /* 預設: 0.95 Opacity */
         .hero-img.static-thumb { opacity: 0.95; transform: scale(1); filter: grayscale(20%); }
-        /* Hover: 全彩變亮 (1 Opacity) */
         .hero-section:hover .hero-img.static-thumb { opacity: 1; transform: scale(1.05); filter: grayscale(0%); }
         
-        /* 預設: Category Name 顯示 */
         .hero-category-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8vw; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 20; pointer-events: none; text-align: center; width: 100%; opacity: 1; transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
-        /* Hover: Category Name 消失 */
         .hero-section:hover .hero-category-label { opacity: 0; }
 
         .yt-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
@@ -556,7 +547,6 @@ export default function HomePage() {
             .smart-nav.mobile-active .nav-links { opacity: 1 !important; transform: translateY(0) !important; pointer-events: auto !important; visibility: visible !important; }
             .nav-item { font-size: 28px !important; font-weight: 700 !important; letter-spacing: 2px !important; }
             
-            /* 🔴 補回 Mobile 的字體大小 */
             .main-title { font-size: 13vw; }
             .subtitle { font-size: 16px; padding: 0 20px; }
             .intro-text { position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 100% !important; padding: 0 20px; }
@@ -617,7 +607,6 @@ export default function HomePage() {
 
           <div className="intro-section" id="intro-trigger">
             <div className="intro-text" id="intro-text-container">
-              {/* 原汁原味嘅 HTML，完全交比 JS 去𠝹字同飛散 */}
               <h1 className="main-title">SAM CHOW.</h1>
               <div className="subtitle">MultiMedia Designer &nbsp;|&nbsp; Work Portfolio</div>
             </div>
@@ -702,16 +691,14 @@ export default function HomePage() {
                     <div className="hero-img-wrapper">
                         {data?.type === 'yt' ? (
                             <>
-                                {/* YT 縮圖設定維持 0.95 */}
                                 <img src={`https://img.youtube.com/vi/${data.id}/maxresdefault.jpg`} className="hero-img static-thumb yt-thumb" style={activeYt === cat.id ? { opacity: 0 } : {}} alt="YT Cover" />
                                 <div className="yt-container">
                                     {activeYt === cat.id && (
-                                        <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${data.id}?autoplay=1&mute=0&controls=0&modestbranding=1&rel=0`} title="YouTube video player" frameBorder="0" allowFullScreen style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}></iframe>
+                                        <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${data.id}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&playsinline=1`} title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}></iframe>
                                     )}
                                 </div>
                             </>
                         ) : data?.type === 'local_vid' ? (
-                            /* 🟢 支援本地影片全螢幕，直接套用 static-thumb 動畫 */
                             <video 
                                 src={data.src} 
                                 className="hero-img static-thumb" 

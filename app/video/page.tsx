@@ -11,11 +11,12 @@ export default function VideoPage() {
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   // Video Data (移除了 title 和 year，因為畫面上不再顯示)
-  // 🟢 已將 Sheseido (nZvCxgonaKM) 更新並調前至第 3 條片
+  // 🟢 將原本的 Landing 影片 (2MvFryTKJoI) 放入列表第一位，其餘順延
   const videos = [
+    { id: '2MvFryTKJoI' }, // 原本的 Landing 影片順延至此
     { id: '_yeHdBy8Wzs' },
     { id: 'Dc3phLpndD0' },
-    { id: 'nZvCxgonaKM' }, // 第 3 條：Sheseido 
+    { id: 'nZvCxgonaKM' }, // 第 4 條：Sheseido (原本第 3 條)
     { id: 'rJBpYguoROg' },
     { id: 'cKj_WzwWvfQ' },
     { id: 'DOp19wtL28w' }  // 最底：日本旅行
@@ -351,8 +352,9 @@ export default function VideoPage() {
         {/* Video Hero */}
         <div className="video-hero">
             <div className="video-bg">
+                {/* 🟢 更新了這裡的 YouTube Embed ID 為 oil1eYqmIXo */}
                 <iframe 
-                    src="https://www.youtube.com/embed/2MvFryTKJoI?autoplay=1&mute=1&controls=0&loop=1&playlist=2MvFryTKJoI&showinfo=0&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&disablekb=1" 
+                    src="https://www.youtube.com/embed/oil1eYqmIXo?autoplay=1&mute=1&controls=0&loop=1&playlist=oil1eYqmIXo&showinfo=0&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&disablekb=1" 
                     frameBorder="0" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                     allowFullScreen
@@ -376,7 +378,6 @@ export default function VideoPage() {
                     <div className="video-wrapper">
                         <div id={`player-${index}`}></div>
                     </div>
-                    {/* 只保留 WATCH ON YOUTUBE 區域 */}
                     <div className="video-info-overlay">
                         <a href={`https://www.youtube.com/watch?v=${vid.id}`} target="_blank" className="yt-watch-btn">
                             WATCH ON YOUTUBE

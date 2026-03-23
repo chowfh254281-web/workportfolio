@@ -6,9 +6,11 @@ export default function AiPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isContactExpanded, setIsContactExpanded] = useState(false);
 
-  // Data (將 Casio 整合入陣列中，排在 Chanel Ring 之後)
+  // Data 
+  // 🟢 更新了這裡的排列順序：iPhone -> Gundam -> Casio -> 其他順延
   const items = [
-    { type: 'video', src: '/images/AI_optimized/chanel ring.mp4', year: 'AI GENERATED' },
+    { type: 'video', src: '/images/AI_optimized/iPhone .mp4', year: 'AI GENERATED' },
+    { type: 'video', src: '/images/AI_optimized/gundam.mp4', year: 'AI GENERATED' },
     { type: 'casio' }, // Casio Showcase 整行
     { type: 'video', src: "/images/AI_optimized/ai_1.mp4", year: 'AI GENERATED' },
     { type: 'video', src: "/images/AI_optimized/ai_2.mp4", year: 'AI GENERATED' },
@@ -330,8 +332,9 @@ export default function AiPage() {
 
       <div className="video-hero">
         <div className="video-bg">
+            {/* 🟢 更新了這裡的 src 為 chanel ring.mp4 */}
             <video 
-                src="/images/AI_optimized/gundam.mp4" 
+                src="/images/AI_optimized/chanel ring.mp4" 
                 autoPlay 
                 loop 
                 muted 
