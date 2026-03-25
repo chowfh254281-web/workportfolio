@@ -12,42 +12,23 @@ export default function ThreeDPage() {
   const ueRef = useRef<HTMLDivElement>(null);
   const liveRef = useRef<HTMLDivElement>(null);
   
-  const ytRef = useRef<HTMLDivElement>(null); // 第一個 場景 (Local Video - capsule mograph)
-  const yt1Ref = useRef<HTMLDivElement>(null); // 第二個 YT 場景 (Forest)
-  const yt2Ref = useRef<HTMLDivElement>(null); // 第三個 YT 場景 (Star Wars)
-  const yt3Ref = useRef<HTMLDivElement>(null); // 第四個 YT 場景 (New Showcase)
+  const ytRef = useRef<HTMLDivElement>(null); // 1️⃣ Landing 場景 (Star Wars)
+  const ytCarRef = useRef<HTMLDivElement>(null); // 2️⃣ Car 場景 (移到了 Landing 之後的第一條)
+  const yt1Ref = useRef<HTMLDivElement>(null); // 3️⃣ YT 場景 (Forest)
+  const yt2Ref = useRef<HTMLDivElement>(null); // 4️⃣ YT 場景 (Video 2)
   
   const freshRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const scrollPromptRef = useRef<HTMLDivElement>(null);
-  const ueHeaderRef = useRef<HTMLDivElement>(null);
-  const ueGalleryRef = useRef<HTMLDivElement>(null);
-  const liveHeaderRef = useRef<HTMLDivElement>(null);
-  const liveGalleryRef = useRef<HTMLDivElement>(null);
-  const freshGalleryRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1000);
 
-    let lenis: any;
     let animationFrameId: number;
 
-    import('@studio-freight/lenis').then((Lenis) => {
-      lenis = new Lenis.default({
-        duration: 1.2,
-        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        touchMultiplier: 1.5,
-      });
-
-      function raf(time: number) {
-        lenis.raf(time);
-        requestAnimationFrame(raf);
-      }
-      requestAnimationFrame(raf);
-    });
-
+    // 延遲顯示 Production 的卡片動畫
     setTimeout(() => { 
         const prodCards = document.querySelectorAll('.production-group .video-card');
         prodCards.forEach((card: any) => { 
@@ -69,6 +50,7 @@ export default function ThreeDPage() {
 
         if (trackRef.current) {
             const trackRect = trackRef.current.getBoundingClientRect();
+            // 計算目前滾動在整個軌道中的進度比例
             const totalDistance = trackRect.height - windowHeight;
             let progress = 0;
             if (trackRect.top <= 0) progress = Math.abs(trackRect.top) / totalDistance;
@@ -78,202 +60,236 @@ export default function ThreeDPage() {
             const productionSection = prodRef.current;
             const header = headerRef.current;
             const layerUE = ueRef.current;
-            const ueHeader = ueHeaderRef.current;
-            const ueGallery = ueGalleryRef.current;
             const layerLive = liveRef.current;
-            const liveHeader = liveHeaderRef.current;
-            const liveGallery = liveGalleryRef.current;
             const layerYT = ytRef.current; 
+            const layerYTCar = ytCarRef.current; 
             const layerYT1 = yt1Ref.current; 
             const layerYT2 = yt2Ref.current; 
-            const layerYT3 = yt3Ref.current; 
             const layerFresh = freshRef.current;
-            const freshGallery = freshGalleryRef.current;
 
-            if (cgHero && productionSection && header && layerUE && ueHeader && ueGallery && layerLive && liveHeader && liveGallery && layerYT && layerYT1 && layerYT2 && layerYT3 && layerFresh && freshGallery) {
+            if (cgHero && productionSection && header && layerUE && layerLive && layerYT && layerYTCar && layerYT1 && layerYT2 && layerFresh) {
                 
-                // 1. YT HERO & HEADER EXIT -> CG HERO ENTER (0.00 - 0.08)
+                // 1. YT HERO (Landing) EXIT -> CAR YT ENTER (0.00 - 0.08)
                 if (progress < 0.08) {
                     const p = progress / 0.08; 
-                    layerYT.style.opacity = (1 - p).toString();
-                    layerYT.style.transform = `translateY(-${p * 30}vh)`;
+                    layerYT.style.transform = `translateY(-${p * 100}vh)`;
+                    layerYT.style.opacity = '1';
                     
-                    header.style.transform = `translate(-50%, calc(-50% - ${p * 60}vh))`;
-                    header.style.opacity = (1 - p).toString();
+                    header.style.transform = `translate(-50%, calc(-50% - ${p * 100}vh))`;
+                    header.style.opacity = '1';
 
-                    if (isMobile) {
-                        cgHero.style.transform = `translate(-50%, ${100 - p * 100}vh)`;
-                    } else {
-                        cgHero.style.transform = `translate(-50%, calc(-50% + ${100 - p * 100}vh))`; 
-                    }
-                    cgHero.style.opacity = '1';
-                    productionSection.style.opacity = '0';
+                    layerYTCar.style.transform = `translateY(${100 - p * 100}vh)`;
+                    layerYTCar.style.opacity = '1';
+                    layerYTCar.style.pointerEvents = 'none';
+
+                    cgHero.style.transform = isMobile 
+                        ? `translate(-50%, 100vh)` 
+                        : `translate(-50%, calc(-50% + 100vh))`;
+                    cgHero.style.opacity = '0';
                 } 
                 
-                // 2. CG HERO ACTIVE (0.08 - 0.15)
+                // 2. CAR YT ACTIVE (0.08 - 0.15)
                 else if (progress >= 0.08 && progress < 0.15) {
-                    layerYT.style.opacity = '0';
-                    header.style.opacity = '0';
+                    layerYT.style.transform = `translateY(-100vh)`;
+                    header.style.transform = `translate(-50%, calc(-50% - 100vh))`;
                     
-                    if (isMobile) cgHero.style.transform = `translate(-50%, 0)`;
-                    else cgHero.style.transform = `translate(-50%, -50%)`; 
+                    layerYTCar.style.transform = `translateY(0)`;
+                    layerYTCar.style.opacity = '1';
+                    layerYTCar.style.pointerEvents = 'auto';
+
+                    cgHero.style.transform = isMobile 
+                        ? `translate(-50%, 100vh)` 
+                        : `translate(-50%, calc(-50% + 100vh))`;
+                    cgHero.style.opacity = '0';
+                }
+
+                // 3. CAR YT EXIT -> CG HERO ENTER (0.15 - 0.20)
+                else if (progress >= 0.15 && progress < 0.20) {
+                    const p = (progress - 0.15) / 0.05; 
+                    layerYTCar.style.transform = `translateY(-${p * 100}vh)`;
+                    layerYTCar.style.opacity = '1';
+                    layerYTCar.style.pointerEvents = 'none';
                     
+                    cgHero.style.transform = isMobile 
+                        ? `translate(-50%, ${100 - p * 100}vh)`
+                        : `translate(-50%, calc(-50% + ${100 - p * 100}vh))`;
                     cgHero.style.opacity = '1';
+                    
+                    productionSection.style.transform = isMobile
+                        ? `translate(-50%, 100vh)`
+                        : `translate(-50%, calc(-50% + 100vh))`;
                     productionSection.style.opacity = '0';
                 }
 
-                // 3. CG HERO EXIT -> PRODUCTION ENTER (0.15 - 0.20)
-                else if (progress >= 0.15 && progress < 0.20) {
-                    const p = (progress - 0.15) / 0.05; 
+                // 4. CG HERO ACTIVE (0.20 - 0.27)
+                else if (progress >= 0.20 && progress < 0.27) {
+                    layerYTCar.style.transform = `translateY(-100vh)`;
                     
-                    if (isMobile) {
-                        cgHero.style.transform = `translate(-50%, -${p * 150}vh)`;
-                        productionSection.style.transform = `translate(-50%, ${50 - p * 30}vh)`; 
-                    } else {
-                        cgHero.style.transform = `translate(-50%, calc(-50% - ${p * 100}vh))`;
-                        productionSection.style.transform = `translate(-50%, calc(-50% + ${(1-p)*100}px))`;
-                    }
-                    
-                    cgHero.style.opacity = (1 - p).toString();
-                    productionSection.style.opacity = p.toString();
+                    cgHero.style.transform = isMobile ? `translate(-50%, 0)` : `translate(-50%, -50%)`; 
+                    cgHero.style.opacity = '1';
+
+                    productionSection.style.opacity = '0';
                 }
 
-                // 4. PRODUCTION SCROLL (0.20 - 0.35)
-                else if (progress >= 0.20 && progress < 0.35) {
+                // 5. CG HERO EXIT -> PRODUCTION ENTER (0.27 - 0.32)
+                else if (progress >= 0.27 && progress < 0.32) {
+                    const p = (progress - 0.27) / 0.05; 
+                    cgHero.style.transform = isMobile 
+                        ? `translate(-50%, -${p * 100}vh)`
+                        : `translate(-50%, calc(-50% - ${p * 100}vh))`;
+                    cgHero.style.opacity = '1';
+                    
+                    productionSection.style.transform = isMobile
+                        ? `translate(-50%, ${100 - p * 100}vh)`
+                        : `translate(-50%, calc(-50% + ${100 - p * 100}vh))`;
+                    productionSection.style.opacity = '1';
+
+                    layerUE.style.transform = `translateY(100vh)`;
+                    layerUE.style.opacity = '0';
+                }
+
+                // 6. PRODUCTION SCROLL (0.32 - 0.47)
+                else if (progress >= 0.32 && progress < 0.47) {
                     cgHero.style.opacity = '0';
                     productionSection.style.opacity = '1';
                     
                     if (isMobile) {
-                        const prodScrollP = (progress - 0.20) / 0.15; 
-                        productionSection.style.transform = `translate(-50%, ${20 - prodScrollP * 200}vh)`;
+                        const prodScrollP = (progress - 0.32) / 0.15; 
+                        productionSection.style.transform = `translate(-50%, -${prodScrollP * 150}vh)`;
                     } else {
                         productionSection.style.transform = `translate(-50%, -50%)`;
                     }
+                    
+                    layerUE.style.transform = `translateY(100vh)`;
                     layerUE.style.opacity = '0';
                 }
 
-                // 5. PRODUCTION EXIT -> UE ENTER (0.35 - 0.40)
-                else if (progress >= 0.35 && progress < 0.40) {
-                    const p = (progress - 0.35) / 0.05;
-                    productionSection.style.opacity = (1 - p).toString();
-                    if (isMobile) productionSection.style.transform = `translate(-50%, -200vh)`;
-                    else productionSection.style.transform = `translate(-50%, calc(-50% - ${p*100}px))`;
+                // 7. PRODUCTION EXIT -> UE ENTER (0.47 - 0.52)
+                else if (progress >= 0.47 && progress < 0.52) {
+                    const p = (progress - 0.47) / 0.05;
+                    productionSection.style.opacity = '1';
+                    
+                    if (isMobile) {
+                        productionSection.style.transform = `translate(-50%, calc(-150vh - ${p*100}vh))`;
+                    } else {
+                        productionSection.style.transform = `translate(-50%, calc(-50% - ${p*100}vh))`;
+                    }
 
-                    layerUE.style.opacity = p.toString();
-                    layerUE.style.transform = `translateY(0)`;
-                    ueHeader.style.transform = `translateY(${(1-p)*30}px)`;
-                    ueGallery.style.transform = `translateY(${(1-p)*60}px)`;
-                }
-
-                // 6. UE ACTIVE (0.40 - 0.48)
-                else if (progress >= 0.40 && progress < 0.48) {
-                    productionSection.style.opacity = '0';
+                    layerUE.style.transform = `translateY(${100 - p*100}vh)`;
                     layerUE.style.opacity = '1';
-                    ueHeader.style.transform = `translateY(0)`;
-                    ueGallery.style.transform = `translateY(0)`;
+
+                    layerLive.style.transform = `translateY(100vh)`;
                     layerLive.style.opacity = '0';
                 }
 
-                // 7. UE EXIT -> LIVE ENTER (0.48 - 0.53)
-                else if (progress >= 0.48 && progress < 0.53) {
-                    const p = (progress - 0.48) / 0.05;
-                    layerUE.style.opacity = (1 - p).toString();
-                    layerLive.style.opacity = p.toString();
-                    liveHeader.style.transform = `translateY(${(1-p)*30}px)`;
-                    liveGallery.style.transform = `translateY(${(1-p)*60}px)`;
+                // 8. UE ACTIVE (0.52 - 0.60)
+                else if (progress >= 0.52 && progress < 0.60) {
+                    productionSection.style.opacity = '0';
+                    
+                    layerUE.style.transform = `translateY(0)`;
+                    layerUE.style.opacity = '1';
+                    
+                    layerLive.style.transform = `translateY(100vh)`;
+                    layerLive.style.opacity = '0';
                 }
 
-                // 8. LIVE ACTIVE (0.53 - 0.58)
-                else if (progress >= 0.53 && progress < 0.58) {
-                    layerUE.style.opacity = '0';
+                // 9. UE EXIT -> LIVE ENTER (0.60 - 0.65)
+                else if (progress >= 0.60 && progress < 0.65) {
+                    const p = (progress - 0.60) / 0.05;
+                    layerUE.style.transform = `translateY(-${p*100}vh)`;
+                    layerUE.style.opacity = '1';
+
+                    layerLive.style.transform = `translateY(${100 - p*100}vh)`;
                     layerLive.style.opacity = '1';
-                    liveHeader.style.transform = 'translateY(0)';
-                    liveGallery.style.transform = 'translateY(0)';
+
+                    layerYT1.style.transform = `translateY(100vh)`;
+                    layerYT1.style.opacity = '0';
+                }
+
+                // 10. LIVE ACTIVE (0.65 - 0.70)
+                else if (progress >= 0.65 && progress < 0.70) {
+                    layerUE.style.opacity = '0';
+                    
+                    layerLive.style.transform = 'translateY(0)';
+                    layerLive.style.opacity = '1';
+                    
+                    layerYT1.style.transform = `translateY(100vh)`;
                     layerYT1.style.opacity = '0';
                     layerYT1.style.pointerEvents = 'none';
                 }
 
-                // 9. LIVE EXIT -> YT1 ENTER (0.58 - 0.63)
-                else if (progress >= 0.58 && progress < 0.63) {
-                    const p = (progress - 0.58) / 0.05;
-                    layerLive.style.opacity = (1 - p).toString();
+                // 11. LIVE EXIT -> YT1 ENTER (0.70 - 0.75)
+                else if (progress >= 0.70 && progress < 0.75) {
+                    const p = (progress - 0.70) / 0.05;
+                    layerLive.style.transform = `translateY(-${p*100}vh)`;
+                    layerLive.style.opacity = '1';
                     
-                    layerYT1.style.opacity = p.toString();
-                    layerYT1.style.transform = `scale(${1.1 - p * 0.1})`;
-                    layerYT1.style.pointerEvents = 'none';
-                }
-
-                // 10. YT1 ACTIVE (0.63 - 0.69)
-                else if (progress >= 0.63 && progress < 0.69) {
-                    layerLive.style.opacity = '0';
+                    layerYT1.style.transform = `translateY(${100 - p*100}vh)`;
                     layerYT1.style.opacity = '1';
-                    layerYT1.style.transform = 'scale(1)';
-                    layerYT1.style.pointerEvents = 'auto'; // Enable interactions
+                    layerYT1.style.pointerEvents = 'none';
+
+                    layerYT2.style.transform = `translateY(100vh)`;
+                    layerYT2.style.opacity = '0';
+                }
+
+                // 12. YT1 ACTIVE (0.75 - 0.81)
+                else if (progress >= 0.75 && progress < 0.81) {
+                    layerLive.style.opacity = '0';
                     
+                    layerYT1.style.transform = 'translateY(0)';
+                    layerYT1.style.opacity = '1';
+                    layerYT1.style.pointerEvents = 'auto';
+                    
+                    layerYT2.style.transform = `translateY(100vh)`;
                     layerYT2.style.opacity = '0';
                     layerYT2.style.pointerEvents = 'none';
                 }
 
-                // 11. YT1 EXIT -> YT2 ENTER (0.69 - 0.74)
-                else if (progress >= 0.69 && progress < 0.74) {
-                    const p = (progress - 0.69) / 0.05;
-                    layerYT1.style.opacity = (1 - p).toString();
+                // 13. YT1 EXIT -> YT2 ENTER (0.81 - 0.86)
+                else if (progress >= 0.81 && progress < 0.86) {
+                    const p = (progress - 0.81) / 0.05;
+                    layerYT1.style.transform = `translateY(-${p*100}vh)`;
+                    layerYT1.style.opacity = '1';
                     layerYT1.style.pointerEvents = 'none';
                     
-                    layerYT2.style.opacity = p.toString();
-                    layerYT2.style.transform = `scale(${1.1 - p * 0.1})`;
-                    layerYT2.style.pointerEvents = 'none';
-                }
-
-                // 12. YT2 ACTIVE (0.74 - 0.80)
-                else if (progress >= 0.74 && progress < 0.80) {
-                    layerYT1.style.opacity = '0';
+                    layerYT2.style.transform = `translateY(${100 - p*100}vh)`;
                     layerYT2.style.opacity = '1';
-                    layerYT2.style.transform = 'scale(1)';
-                    layerYT2.style.pointerEvents = 'auto'; // Enable interactions
-                    
-                    layerYT3.style.opacity = '0';
-                    layerYT3.style.pointerEvents = 'none';
-                }
-
-                // 13. YT2 EXIT -> YT3 ENTER (0.80 - 0.85)
-                else if (progress >= 0.80 && progress < 0.85) {
-                    const p = (progress - 0.80) / 0.05;
-                    layerYT2.style.opacity = (1 - p).toString();
                     layerYT2.style.pointerEvents = 'none';
-                    
-                    layerYT3.style.opacity = p.toString();
-                    layerYT3.style.transform = `scale(${1.1 - p * 0.1})`;
-                    layerYT3.style.pointerEvents = 'none';
-                }
 
-                // 14. YT3 ACTIVE (0.85 - 0.91)
-                else if (progress >= 0.85 && progress < 0.91) {
-                    layerYT2.style.opacity = '0';
-                    layerYT3.style.opacity = '1';
-                    layerYT3.style.transform = 'scale(1)';
-                    layerYT3.style.pointerEvents = 'auto'; // Enable interactions
-                    
+                    layerFresh.style.transform = `translateY(100vh)`;
                     layerFresh.style.opacity = '0';
                 }
 
-                // 15. YT3 EXIT -> FRESH ENTER (0.91 - 0.96)
-                else if (progress >= 0.91 && progress < 0.96) {
-                    const p = (progress - 0.91) / 0.05;
-                    layerYT3.style.opacity = (1 - p).toString();
-                    layerYT3.style.pointerEvents = 'none';
+                // 14. YT2 ACTIVE (0.86 - 0.92)
+                else if (progress >= 0.86 && progress < 0.92) {
+                    layerYT1.style.opacity = '0';
                     
-                    layerFresh.style.opacity = p.toString();
-                    freshGallery.style.transform = `translateY(${(1-p)*50}px)`;
+                    layerYT2.style.transform = 'translateY(0)';
+                    layerYT2.style.opacity = '1';
+                    layerYT2.style.pointerEvents = 'auto';
+                    
+                    layerFresh.style.transform = `translateY(100vh)`;
+                    layerFresh.style.opacity = '0';
                 }
 
-                // 16. FRESH ACTIVE (0.96+)
-                else if (progress >= 0.96) {
-                    layerYT3.style.opacity = '0';
-                    layerYT3.style.pointerEvents = 'none';
+                // 15. YT2 EXIT -> FRESH ENTER (0.92 - 0.97)
+                else if (progress >= 0.92 && progress < 0.97) {
+                    const p = (progress - 0.92) / 0.05;
+                    layerYT2.style.transform = `translateY(-${p*100}vh)`;
+                    layerYT2.style.opacity = '1';
+                    layerYT2.style.pointerEvents = 'none';
                     
+                    layerFresh.style.transform = `translateY(${100 - p*100}vh)`;
                     layerFresh.style.opacity = '1';
-                    freshGallery.style.transform = `translateY(0)`;
+                }
+
+                // 16. FRESH ACTIVE (0.97+)
+                else if (progress >= 0.97) {
+                    layerYT2.style.opacity = '0';
+                    layerYT2.style.pointerEvents = 'none';
+                    
+                    layerFresh.style.transform = `translateY(0)`;
+                    layerFresh.style.opacity = '1';
                 }
             }
         }
@@ -304,7 +320,6 @@ export default function ThreeDPage() {
 
     return () => {
         clearTimeout(timer);
-        if (lenis) lenis.destroy();
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         window.removeEventListener('scroll', handleScroll);
     };
@@ -348,10 +363,11 @@ export default function ThreeDPage() {
       <style jsx global>{`
         /* PERFORMANCE & RESET */
         * { box-sizing: border-box; }
+        
+        /* 💡 徹底移除所有平滑滾動阻力，確保為純淨原生滾動 */
+        html, body { scroll-behavior: auto !important; }
         body { margin: 0; padding: 0; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #050505; background-image: radial-gradient(circle at 50% 30%, #1a1a1a 0%, #000000 70%); min-height: 100vh; overflow-x: hidden; }
-        html.lenis, html.lenis body { height: auto; }
-        .lenis.lenis-smooth { scroll-behavior: auto !important; }
-        .lenis.lenis-stopped { overflow: hidden; }
+        
         .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; mix-blend-mode: overlay; opacity: 0.06; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
         
         /* Preloader */
@@ -401,9 +417,9 @@ export default function ThreeDPage() {
 
         .mobile-menu-overlay { display: none; }
         
-        /* TRACK */
-        .sequence-track { height: 2100vh; position: relative; z-index: 10; }
-        @media (max-width: 768px) { .sequence-track { height: 2500vh; } } 
+        /* 💡 延長 Track 高度以容納新的影片層 */
+        .sequence-track { height: 1400vh; position: relative; z-index: 10; }
+        @media (max-width: 768px) { .sequence-track { height: 1700vh; } } 
 
         .sticky-viewport { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         
@@ -415,11 +431,11 @@ export default function ThreeDPage() {
             background: #000; overflow: hidden; 
         }
         
-        /* Z-index Management */
+        /* Z-index Management 更新順序 */
         #layer-yt { z-index: 1; }
+        #layer-yt-car { z-index: 2; opacity: 0; }
         #layer-yt1 { z-index: 17; opacity: 0; }
         #layer-yt2 { z-index: 18; opacity: 0; }
-        #layer-yt3 { z-index: 19; opacity: 0; } 
         
         .layer-yt iframe { 
             width: 100vw; 
@@ -428,16 +444,13 @@ export default function ThreeDPage() {
             min-width: 177.77vh; 
             position: absolute; 
             top: 50%; left: 50%; 
-            transform: translate(-50%, -50%); 
+            transform: translate(-50%, -50%);
+            pointer-events: none;
         }
 
-        .layer-yt video.bg-video {
-            width: 100vw;
-            height: 100vh;
-            object-fit: cover;
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
+        /* 💡 特殊處理：Star Wars 影片拉到極大 (1.8 倍) 確保黑邊完全裁切 */
+        #layer-yt iframe {
+            transform: translate(-50%, -50%) scale(1.8);
         }
 
         /* WATCH YOUTUBE BUTTON */
@@ -468,7 +481,7 @@ export default function ThreeDPage() {
         }
 
         /* HEADER */
-        .header-content { text-align: center; width: 100%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; pointer-events: none; transition: opacity 0.5s ease; }
+        .header-content { text-align: center; width: 100%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; pointer-events: none; transition: none; }
         h1.page-title { font-size: 80px; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -2px; color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .page-desc { margin-top: 20px; font-size: 16px; color: #ddd; max-width: 600px; display: inline-block; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
         
@@ -485,7 +498,7 @@ export default function ThreeDPage() {
         .hero-strip:hover { flex: 1.5; }
         
         /* PRODUCTION */
-        .production-section { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px; z-index: 20; width: 100%; opacity: 0; }
+        .production-section { position: absolute; top: 50%; left: 50%; transform: translate(-50%, calc(-50% + 100vh)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px; z-index: 20; width: 100%; opacity: 0; }
         .section-title { font-size: 1.5vw; font-weight: 700; letter-spacing: 4px; color: #fff; text-transform: uppercase; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
         .production-group { display: flex; gap: 2vw; width: auto; }
         .prod-card-wrap { width: 25vw; aspect-ratio: 9/16; }
@@ -520,13 +533,13 @@ export default function ThreeDPage() {
         .live-img-wrapper:hover img { transform: scale(1.05); }
         .live-label { position: absolute; bottom: 20px; left: 20px; background: rgba(255,255,255,0.9); color: #000; padding: 6px 16px; border-radius: 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); pointer-events: auto; }
         
-        /* FRESH METAVERSE GARDEN - Z-INDEX BUMPED TO 20 */
+        /* FRESH METAVERSE GARDEN */
         .layer-fresh { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
         .fresh-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; filter: brightness(0.5); pointer-events: none; }
         .fresh-content { position: relative; z-index: 2; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 30px; }
         .fresh-title { font-size: 7vw; font-weight: 900; letter-spacing: -2px; color: #fff; margin: 0; text-shadow: 0 10px 30px rgba(0,0,0,0.5); line-height: 1; }
         .fresh-subtitle { font-size: 1.2vw; font-weight: 700; letter-spacing: 4px; color: #F4D03F; text-transform: uppercase; display: inline-block; background: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 20px; backdrop-filter: blur(5px); }
-        .fresh-gallery { display: flex; gap: 20px; margin-top: 20px; opacity: 0; transform: translateY(50px); }
+        .fresh-gallery { display: flex; gap: 20px; margin-top: 20px; }
         .fresh-img-wrapper { width: 20vw; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.3s ease; }
         .fresh-img-wrapper:hover { transform: scale(1.05); }
         .fresh-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
@@ -635,22 +648,35 @@ export default function ThreeDPage() {
       <div className="sequence-track" id="sequence-track" ref={trackRef}>
         <div className="sticky-viewport">
             
-            {/* 1️⃣ BASE VIDEO BACKGROUND LAYER (Intro) - 已加回原生的 loop 屬性 */}
+            {/* 🔴 1️⃣ Landing 場景 (Star Wars) */}
             <div className="layer-yt" id="layer-yt" ref={ytRef}>
-                <video 
-                    src="/images/3dvideo/capsule mograph.mp4" 
-                    className="bg-video" 
-                    autoPlay 
-                    loop 
-                    muted 
-                    playsInline
-                ></video>
+                <iframe 
+                    src="https://www.youtube.com/embed/n01WI9mwJwc?autoplay=1&mute=1&loop=1&playlist=n01WI9mwJwc&controls=0&modestbranding=1&playsinline=1" 
+                    title="Landing Background" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowFullScreen
+                ></iframe>
             </div>
 
             {/* HEADER (OVERLAY ON TOP OF BG VIDEO) */}
             <div className="header-content" id="main-header" ref={headerRef}>
                 <h1 className="page-title">3D VISUAL</h1>
                 <div className="page-desc">Motion graphics, simulations, and rendered realities.</div>
+            </div>
+
+            {/* 🔴 2️⃣ NEW: CAR YOUTUBE 場景 (移到這裡！) */}
+            <div className="layer-yt" id="layer-yt-car" ref={ytCarRef}>
+                <iframe 
+                    src="https://www.youtube.com/embed/TLvBs1C6v08?autoplay=1&mute=1&loop=1&playlist=TLvBs1C6v08&controls=0&modestbranding=1" 
+                    title="YouTube video 2" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowFullScreen
+                ></iframe>
+                <a href="https://youtu.be/TLvBs1C6v08" target="_blank" rel="noopener noreferrer" className="yt-watch-btn">
+                    WATCH ON YOUTUBE
+                </a>
             </div>
 
             <div className="cg-hero-section" id="cg-hero" ref={heroRef}>
@@ -680,11 +706,11 @@ export default function ThreeDPage() {
             </div>
 
             <div className="layer-ue" id="layer-ue" ref={ueRef}>
-                <div className="ue-header-group" id="ue-header" ref={ueHeaderRef}>
+                <div className="ue-header-group">
                     <h2 className="ue-big-title">SheShido XR Immersive wall Production</h2>
                     <div className="ue-small-subtitle">Unreal Engine</div>
                 </div>
-                <div className="ue-gallery" id="ue-gallery" ref={ueGalleryRef}>
+                <div className="ue-gallery">
                     <div className="ue-col-left">
                         <div className="ue-img-wrapper"><img src="/images/sitevisit1.png" alt="Site Visit 1" /><div className="ue-label">Site Visit</div></div>
                         <div className="ue-img-wrapper"><img src="/images/sitevisit2.png" alt="Site Visit 2" /></div>
@@ -696,10 +722,10 @@ export default function ThreeDPage() {
             </div>
 
             <div className="layer-live" id="layer-live" ref={liveRef}>
-                <div className="live-header-group" id="live-header" ref={liveHeaderRef}>
+                <div className="live-header-group">
                      <h2 className="live-big-title">LIVE SETUP</h2>
                 </div>
-                <div className="live-gallery" id="live-gallery" ref={liveGalleryRef}>
+                <div className="live-gallery">
                     <div className="live-col-left">
                         <div className="live-img-wrapper"><img src="/images/live1.png" alt="Live 1" /><div className="live-label">On Site Setup</div></div>
                         <div className="live-img-wrapper"><img src="/images/live3.png" alt="Live 3" /></div>
@@ -710,7 +736,7 @@ export default function ThreeDPage() {
                 </div>
             </div>
 
-            {/* 🔴 2️⃣ YT LAYER 1 (Forest Video) */}
+            {/* 🔴 3️⃣ YT LAYER 1 (Forest Video) */}
             <div className="layer-yt" id="layer-yt1" ref={yt1Ref}>
                 <iframe 
                     src="https://www.youtube.com/embed/RCPgtif9A9U?autoplay=1&mute=1&loop=1&playlist=RCPgtif9A9U&controls=0&modestbranding=1" 
@@ -724,25 +750,11 @@ export default function ThreeDPage() {
                 </a>
             </div>
 
-            {/* 🔴 3️⃣ YT LAYER 2 (Star Wars Video) */}
+            {/* 🔴 4️⃣ YT LAYER 2 (Star Wars Video) */}
             <div className="layer-yt" id="layer-yt2" ref={yt2Ref}>
                 <iframe 
-                    src="https://www.youtube.com/embed/TLvBs1C6v08?autoplay=1&mute=1&loop=1&playlist=TLvBs1C6v08&controls=0&modestbranding=1" 
-                    title="YouTube video 2" 
-                    frameBorder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    allowFullScreen
-                ></iframe>
-                <a href="https://youtu.be/TLvBs1C6v08" target="_blank" rel="noopener noreferrer" className="yt-watch-btn">
-                    WATCH ON YOUTUBE
-                </a>
-            </div>
-
-            {/* 🔴 4️⃣ NEW: YT LAYER 3 (New Showcase Video) */}
-            <div className="layer-yt" id="layer-yt3" ref={yt3Ref}>
-                <iframe 
                     src="https://www.youtube.com/embed/9PNM7YJtU2U?autoplay=1&mute=1&loop=1&playlist=9PNM7YJtU2U&controls=0&modestbranding=1" 
-                    title="YouTube video 3" 
+                    title="Car Showcase Video" 
                     frameBorder="0" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                     allowFullScreen
@@ -757,7 +769,7 @@ export default function ThreeDPage() {
                 <div className="fresh-content">
                     <h2 className="fresh-title">Fresh Metaverse Garden</h2>
                     <div className="fresh-subtitle">BLENDER</div>
-                    <div className="fresh-gallery" id="fresh-gallery" ref={freshGalleryRef}>
+                    <div className="fresh-gallery">
                         <div className="fresh-img-wrapper"><img src="/images/freshblack.png" alt="Fresh Black" /></div>
                         <div className="fresh-img-wrapper"><img src="/images/freshcombucha.png" alt="Fresh Combucha" /></div>
                         <div className="fresh-img-wrapper"><img src="/images/freshtea.png" alt="Fresh Tea" /></div>
@@ -780,7 +792,7 @@ export default function ThreeDPage() {
     >
         <div className="contact-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
         <div className="contact-details">
-            <a href="https://wa.me/85267012420" target="_blank" className="contact-link" style={{ color: '#fff' }}><span className="label">WHATSAPP</span>6701 2420</a>
+            <a href="https://wa.me/85267012420" target="_blank" className="contact-link" rel="noreferrer" style={{ color: '#fff' }}><span className="label">WHATSAPP</span>6701 2420</a>
             <a href="mailto:chowfh254281@gmail.com" className="contact-link" style={{ color: '#fff' }}><span className="label">MAIL</span>chowfh254281@gmail.com</a>
         </div>
     </div>

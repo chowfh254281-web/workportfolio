@@ -151,27 +151,38 @@ export default function HomePage() {
       }
 
       const scatterProgress = Math.min(scrollY / (windowHeight * 1.2), 1);
+      
+      // 影片與遮罩 Fade out
+      const landingVideo = document.querySelector('.landing-bg-video') as HTMLElement;
+      const landingOverlay = document.querySelector('.landing-video-overlay') as HTMLElement;
+      
+      // 計算影片目前的透明度 (最大 0.9)
+      const vidOp = Math.max(0, 0.9 * (1 - scatterProgress));
+
+      if (landingVideo) {
+          landingVideo.style.opacity = vidOp.toString();
+      }
+      if (landingOverlay) {
+          landingOverlay.style.opacity = (1 - scatterProgress).toString();
+      }
+
+      // 💡 計算 Profile 圖片的 Fade in 進度
+      // 需求：當 Capsule 影片 (vidOp) 降到 0.5 時，profile 圖片才開始顯示
+      let profileFade = 0;
+      if (vidOp <= 0.5) {
+          // 讓它在 vidOp 從 0.5 降到 0.1 之間完全浮現 (透明度由 0 變 1)
+          profileFade = Math.max(0, Math.min((0.5 - vidOp) / 0.4, 1));
+      }
+
       if (introText) {
         introText.style.opacity = (1 - scatterProgress).toString();
         introText.style.transform = `translate(-50%, -50%)`;
       }
 
-      const colorP = scatterProgress;
-      const r = 244 + (255 - 244) * colorP;
-      const g = 208 + (255 - 208) * colorP;
-      const b = 63 + (255 - 63) * colorP;
-      const colorString = `rgb(${r},${g},${b})`;
-
-      if (title) title.style.color = colorString;
-      if (subtitle) subtitle.style.color = colorString;
-
       const charSpans = document.querySelectorAll('.char-span, .sub-char');
       if (charSpans.length > 0) {
         charSpans.forEach((span: any, i) => {
           const randomAngle = (i * 137.5) % 360;
-          
-          // 🟢 已經移除咗 Math.pow 指數加速，改用純 Linear (線性) 距離計算
-          // distance 直接同 scrollY 掛鉤，碌幾多郁幾多，感覺更加平均同受控
           const distance = scrollY * 2.5; 
           
           const x = Math.cos(randomAngle * Math.PI / 180) * distance;
@@ -179,17 +190,15 @@ export default function HomePage() {
           const rotation = scrollY * (i % 2 === 0 ? 0.2 : -0.2); 
           const blur = scrollY * 0.03; 
 
-          // 直接 translate，唔再疊加加速 factor
           span.style.transform = `translate(${x}px, ${y}px) rotate(${rotation}deg)`;
           span.style.filter = `blur(${blur}px)`;
-          span.style.color = colorString;
           span.style.opacity = (1 - scatterProgress).toString();
         });
       }
 
+      // 💡 確保整個無縫卡片容器一直是 100% 顯示，保留原本的縮放/切換效果
       if (seamlessHero) {
-          const cardFadeIn = Math.min(scrollY / 150, 1);
-          seamlessHero.style.opacity = cardFadeIn.toString();
+          seamlessHero.style.opacity = '1';
       }
 
       if (seamlessHero && aboutTrack) {
@@ -214,8 +223,13 @@ export default function HomePage() {
           currentW = startW + (midW - startW) * p1;
           currentH = startH + (midH - startH) * p1;
           radius = 16;
+          
+          // swapP 是控制 imgCard (profile.jpg) 消失、imgBg (profile_bg.png) 出現的進度
           const swapP = Math.min(p1 * 2.5, 1);
-          if (imgCard) imgCard.style.opacity = (1 - swapP).toString();
+          
+          // 💡 結合 profileFade 和原本的 swapP：
+          // 起始淡入使用 profileFade，到達 target 後如果開始滑動關於我區塊，再用 swapP 讓它淡出
+          if (imgCard) imgCard.style.opacity = (profileFade * (1 - swapP)).toString();
           if (imgBg) imgBg.style.opacity = swapP.toString();
           
           if (revealSource) revealSource.style.opacity = '0';
@@ -426,9 +440,35 @@ export default function HomePage() {
         .mobile-menu-overlay { display: none; }
 
         .intro-section { height: 100vh; width: 100%; position: relative; overflow: hidden; margin-bottom: 0; z-index: 10; }
+        
+        .landing-bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            z-index: 1;
+            opacity: 0.9; 
+            pointer-events: none;
+            will-change: opacity;
+        }
+        
+        .landing-video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 60%, #000 100%);
+            z-index: 2;
+            pointer-events: none;
+            will-change: opacity;
+        }
+
         .intro-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 50; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; will-change: opacity, transform, color; }
-        .main-title { font-size: 8vw; font-weight: 900; margin: 0 0 20px 0; letter-spacing: -2px; line-height: 1; color: #F4D03F; transition: color 0.1s linear; white-space: nowrap; }
-        .subtitle { font-size: 1.5vw; font-weight: 400; line-height: 1.4; max-width: 800px; color: #F4D03F; opacity: 0; transform: translateY(20px); transition: all 1s ease; }
+        .main-title { font-size: 8vw; font-weight: 900; margin: 0 0 20px 0; letter-spacing: -2px; line-height: 1; color: #fff; transition: color 0.1s linear; white-space: nowrap; }
+        .subtitle { font-size: 1.5vw; font-weight: 400; line-height: 1.4; max-width: 800px; color: #fff; opacity: 0; transform: translateY(20px); transition: all 1s ease; }
         .subtitle.visible { opacity: 1; transform: translateY(0); }
         .char-span, .sub-char { display: inline-block; will-change: transform, opacity, filter, color; }
 
@@ -450,20 +490,23 @@ export default function HomePage() {
         .scroll-line::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, transparent, #fff, transparent); transform: translateY(-100%); animation: scrollFlow 2s cubic-bezier(0.77, 0, 0.175, 1) infinite; }
         @keyframes scrollFlow { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
 
+        /* 💡 讓容器保持可見，不要在一開始藏起來，交由內部的 imgCard 控制 opacity */
         .seamless-hero { 
           position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
           width: 25vw; height: 35vw; max-width: 350px; max-height: 500px; 
           border-radius: 16px; z-index: 5; overflow: hidden; 
           box-shadow: 0 30px 60px rgba(0,0,0,0.6); 
           opacity: 0; visibility: hidden;
-          will-change: width, height, border-radius, opacity; 
+          will-change: width, height, border-radius; 
         }
-        .main-content-wrapper.loaded .seamless-hero { visibility: visible; }
+        .main-content-wrapper.loaded .seamless-hero { visibility: visible; opacity: 1; }
 
         .hero-inner-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transition: none; }
         .img-bg { z-index: 1; opacity: 0; }
-        .img-card { z-index: 2; opacity: 1; }
+        /* 💡 確保剛載入時卡片是完全透明的 */
+        .img-card { z-index: 2; opacity: 0; }
         .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3; opacity: 0; pointer-events: none; }
+        
         .about-track { height: 300vh; position: relative; z-index: 10; margin-top: -10vh; }
         .about-sticky-view { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; padding: 0 5vw; box-sizing: border-box; background: transparent; pointer-events: none; }
         .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; width: 100%; height: 100%; align-items: center; position: relative; z-index: 2; }
@@ -627,6 +670,17 @@ export default function HomePage() {
           </div>
 
           <div className="intro-section" id="intro-trigger">
+            <video 
+              autoPlay 
+              loop 
+              muted 
+              playsInline 
+              className="landing-bg-video"
+            >
+              <source src="/images/3dvideo/capsule%20mograph.mp4" type="video/mp4" />
+            </video>
+            <div className="landing-video-overlay"></div>
+
             <div className="intro-text" id="intro-text-container">
               <h1 className="main-title">SAM CHOW.</h1>
               <div className="subtitle">MultiMedia Designer &nbsp;|&nbsp; Work Portfolio</div>
@@ -759,7 +813,7 @@ export default function HomePage() {
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
             </div>
             <div className="contact-details">
-                <a href="https://wa.me/85267012420" target="_blank" className="contact-link"><span className="label">WHATSAPP</span>6701 2420</a>
+                <a href="https://wa.me/85267012420" target="_blank" className="contact-link" rel="noreferrer"><span className="label">WHATSAPP</span>6701 2420</a>
                 <a href="mailto:chowfh254281@gmail.com" className="contact-link"><span className="label">MAIL</span>chowfh254281@gmail.com</a>
             </div>
           </div>
