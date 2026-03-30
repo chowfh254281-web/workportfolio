@@ -47,7 +47,8 @@ export default function HomePage() {
       lenis = new Lenis.default({
         duration: 1.2,
         easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        touchMultiplier: 1.5,
+        // 💡 將 touchMultiplier 降至 1.2，讓 iPad/手機觸控滑動時感覺更重，不會一下滑走
+        touchMultiplier: 1.2, 
       });
       function raf(time: number) {
         lenis.raf(time);
@@ -136,7 +137,9 @@ export default function HomePage() {
       const scrollY = window.scrollY;
       const windowHeight = window.innerHeight;
       const windowWidth = window.innerWidth;
+      
       const isMobile = windowWidth <= 768;
+      const isTablet = windowWidth > 768 && windowWidth <= 1024;
 
       if (scrollY > 50) {
           if (navbar && !navbar.classList.contains('mobile-active')) navbar.classList.add('collapsed');
@@ -152,11 +155,9 @@ export default function HomePage() {
 
       const scatterProgress = Math.min(scrollY / (windowHeight * 1.2), 1);
       
-      // 影片與遮罩 Fade out
       const landingVideo = document.querySelector('.landing-bg-video') as HTMLElement;
       const landingOverlay = document.querySelector('.landing-video-overlay') as HTMLElement;
       
-      // 計算影片目前的透明度 (最大 0.9)
       const vidOp = Math.max(0, 0.9 * (1 - scatterProgress));
 
       if (landingVideo) {
@@ -166,11 +167,8 @@ export default function HomePage() {
           landingOverlay.style.opacity = (1 - scatterProgress).toString();
       }
 
-      // 💡 計算 Profile 圖片的 Fade in 進度
-      // 需求：當 Capsule 影片 (vidOp) 降到 0.5 時，profile 圖片才開始顯示
       let profileFade = 0;
       if (vidOp <= 0.5) {
-          // 讓它在 vidOp 從 0.5 降到 0.1 之間完全浮現 (透明度由 0 變 1)
           profileFade = Math.max(0, Math.min((0.5 - vidOp) / 0.4, 1));
       }
 
@@ -196,7 +194,6 @@ export default function HomePage() {
         });
       }
 
-      // 💡 確保整個無縫卡片容器一直是 100% 顯示，保留原本的縮放/切換效果
       if (seamlessHero) {
           seamlessHero.style.opacity = '1';
       }
@@ -211,10 +208,10 @@ export default function HomePage() {
         if (trackRect.top <= 0) progress = Math.abs(trackRect.top) / totalDistance;
         progress = Math.max(0, Math.min(progress, 1));
 
-        const startW = isMobile ? windowWidth * 0.6 : Math.min(windowWidth * 0.25, 350);
-        const startH = isMobile ? windowWidth * 0.8 : Math.min(windowWidth * 0.35, 500);
-        const midW = isMobile ? windowWidth : windowWidth * 0.4;
-        const midH = isMobile ? windowHeight : startH * 1.3;
+        const startW = isMobile ? windowWidth * 0.6 : isTablet ? windowWidth * 0.4 : Math.min(windowWidth * 0.25, 350);
+        const startH = isMobile ? windowWidth * 0.8 : isTablet ? windowWidth * 0.55 : Math.min(windowWidth * 0.35, 500);
+        const midW = isMobile ? windowWidth : isTablet ? windowWidth * 0.8 : windowWidth * 0.4;
+        const midH = isMobile ? windowHeight : isTablet ? windowHeight * 0.7 : startH * 1.3;
         
         let currentW, currentH, radius;
 
@@ -224,11 +221,8 @@ export default function HomePage() {
           currentH = startH + (midH - startH) * p1;
           radius = 16;
           
-          // swapP 是控制 imgCard (profile.jpg) 消失、imgBg (profile_bg.png) 出現的進度
           const swapP = Math.min(p1 * 2.5, 1);
           
-          // 💡 結合 profileFade 和原本的 swapP：
-          // 起始淡入使用 profileFade，到達 target 後如果開始滑動關於我區塊，再用 swapP 讓它淡出
           if (imgCard) imgCard.style.opacity = (profileFade * (1 - swapP)).toString();
           if (imgBg) imgBg.style.opacity = swapP.toString();
           
@@ -247,13 +241,14 @@ export default function HomePage() {
           if (imgCard) imgCard.style.opacity = '0';
           if (imgBg) imgBg.style.opacity = '1';
 
+          // 💡 調整第一段文字的顯示時機與停留時間
           let layer1Opacity = 0;
-          if (progress < 0.25) {
-             layer1Opacity = (progress - 0.15) / 0.10;
-          } else if (progress < 0.55) {
-             layer1Opacity = 1;
+          if (progress < 0.20) {
+             layer1Opacity = (progress - 0.15) / 0.05;
+          } else if (progress < 0.65) {
+             layer1Opacity = 1; 
           } else {
-             layer1Opacity = 1 - ((progress - 0.55) / 0.10);
+             layer1Opacity = 1 - ((progress - 0.65) / 0.10); 
           }
           
           if (revealSource) {
@@ -261,23 +256,25 @@ export default function HomePage() {
             revealSource.style.pointerEvents = layer1Opacity <= 0.1 ? 'none' : 'auto';
           }
 
+          // 💡 放慢逐字變色 (Reading progress) 的速度
           const allWords = revealSource?.querySelectorAll('.word') || [];
-          if (progress >= 0.2 && progress < 0.50) {
-            const readP = (progress - 0.2) / 0.30;
+          if (progress >= 0.2 && progress < 0.60) { 
+            const readP = (progress - 0.2) / 0.40;
             const activeCount = Math.floor(readP * allWords.length);
             allWords.forEach((word, idx) => {
               if (idx <= activeCount) word.classList.add('active');
               else word.classList.remove('active');
             });
-          } else if (progress >= 0.50) {
+          } else if (progress >= 0.60) {
             allWords.forEach(word => word.classList.add('active'));
           } else {
             allWords.forEach(word => word.classList.remove('active'));
           }
 
+          // 💡 延後第二段文字 (工作經歷) 的出場時間
           let layer2Opacity = 0;
-          if (progress > 0.60) {
-             layer2Opacity = (progress - 0.60) / 0.15;
+          if (progress > 0.70) { 
+             layer2Opacity = (progress - 0.70) / 0.15;
           }
           
           if (detailsBlock) {
@@ -441,119 +438,58 @@ export default function HomePage() {
 
         .intro-section { height: 100vh; width: 100%; position: relative; overflow: hidden; margin-bottom: 0; z-index: 10; }
         
-        .landing-bg-video {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            object-fit: cover;
-            z-index: 1;
-            opacity: 0.9; 
-            pointer-events: none;
-            will-change: opacity;
-        }
-        
-        .landing-video-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 60%, #000 100%);
-            z-index: 2;
-            pointer-events: none;
-            will-change: opacity;
-        }
+        .landing-bg-video { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 1; opacity: 0.9; pointer-events: none; will-change: opacity; }
+        .landing-video-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 60%, #000 100%); z-index: 2; pointer-events: none; will-change: opacity; }
 
         .intro-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 50; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; will-change: opacity, transform, color; }
-        .main-title { font-size: 8vw; font-weight: 900; margin: 0 0 20px 0; letter-spacing: -2px; line-height: 1; color: #fff; transition: color 0.1s linear; white-space: nowrap; }
-        .subtitle { font-size: 1.5vw; font-weight: 400; line-height: 1.4; max-width: 800px; color: #fff; opacity: 0; transform: translateY(20px); transition: all 1s ease; }
+        
+        .main-title { font-size: clamp(40px, 8vw, 120px); font-weight: 900; margin: 0 0 20px 0; letter-spacing: -2px; line-height: 1; color: #fff; transition: color 0.1s linear; white-space: nowrap; }
+        .subtitle { font-size: clamp(14px, 1.5vw, 24px); font-weight: 400; line-height: 1.4; max-width: 800px; color: #fff; opacity: 0; transform: translateY(20px); transition: all 1s ease; }
         .subtitle.visible { opacity: 1; transform: translateY(0); }
         .char-span, .sub-char { display: inline-block; will-change: transform, opacity, filter, color; }
 
         .scroll-prompt { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; pointer-events: none; opacity: 0.6; transition: opacity 0.3s ease; }
         .scroll-prompt.hide { opacity: 0; }
         
-        .credit-text {
-            font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 2px;
-            color: rgba(255, 255, 255, 0.6);
-            text-transform: uppercase;
-            margin-bottom: 20px;
-            text-align: center;
-        }
+        .credit-text { font-size: 10px; font-weight: 500; letter-spacing: 2px; color: rgba(255, 255, 255, 0.6); text-transform: uppercase; margin-bottom: 20px; text-align: center; }
 
         .scroll-text { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: rgba(255,255,255,0.4); text-transform: uppercase; }
         .scroll-line { width: 1px; height: 40px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden; }
         .scroll-line::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, transparent, #fff, transparent); transform: translateY(-100%); animation: scrollFlow 2s cubic-bezier(0.77, 0, 0.175, 1) infinite; }
         @keyframes scrollFlow { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
 
-        /* 💡 讓容器保持可見，不要在一開始藏起來，交由內部的 imgCard 控制 opacity */
-        .seamless-hero { 
-          position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-          width: 25vw; height: 35vw; max-width: 350px; max-height: 500px; 
-          border-radius: 16px; z-index: 5; overflow: hidden; 
-          box-shadow: 0 30px 60px rgba(0,0,0,0.6); 
-          opacity: 0; visibility: hidden;
-          will-change: width, height, border-radius; 
-        }
+        .seamless-hero { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 25vw; height: 35vw; max-width: 350px; max-height: 500px; border-radius: 16px; z-index: 5; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.6); opacity: 0; visibility: hidden; will-change: width, height, border-radius; }
         .main-content-wrapper.loaded .seamless-hero { visibility: visible; opacity: 1; }
 
         .hero-inner-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transition: none; }
         .img-bg { z-index: 1; opacity: 0; }
-        /* 💡 確保剛載入時卡片是完全透明的 */
         .img-card { z-index: 2; opacity: 0; }
         .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3; opacity: 0; pointer-events: none; }
         
-        .about-track { height: 300vh; position: relative; z-index: 10; margin-top: -10vh; }
+        /* 💡 延長整體停留時間 */
+        .about-track { height: 400vh; position: relative; z-index: 10; margin-top: -10vh; }
         .about-sticky-view { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; padding: 0 5vw; box-sizing: border-box; background: transparent; pointer-events: none; }
         .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; width: 100%; height: 100%; align-items: center; position: relative; z-index: 2; }
         .card-target-left { width: 100%; aspect-ratio: 0.7; position: relative; visibility: hidden; } 
         .text-container { position: relative; height: auto; min-height: 400px; display: flex; align-items: center; justify-content: center; pointer-events: auto; }
         
-        .text-layer-1 { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; text-align: center; font-size: 3.5vw; font-weight: 800; line-height: 1.2; letter-spacing: -1px; opacity: 0; z-index: 120; color: #fff; }
+        .text-layer-1 { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; text-align: center; font-size: clamp(28px, 3.5vw, 60px); font-weight: 800; line-height: 1.2; letter-spacing: -1px; opacity: 0; z-index: 120; color: #fff; }
         .word { display: inline-block; opacity: 0.1; transition: opacity 0.5s ease; white-space: pre-wrap; }
         .word.active { opacity: 1; }
         
-        .text-layer-2 { 
-            position: fixed; 
-            top: 50%; 
-            left: 50%; 
-            transform: translate(-50%, -50%); 
-            width: 80%;
-            max-width: 900px; 
-            opacity: 0; 
-            text-align: left; 
-            z-index: 121;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center; 
-        }
-        
-        .details-text { font-size: 2vw; line-height: 1.4; font-weight: 400; color: #ddd; margin-bottom: 40px; text-align: center; width: 100%; }
+        .text-layer-2 { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 900px; opacity: 0; text-align: left; z-index: 121; pointer-events: none; display: flex; flex-direction: column; align-items: center; }
+        .details-text { font-size: clamp(16px, 2vw, 30px); line-height: 1.4; font-weight: 400; color: #ddd; margin-bottom: 40px; text-align: center; width: 100%; }
         
         .experience-list { width: 100%; max-width: 800px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px; }
-        
-        .experience-item { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: flex-end;
-            padding: 15px 0; 
-            border-bottom: 1px solid rgba(255,255,255,0.05); 
-        }
+        .experience-item { display: flex; justify-content: space-between; align-items: flex-end; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .exp-left { display: flex; flex-direction: column; gap: 4px; text-align: left; }
-        
         .exp-date { font-size: 13px; color: #F4D03F; text-transform: uppercase; letter-spacing: 1px; }
         .exp-role { font-size: 18px; color: #fff; font-weight: 500; }
         .exp-company { font-size: 16px; color: #F4D03F; font-weight: 600; text-align: right; }
-        
         .headline-accent { font-family: 'Times New Roman', serif; font-style: italic; }
 
         .overview-section { height: 100vh; width: 100%; position: relative; z-index: 30; background-color: #050505; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
-        .overview-title { font-size: 6vw; font-weight: 800; letter-spacing: -1px; margin-bottom: 15px; color: #fff; line-height: 1; visibility: visible; }
+        .overview-title { font-size: clamp(32px, 6vw, 90px); font-weight: 800; letter-spacing: -1px; margin-bottom: 15px; color: #fff; line-height: 1; visibility: visible; }
         .overview-title span { display: inline-block; } 
         .overview-subtitle { font-size: 1.1rem; color: #888; font-weight: 400; letter-spacing: 2px; text-transform: uppercase; visibility: visible; }
         
@@ -565,14 +501,14 @@ export default function HomePage() {
         .hero-img.static-thumb { opacity: 0.95; transform: scale(1); filter: grayscale(20%); }
         .hero-section:hover .hero-img.static-thumb { opacity: 1; transform: scale(1.05); filter: grayscale(0%); }
         
-        .hero-category-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 8vw; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 20; pointer-events: none; text-align: center; width: 100%; opacity: 1; transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+        .hero-category-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: clamp(40px, 8vw, 120px); font-weight: 900; text-transform: uppercase; letter-spacing: -2px; color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 20; pointer-events: none; text-align: center; width: 100%; opacity: 1; transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
         .hero-section:hover .hero-category-label { opacity: 0; }
 
         .yt-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
         
         .contact-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 30; width: 100%; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 0; transition: gap 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
         .contact-content.shift-layout { gap: 50px; }
-        .contact-title { font-size: 80px; font-weight: 900; color: #333; margin: 0; letter-spacing: -2px; display: inline-block; white-space: nowrap; }
+        .contact-title { font-size: clamp(40px, 6vw, 80px); font-weight: 900; color: #333; margin: 0; letter-spacing: -2px; display: inline-block; white-space: nowrap; }
         #lets-create-text span { display: inline-block; color: #333; transition: color 0.2s ease-out, text-shadow 0.2s ease-out, transform 0.2s ease-out; will-change: color, transform; }
         .vertical-line { width: 1px; height: 0; background-color: rgba(255, 255, 255, 0.4); margin: 0; opacity: 0; transition: height 0.6s cubic-bezier(0.22, 1, 0.36, 1), margin 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease; }
         .contact-content.shift-layout .vertical-line { height: 80px; margin: 0 40px; opacity: 1; transition-delay: 0.4s; }
@@ -585,18 +521,30 @@ export default function HomePage() {
         .contact-widget:hover .contact-details, .contact-widget.expanded .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
         
         .contact-icon { width: 38px; height: 38px; background: #fff; color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
-        
         .contact-details { opacity: 0; white-space: nowrap; margin-left: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; pointer-events: none; transition: opacity 0.3s ease 0.1s, margin-left 0.4s ease; }
-        
         .contact-link { color: #ccc; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; transition: all 0.3s; }
         .contact-link:hover { color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.6); }
-        
         .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #F4D03F; margin-right: 10px; width: 60px; font-weight: 700; }
 
+        /* ==============================================================
+           TABLET (iPad) OPTIMIZATION
+           ============================================================== */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .about-grid { display: flex !important; flex-direction: column !important; justify-content: center !important; }
+            .card-target-left { display: none !important; }
+            .text-layer-1 { width: 90% !important; }
+            .text-layer-2 { width: 90% !important; }
+            .nav-links { gap: 15px !important; margin: 0 15px !important; }
+            .hero-category-label { opacity: 1 !important; transform: translate(-50%, -50%) !important; color: #fff; text-shadow: 0 5px 15px rgba(0,0,0,0.8); }
+        }
+
+        /* ==============================================================
+           MOBILE (iPhone) OPTIMIZATION
+           ============================================================== */
         @media (max-width: 768px) {
             .about-grid { display: block !important; }
             .card-target-left { display: none !important; }
-            .hero-category-label { opacity: 1 !important; transform: translate(-50%, -50%) !important; color: #fff; }
+            .hero-category-label { opacity: 1 !important; transform: translate(-50%, -50%) !important; color: #fff; text-shadow: 0 5px 15px rgba(0,0,0,0.8); }
             .smart-nav { flex-direction: column !important; align-items: flex-start !important; width: 90% !important; max-width: 350px !important; height: 60px; overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; }
             .smart-nav.mobile-active { position: fixed !important; top: 0 !important; left: 0 !important; transform: none !important; width: 100vw !important; max-width: none !important; height: 100vh !important; border-radius: 0 !important; background: #000 !important; border: none !important; padding: 30px !important; justify-content: flex-start !important; align-items: center !important; z-index: 9000 !important; }
             .nav-header { display: flex !important; width: 100%; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
@@ -606,21 +554,17 @@ export default function HomePage() {
             .smart-nav.mobile-active .nav-links { opacity: 1 !important; transform: translateY(0) !important; pointer-events: auto !important; visibility: visible !important; }
             .nav-item { font-size: 28px !important; font-weight: 700 !important; letter-spacing: 2px !important; }
             
-            .main-title { font-size: 13vw; }
-            .subtitle { font-size: 16px; padding: 0 20px; }
+            .subtitle { padding: 0 20px; }
             .intro-text { position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 100% !important; padding: 0 20px; }
 
-            .credit-text {
-                font-size: 9px;
-                margin-bottom: 15px;
-            }
+            .credit-text { font-size: 9px; margin-bottom: 15px; }
 
             .text-container { height: 100vh !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; padding: 0 20px; }
-            .text-layer-1 { font-size: 28px; width: 90%; line-height: 1.3; }
+            .text-layer-1 { width: 95%; line-height: 1.3; }
             
             .text-layer-2 { position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 100% !important; display: flex !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; text-align: center !important; padding: 0 20px !important; pointer-events: none; }
             
-            .details-text { font-size: 16px; line-height: 1.5; color: #eee; text-align: center !important; margin-bottom: 20px; width: 100%; }
+            .details-text { line-height: 1.5; color: #eee; text-align: center !important; margin-bottom: 20px; width: 100%; }
             .experience-list { text-align: left; display: inline-block; margin-top: 10px; width: 100%; max-width: 100% !important; }
             
             .experience-item { flex-direction: column; align-items: center; text-align: center; gap: 5px; }
@@ -629,7 +573,7 @@ export default function HomePage() {
             
             .contact-content { flex-direction: column !important; gap: 30px; }
             .contact-content.shift-layout { gap: 40px; transform: translate(-50%, -60%); }
-            .contact-title { font-size: 15vw; white-space: normal; text-align: center; }
+            .contact-title { white-space: normal; text-align: center; }
             .vertical-line { width: 1px; height: 40px !important; margin: 20px 0 !important; }
             .contact-content.shift-layout .vertical-line { height: 60px !important; }
             .qr-container { transform: translateY(20px); }
@@ -637,7 +581,7 @@ export default function HomePage() {
         }
       `}</style>
 
-      {/* Preloader */}
+      {/* DOM 結構保持不變 */}
       <div className={`preloader ${!isLoading ? 'hidden' : ''}`}>
           <span className="loader"></span>
       </div>
@@ -670,13 +614,7 @@ export default function HomePage() {
           </div>
 
           <div className="intro-section" id="intro-trigger">
-            <video 
-              autoPlay 
-              loop 
-              muted 
-              playsInline 
-              className="landing-bg-video"
-            >
+            <video autoPlay loop muted playsInline className="landing-bg-video">
               <source src="/images/3dvideo/capsule%20mograph.mp4" type="video/mp4" />
             </video>
             <div className="landing-video-overlay"></div>
@@ -698,45 +636,28 @@ export default function HomePage() {
               <div className="about-grid">
                 <div className="card-target-left" id="profile-anchor"></div>
                 <div className="text-container">
-                  
                   <div className="text-layer-1" id="text-reveal-source">
                     I am a <span className="headline-accent">MultiMedia Designer</span>, currently working in a digital marketing agency based in Hong Kong more than 4 years.
                   </div>
-                  
                   <div className="text-layer-2" id="text-details-block">
                     <div className="details-text">
                       I am professional in <span className="headline-accent">UIUX and graphic design</span>, 2D/3D animation design, video and photography editing. I hold a Bachelor of Engineering (Honours) in Product Analysis and Engineering Design from <span className="headline-accent">The Hong Kong Polytechnic University</span>.
                     </div>
-                    
                     <div className="experience-list">
-                        
                         <div className="experience-item">
-                            <div className="exp-left">
-                                <span className="exp-date">Aug 2025 - Now</span>
-                                <span className="exp-role">Senior Graphic Designer</span>
-                            </div>
+                            <div className="exp-left"><span className="exp-date">Aug 2025 - Now</span><span className="exp-role">Senior Graphic Designer</span></div>
                             <div className="exp-company">RFI (Asia) Limited</div>
                         </div>
-
                         <div className="experience-item">
-                            <div className="exp-left">
-                                <span className="exp-date">Jan 2025 - July 2025</span>
-                                <span className="exp-role">Senior Creative & Multimedia Designer</span>
-                            </div>
+                            <div className="exp-left"><span className="exp-date">Jan 2025 - July 2025</span><span className="exp-role">Senior Creative & Multimedia Designer</span></div>
                             <div className="exp-company">Pontac Digital Limited</div>
                         </div>
-
                         <div className="experience-item">
-                            <div className="exp-left">
-                                <span className="exp-date">Aug 2022 - Dec 2024</span>
-                                <span className="exp-role">Creative & Multimedia Designer</span>
-                            </div>
+                            <div className="exp-left"><span className="exp-date">Aug 2022 - Dec 2024</span><span className="exp-role">Creative & Multimedia Designer</span></div>
                             <div className="exp-company">Pontac Digital Limited</div>
                         </div>
-
                     </div>
                   </div>
-
                 </div>
               </div>
             </div>
@@ -745,10 +666,7 @@ export default function HomePage() {
           <div className="overview-section" id="overview-section">
             <div className="overview-title" id="overview-title">WORK OVERVIEW</div>
             <div className="overview-subtitle" id="overview-subtitle">Select a category to explore details</div>
-            <div className="scroll-prompt">
-              <div className="scroll-text">SCROLL</div>
-              <div className="scroll-line"></div>
-            </div>
+            <div className="scroll-prompt"><div className="scroll-text">SCROLL</div><div className="scroll-line"></div></div>
           </div>
 
           <div className="gallery-wrapper" id="gallery-container">
@@ -756,15 +674,7 @@ export default function HomePage() {
               const data = portfolioData[cat.id];
               return (
                 <Link key={cat.id} href={`/${cat.id}`}>
-                    <div 
-                        className="hero-section"
-                        onMouseEnter={() => {
-                            if (data?.type === 'yt') setActiveYt(cat.id);
-                        }}
-                        onMouseLeave={() => {
-                            if (data?.type === 'yt') setActiveYt(null);
-                        }}
-                    >
+                    <div className="hero-section" onMouseEnter={() => { if (data?.type === 'yt') setActiveYt(cat.id); }} onMouseLeave={() => { if (data?.type === 'yt') setActiveYt(null); }}>
                     <div className="hero-img-wrapper">
                         {data?.type === 'yt' ? (
                             <>
@@ -776,14 +686,7 @@ export default function HomePage() {
                                 </div>
                             </>
                         ) : data?.type === 'local_vid' ? (
-                            <video 
-                                src={data.src} 
-                                className="hero-img static-thumb" 
-                                autoPlay 
-                                loop 
-                                muted 
-                                playsInline 
-                            />
+                            <video src={data.src} className="hero-img static-thumb" autoPlay loop muted playsInline />
                         ) : (
                             <img src={data?.src || '/images/placeholder.jpg'} className="hero-img static-thumb" alt={`${cat.label} Cover`} />
                         )}
@@ -801,9 +704,7 @@ export default function HomePage() {
                 <div className="contact-content" id="contact-content-wrapper">
                     <div className="contact-title" id="lets-create-text">Let's Create.</div>
                     <div className="vertical-line"></div>
-                    <div className="qr-container" id="qr-target">
-                        <img src="/ig-qrcode.png" alt="Instagram QR Code" className="qr-code-img" />
-                    </div>
+                    <div className="qr-container" id="qr-target"><img src="/ig-qrcode.png" alt="Instagram QR Code" className="qr-code-img" /></div>
                 </div>
             </div>
           </div>

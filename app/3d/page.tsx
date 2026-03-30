@@ -12,10 +12,14 @@ export default function ThreeDPage() {
   const ueRef = useRef<HTMLDivElement>(null);
   const liveRef = useRef<HTMLDivElement>(null);
   
-  const ytRef = useRef<HTMLDivElement>(null); // 1️⃣ Landing 場景 (Star Wars)
-  const ytCarRef = useRef<HTMLDivElement>(null); // 2️⃣ Car 場景 (移到了 Landing 之後的第一條)
-  const yt1Ref = useRef<HTMLDivElement>(null); // 3️⃣ YT 場景 (Forest)
-  const yt2Ref = useRef<HTMLDivElement>(null); // 4️⃣ YT 場景 (Video 2)
+  const ytRef = useRef<HTMLDivElement>(null); 
+  const ytCarRef = useRef<HTMLDivElement>(null); 
+  const owlRef = useRef<HTMLDivElement>(null); 
+  const yt1Ref = useRef<HTMLDivElement>(null); 
+  const yt2Ref = useRef<HTMLDivElement>(null); 
+  
+  const basketRef = useRef<HTMLDivElement>(null); // 對應 basketball mocap (male aim ocap)
+  const poseRef = useRef<HTMLDivElement>(null);   // 對應 male 7pose
   
   const freshRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -26,17 +30,17 @@ export default function ThreeDPage() {
       setIsLoading(false);
     }, 1000);
 
-    let animationFrameId: number;
-
-    // 延遲顯示 Production 的卡片動畫
     setTimeout(() => { 
         const prodCards = document.querySelectorAll('.production-group .video-card');
         prodCards.forEach((card: any) => { 
             card.style.animation = 'none'; 
             card.style.opacity = '1';        
-            card.style.transform = 'translateY(0)'; 
+            card.style.transform = 'translate3d(0, 0, 0)'; 
         }); 
     }, 1900);
+
+    let animationFrameId: number;
+    let currentProgress = 0; 
 
     const animate = () => {
         const windowHeight = window.innerHeight;
@@ -50,247 +54,85 @@ export default function ThreeDPage() {
 
         if (trackRef.current) {
             const trackRect = trackRef.current.getBoundingClientRect();
-            // 計算目前滾動在整個軌道中的進度比例
             const totalDistance = trackRect.height - windowHeight;
-            let progress = 0;
-            if (trackRect.top <= 0) progress = Math.abs(trackRect.top) / totalDistance;
-            progress = Math.max(0, Math.min(progress, 1));
+            
+            let targetProgress = 0;
+            if (trackRect.top <= 0) targetProgress = Math.abs(trackRect.top) / totalDistance;
+            targetProgress = Math.max(0, Math.min(targetProgress, 1));
 
-            const cgHero = heroRef.current;
-            const productionSection = prodRef.current;
-            const header = headerRef.current;
-            const layerUE = ueRef.current;
-            const layerLive = liveRef.current;
-            const layerYT = ytRef.current; 
-            const layerYTCar = ytCarRef.current; 
-            const layerYT1 = yt1Ref.current; 
-            const layerYT2 = yt2Ref.current; 
-            const layerFresh = freshRef.current;
+            // LERP Smoothing
+            currentProgress += (targetProgress - currentProgress) * 0.15; 
+            
+            if (Math.abs(targetProgress - currentProgress) < 0.0001) {
+                currentProgress = targetProgress;
+            }
 
-            if (cgHero && productionSection && header && layerUE && layerLive && layerYT && layerYTCar && layerYT1 && layerYT2 && layerFresh) {
+            // 總共 12 個圖層 (乘數為 11)
+            const viewportIndex = currentProgress * 11; 
+
+            // 🚀 依照最新需求的圖層順序
+            const layers = [
+                { el: ytRef.current, type: 'standard' },           // 0: StarWars
+                { el: ytCarRef.current, type: 'standard' },        // 1: 車
+                { el: heroRef.current, type: 'centered' },         // 2: CGI Hero
+                { el: prodRef.current, type: 'centered' },         // 3: CGI Production
+                { el: ueRef.current, type: 'standard' },           // 4: SheShido XR
+                { el: liveRef.current, type: 'standard' },         // 5: Live Set up
+                { el: owlRef.current, type: 'standard' },          // 6: Owl
+                { el: basketRef.current, type: 'standard' },       // 7: Male aim ocap (basketball mocap)
+                { el: poseRef.current, type: 'standard' },         // 8: Male 7pose
+                { el: yt1Ref.current, type: 'standard' },          // 9: YT1 Forest
+                { el: yt2Ref.current, type: 'standard' },          // 10: YT2 Car Showcase
+                { el: freshRef.current, type: 'standard' }         // 11: Fresh Metaverse
+            ];
+
+            layers.forEach((layer, index) => {
+                if (!layer.el) return;
                 
-                // 1. YT HERO (Landing) EXIT -> CAR YT ENTER (0.00 - 0.08)
-                if (progress < 0.08) {
-                    const p = progress / 0.08; 
-                    layerYT.style.transform = `translateY(-${p * 100}vh)`;
-                    layerYT.style.opacity = '1';
-                    
-                    header.style.transform = `translate(-50%, calc(-50% - ${p * 100}vh))`;
-                    header.style.opacity = '1';
+                const offsetPx = (index - viewportIndex) * windowHeight;
+                const isOffScreen = offsetPx < -windowHeight * 1.5 || offsetPx > windowHeight * 1.5;
 
-                    layerYTCar.style.transform = `translateY(${100 - p * 100}vh)`;
-                    layerYTCar.style.opacity = '1';
-                    layerYTCar.style.pointerEvents = 'none';
+                if (isOffScreen) {
+                    layer.el.style.visibility = 'hidden';
+                    layer.el.style.opacity = '0';
+                    layer.el.style.pointerEvents = 'none';
 
-                    cgHero.style.transform = isMobile 
-                        ? `translate(-50%, 100vh)` 
-                        : `translate(-50%, calc(-50% + 100vh))`;
-                    cgHero.style.opacity = '0';
-                } 
-                
-                // 2. CAR YT ACTIVE (0.08 - 0.15)
-                else if (progress >= 0.08 && progress < 0.15) {
-                    layerYT.style.transform = `translateY(-100vh)`;
-                    header.style.transform = `translate(-50%, calc(-50% - 100vh))`;
-                    
-                    layerYTCar.style.transform = `translateY(0)`;
-                    layerYTCar.style.opacity = '1';
-                    layerYTCar.style.pointerEvents = 'auto';
-
-                    cgHero.style.transform = isMobile 
-                        ? `translate(-50%, 100vh)` 
-                        : `translate(-50%, calc(-50% + 100vh))`;
-                    cgHero.style.opacity = '0';
-                }
-
-                // 3. CAR YT EXIT -> CG HERO ENTER (0.15 - 0.20)
-                else if (progress >= 0.15 && progress < 0.20) {
-                    const p = (progress - 0.15) / 0.05; 
-                    layerYTCar.style.transform = `translateY(-${p * 100}vh)`;
-                    layerYTCar.style.opacity = '1';
-                    layerYTCar.style.pointerEvents = 'none';
-                    
-                    cgHero.style.transform = isMobile 
-                        ? `translate(-50%, ${100 - p * 100}vh)`
-                        : `translate(-50%, calc(-50% + ${100 - p * 100}vh))`;
-                    cgHero.style.opacity = '1';
-                    
-                    productionSection.style.transform = isMobile
-                        ? `translate(-50%, 100vh)`
-                        : `translate(-50%, calc(-50% + 100vh))`;
-                    productionSection.style.opacity = '0';
-                }
-
-                // 4. CG HERO ACTIVE (0.20 - 0.27)
-                else if (progress >= 0.20 && progress < 0.27) {
-                    layerYTCar.style.transform = `translateY(-100vh)`;
-                    
-                    cgHero.style.transform = isMobile ? `translate(-50%, 0)` : `translate(-50%, -50%)`; 
-                    cgHero.style.opacity = '1';
-
-                    productionSection.style.opacity = '0';
-                }
-
-                // 5. CG HERO EXIT -> PRODUCTION ENTER (0.27 - 0.32)
-                else if (progress >= 0.27 && progress < 0.32) {
-                    const p = (progress - 0.27) / 0.05; 
-                    cgHero.style.transform = isMobile 
-                        ? `translate(-50%, -${p * 100}vh)`
-                        : `translate(-50%, calc(-50% - ${p * 100}vh))`;
-                    cgHero.style.opacity = '1';
-                    
-                    productionSection.style.transform = isMobile
-                        ? `translate(-50%, ${100 - p * 100}vh)`
-                        : `translate(-50%, calc(-50% + ${100 - p * 100}vh))`;
-                    productionSection.style.opacity = '1';
-
-                    layerUE.style.transform = `translateY(100vh)`;
-                    layerUE.style.opacity = '0';
-                }
-
-                // 6. PRODUCTION SCROLL (0.32 - 0.47)
-                else if (progress >= 0.32 && progress < 0.47) {
-                    cgHero.style.opacity = '0';
-                    productionSection.style.opacity = '1';
-                    
-                    if (isMobile) {
-                        const prodScrollP = (progress - 0.32) / 0.15; 
-                        productionSection.style.transform = `translate(-50%, -${prodScrollP * 150}vh)`;
-                    } else {
-                        productionSection.style.transform = `translate(-50%, -50%)`;
+                    if (layer.el.dataset.playing === 'true') {
+                        const vids = layer.el.querySelectorAll('video');
+                        vids.forEach(v => v.pause());
+                        layer.el.dataset.playing = 'false';
                     }
-                    
-                    layerUE.style.transform = `translateY(100vh)`;
-                    layerUE.style.opacity = '0';
-                }
+                } else {
+                    layer.el.style.visibility = 'visible';
+                    layer.el.style.opacity = '1';
+                    layer.el.style.pointerEvents = Math.abs(offsetPx) < windowHeight * 0.2 ? 'auto' : 'none';
 
-                // 7. PRODUCTION EXIT -> UE ENTER (0.47 - 0.52)
-                else if (progress >= 0.47 && progress < 0.52) {
-                    const p = (progress - 0.47) / 0.05;
-                    productionSection.style.opacity = '1';
-                    
-                    if (isMobile) {
-                        productionSection.style.transform = `translate(-50%, calc(-150vh - ${p*100}vh))`;
-                    } else {
-                        productionSection.style.transform = `translate(-50%, calc(-50% - ${p*100}vh))`;
+                    if (layer.el.dataset.playing !== 'true') {
+                        const vids = layer.el.querySelectorAll('video');
+                        vids.forEach(v => {
+                            const playPromise = v.play();
+                            if (playPromise !== undefined) {
+                                playPromise.catch(() => {});
+                            }
+                        });
+                        layer.el.dataset.playing = 'true';
                     }
-
-                    layerUE.style.transform = `translateY(${100 - p*100}vh)`;
-                    layerUE.style.opacity = '1';
-
-                    layerLive.style.transform = `translateY(100vh)`;
-                    layerLive.style.opacity = '0';
                 }
 
-                // 8. UE ACTIVE (0.52 - 0.60)
-                else if (progress >= 0.52 && progress < 0.60) {
-                    productionSection.style.opacity = '0';
-                    
-                    layerUE.style.transform = `translateY(0)`;
-                    layerUE.style.opacity = '1';
-                    
-                    layerLive.style.transform = `translateY(100vh)`;
-                    layerLive.style.opacity = '0';
+                if (layer.type === 'centered') {
+                    layer.el.style.transform = isMobile
+                        ? `translate3d(-50%, ${offsetPx}px, 0)`
+                        : `translate3d(-50%, calc(-50% + ${offsetPx}px), 0)`;
+                } else {
+                    layer.el.style.transform = `translate3d(0, ${offsetPx}px, 0)`;
                 }
+            });
 
-                // 9. UE EXIT -> LIVE ENTER (0.60 - 0.65)
-                else if (progress >= 0.60 && progress < 0.65) {
-                    const p = (progress - 0.60) / 0.05;
-                    layerUE.style.transform = `translateY(-${p*100}vh)`;
-                    layerUE.style.opacity = '1';
-
-                    layerLive.style.transform = `translateY(${100 - p*100}vh)`;
-                    layerLive.style.opacity = '1';
-
-                    layerYT1.style.transform = `translateY(100vh)`;
-                    layerYT1.style.opacity = '0';
-                }
-
-                // 10. LIVE ACTIVE (0.65 - 0.70)
-                else if (progress >= 0.65 && progress < 0.70) {
-                    layerUE.style.opacity = '0';
-                    
-                    layerLive.style.transform = 'translateY(0)';
-                    layerLive.style.opacity = '1';
-                    
-                    layerYT1.style.transform = `translateY(100vh)`;
-                    layerYT1.style.opacity = '0';
-                    layerYT1.style.pointerEvents = 'none';
-                }
-
-                // 11. LIVE EXIT -> YT1 ENTER (0.70 - 0.75)
-                else if (progress >= 0.70 && progress < 0.75) {
-                    const p = (progress - 0.70) / 0.05;
-                    layerLive.style.transform = `translateY(-${p*100}vh)`;
-                    layerLive.style.opacity = '1';
-                    
-                    layerYT1.style.transform = `translateY(${100 - p*100}vh)`;
-                    layerYT1.style.opacity = '1';
-                    layerYT1.style.pointerEvents = 'none';
-
-                    layerYT2.style.transform = `translateY(100vh)`;
-                    layerYT2.style.opacity = '0';
-                }
-
-                // 12. YT1 ACTIVE (0.75 - 0.81)
-                else if (progress >= 0.75 && progress < 0.81) {
-                    layerLive.style.opacity = '0';
-                    
-                    layerYT1.style.transform = 'translateY(0)';
-                    layerYT1.style.opacity = '1';
-                    layerYT1.style.pointerEvents = 'auto';
-                    
-                    layerYT2.style.transform = `translateY(100vh)`;
-                    layerYT2.style.opacity = '0';
-                    layerYT2.style.pointerEvents = 'none';
-                }
-
-                // 13. YT1 EXIT -> YT2 ENTER (0.81 - 0.86)
-                else if (progress >= 0.81 && progress < 0.86) {
-                    const p = (progress - 0.81) / 0.05;
-                    layerYT1.style.transform = `translateY(-${p*100}vh)`;
-                    layerYT1.style.opacity = '1';
-                    layerYT1.style.pointerEvents = 'none';
-                    
-                    layerYT2.style.transform = `translateY(${100 - p*100}vh)`;
-                    layerYT2.style.opacity = '1';
-                    layerYT2.style.pointerEvents = 'none';
-
-                    layerFresh.style.transform = `translateY(100vh)`;
-                    layerFresh.style.opacity = '0';
-                }
-
-                // 14. YT2 ACTIVE (0.86 - 0.92)
-                else if (progress >= 0.86 && progress < 0.92) {
-                    layerYT1.style.opacity = '0';
-                    
-                    layerYT2.style.transform = 'translateY(0)';
-                    layerYT2.style.opacity = '1';
-                    layerYT2.style.pointerEvents = 'auto';
-                    
-                    layerFresh.style.transform = `translateY(100vh)`;
-                    layerFresh.style.opacity = '0';
-                }
-
-                // 15. YT2 EXIT -> FRESH ENTER (0.92 - 0.97)
-                else if (progress >= 0.92 && progress < 0.97) {
-                    const p = (progress - 0.92) / 0.05;
-                    layerYT2.style.transform = `translateY(-${p*100}vh)`;
-                    layerYT2.style.opacity = '1';
-                    layerYT2.style.pointerEvents = 'none';
-                    
-                    layerFresh.style.transform = `translateY(${100 - p*100}vh)`;
-                    layerFresh.style.opacity = '1';
-                }
-
-                // 16. FRESH ACTIVE (0.97+)
-                else if (progress >= 0.97) {
-                    layerYT2.style.opacity = '0';
-                    layerYT2.style.pointerEvents = 'none';
-                    
-                    layerFresh.style.transform = `translateY(0)`;
-                    layerFresh.style.opacity = '1';
-                }
+            if (headerRef.current) {
+                const hOffsetPx = (0 - viewportIndex) * windowHeight;
+                headerRef.current.style.transform = `translate3d(-50%, calc(-50% + ${hOffsetPx}px), 0)`;
+                headerRef.current.style.opacity = Math.abs(hOffsetPx) > windowHeight * 0.5 ? '0' : '1';
+                headerRef.current.style.visibility = Math.abs(hOffsetPx) > windowHeight * 0.5 ? 'hidden' : 'visible';
             }
         }
 
@@ -315,7 +157,7 @@ export default function ThreeDPage() {
         }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     animationFrameId = requestAnimationFrame(animate);
 
     return () => {
@@ -361,16 +203,18 @@ export default function ThreeDPage() {
     <>
       {/* @ts-ignore */}
       <style jsx global>{`
-        /* PERFORMANCE & RESET */
         * { box-sizing: border-box; }
-        
-        /* 💡 徹底移除所有平滑滾動阻力，確保為純淨原生滾動 */
         html, body { scroll-behavior: auto !important; }
         body { margin: 0; padding: 0; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #050505; background-image: radial-gradient(circle at 50% 30%, #1a1a1a 0%, #000000 70%); min-height: 100vh; overflow-x: hidden; }
         
+        .layer-yt, .layer-owl, .layer-ue, .layer-live, .layer-fresh, .cg-hero-section, .production-section, .header-content {
+            will-change: transform, opacity, visibility;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
         .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; mix-blend-mode: overlay; opacity: 0.06; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
         
-        /* Preloader */
         .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; display: flex; align-items: center; justify-content: center; }
         .preloader.hidden { opacity: 0; }
         .loader { width: 48px; height: 48px; border: 3px solid rgba(244, 208, 63, 0.2); border-radius: 50%; display: inline-block; position: relative; box-sizing: border-box; animation: rotation 1s linear infinite; }
@@ -378,28 +222,13 @@ export default function ThreeDPage() {
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* NAVBAR */
-        .smart-nav { 
-            position: fixed; top: 30px; left: 50%; transform: translateX(-50%); 
-            padding: 0 30px; display: flex; align-items: center; justify-content: space-between;
-            z-index: 2000; background: rgba(255, 255, 255, 0.05); 
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
-            border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); 
-            width: auto; min-width: 450px; height: 60px;
-            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); 
-            overflow: hidden;
-            cursor: pointer;
-        }
+        .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); padding: 0 30px; display: flex; align-items: center; justify-content: space-between; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; height: 60px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); overflow: hidden; cursor: pointer; }
         .nav-header { display: contents; }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
         .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; order: 2; margin: 0 40px; }
-        
         .nav-item { text-decoration: none; color: #fff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
         .nav-item:hover, .nav-item.active { color: #F4D03F; }
-        
-        .menu-icon { 
-            width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; 
-            pointer-events: none; z-index: 2005; order: 3; margin-left: 0;
-        }
+        .menu-icon { width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; pointer-events: none; z-index: 2005; order: 3; margin-left: 0; }
         .menu-line { width: 100%; height: 1px; background-color: #fff; transition: all 0.3s ease; transform-origin: center; }
         .menu-icon.open .menu-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
         .menu-icon.open .menu-line:nth-child(2) { opacity: 0; }
@@ -409,104 +238,64 @@ export default function ThreeDPage() {
             .smart-nav:hover, .smart-nav.force-expand { min-width: 650px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
             .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; gap: 25px !important; pointer-events: auto !important; display: flex !important; } 
         }
-        
         .smart-nav.collapsed { min-width: 150px; background: rgba(255, 255, 255, 0.05); padding: 0 20px; } 
         .smart-nav.collapsed .nav-links { max-width: 0; opacity: 0; gap: 0; pointer-events: none; } 
         .smart-nav.collapsed .nav-logo { margin-right: 10px; } 
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
-
         .mobile-menu-overlay { display: none; }
         
-        /* 💡 延長 Track 高度以容納新的影片層 */
-        .sequence-track { height: 1400vh; position: relative; z-index: 10; }
-        @media (max-width: 768px) { .sequence-track { height: 1700vh; } } 
-
+        .sequence-track { height: 1200vh; position: relative; z-index: 10; }
         .sticky-viewport { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         
-        /* YOUTUBE/VIDEO FULLSCREEN LAYERS */
-        .layer-yt { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            pointer-events: none; opacity: 1; 
-            display: flex; align-items: center; justify-content: center; 
-            background: #000; overflow: hidden; 
-        }
+        .layer-yt { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 1; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
+        .layer-owl { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 17; pointer-events: none; opacity: 0; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
+        .owl-video { width: 100vw; height: 100vh; object-fit: cover; }
         
-        /* Z-index Management 更新順序 */
-        #layer-yt { z-index: 1; }
-        #layer-yt-car { z-index: 2; opacity: 0; }
-        #layer-yt1 { z-index: 17; opacity: 0; }
-        #layer-yt2 { z-index: 18; opacity: 0; }
-        
-        .layer-yt iframe { 
-            width: 100vw; 
-            height: 56.25vw; /* 16:9 aspect ratio */
-            min-height: 100vh; 
-            min-width: 177.77vh; 
-            position: absolute; 
-            top: 50%; left: 50%; 
-            transform: translate(-50%, -50%);
+        .landing-vid-target {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            transform: translate(-50%, -50%) scale(1.7);
             pointer-events: none;
         }
 
-        /* 💡 特殊處理：Star Wars 影片拉到極大 (1.8 倍) 確保黑邊完全裁切 */
-        #layer-yt iframe {
-            transform: translate(-50%, -50%) scale(1.8);
-        }
+        #layer-yt { z-index: 1; }
+        #layer-yt-car { z-index: 2; opacity: 0; }
+        #layer-owl { z-index: 17; opacity: 0; }
+        #layer-yt1 { z-index: 18; opacity: 0; }
+        #layer-yt2 { z-index: 19; opacity: 0; }
+        
+        .layer-yt iframe { width: 100vw; height: 56.25vw; min-height: 100vh; min-width: 177.77vh; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }
 
-        /* WATCH YOUTUBE BUTTON */
-        .yt-watch-btn {
-            position: absolute;
-            bottom: 12%;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 30px;
-            border: 1px solid rgba(255,255,255,0.4);
-            background: rgba(0,0,0,0.6);
-            color: #fff;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            text-decoration: none;
-            border-radius: 30px;
-            backdrop-filter: blur(5px);
-            transition: all 0.3s ease;
-            z-index: 10;
-            pointer-events: auto;
-        }
-        .yt-watch-btn:hover {
-            background: #fff;
-            color: #000;
-            border-color: #fff;
-        }
+        .yt-watch-btn { position: absolute; bottom: 12%; left: 50%; transform: translateX(-50%); padding: 12px 30px; border: 1px solid rgba(255,255,255,0.4); background: rgba(0,0,0,0.6); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; border-radius: 30px; backdrop-filter: blur(5px); transition: all 0.3s ease; z-index: 10; pointer-events: auto; }
+        .yt-watch-btn:hover { background: #fff; color: #000; border-color: #fff; }
 
-        /* HEADER */
-        .header-content { text-align: center; width: 100%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; pointer-events: none; transition: none; }
+        .header-content { text-align: center; width: 100%; position: absolute; top: 50%; left: 50%; transform: translate3d(-50%, -50%, 0); z-index: 5; pointer-events: none; transition: none; }
         h1.page-title { font-size: 80px; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -2px; color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .page-desc { margin-top: 20px; font-size: 16px; color: #ddd; max-width: 600px; display: inline-block; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
         
-        /* VIDEO CARDS */
         .video-card { width: 100%; height: 100%; border-radius: 8px; overflow: hidden; position: relative; background: #111; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         video { width: 100%; height: 100%; object-fit: cover; }
         .video-caption { position: absolute; bottom: 20px; left: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: rgba(255,255,255,0.9); z-index: 2; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
         .video-number { position: absolute; bottom: 10px; left: 15px; font-size: 80px; font-weight: 100; line-height: 1; color: transparent; -webkit-text-stroke: 1px rgba(255, 255, 255, 0.7); z-index: 3; pointer-events: none; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
         .video-desc { position: absolute; top: 20px; left: 20px; font-size: 12px; font-weight: 700; letter-spacing: 2px; color: #fff; z-index: 3; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
         
-        /* HERO GALLERY */
-        .cg-hero-section { position: absolute; top: 50%; left: 50%; transform: translate(-50%, calc(-50% + 100vh)); display: flex; justify-content: center; gap: 10px; width: 95vw; height: 50vh; z-index: 30; opacity: 0; }
+        .cg-hero-section { position: absolute; top: 50%; left: 50%; transform: translate3d(-50%, calc(-50% + 100vh), 0); display: flex; justify-content: center; gap: 10px; width: 95vw; height: 50vh; z-index: 30; opacity: 0; }
         .hero-strip { flex: 1; height: 100%; transition: flex 0.4s cubic-bezier(0.22, 1, 0.36, 1); position: relative; }
         .hero-strip:hover { flex: 1.5; }
         
-        /* PRODUCTION */
-        .production-section { position: absolute; top: 50%; left: 50%; transform: translate(-50%, calc(-50% + 100vh)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px; z-index: 20; width: 100%; opacity: 0; }
+        .production-section { position: absolute; top: 50%; left: 50%; transform: translate3d(-50%, calc(-50% + 100vh), 0); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px; z-index: 20; width: 100%; opacity: 0; }
         .section-title { font-size: 1.5vw; font-weight: 700; letter-spacing: 4px; color: #fff; text-transform: uppercase; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
         .production-group { display: flex; gap: 2vw; width: auto; }
         .prod-card-wrap { width: 25vw; aspect-ratio: 9/16; }
         
-        /* UNREAL ENGINE */
         .layer-ue { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 15; pointer-events: none; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .ue-header-group { text-align: center; margin-bottom: 4vh; }
-        .ue-big-title { font-size: 5vw; font-weight: 900; letter-spacing: -1px; color: #fff; margin: 0; text-shadow: 0 0 50px rgba(255,255,255,0.2); line-height: 1.1; }
+        /* 🚀 Header 細啲 */
+        .ue-big-title { font-size: 3.5vw; font-weight: 900; letter-spacing: -1px; color: #fff; margin: 0; text-shadow: 0 0 50px rgba(255,255,255,0.2); line-height: 1.1; }
         .ue-small-subtitle { font-size: 1.2vw; font-weight: 700; letter-spacing: 4px; color: #F4D03F; text-transform: uppercase; margin-top: 15px; }
         .ue-gallery { display: grid; grid-template-columns: 1fr 1.8fr; grid-template-rows: 1fr 1fr; gap: 1.5vw; width: 85vw; height: 50vh; }
         .ue-col-left, .ue-col-right { display: contents; }
@@ -519,10 +308,10 @@ export default function ThreeDPage() {
         .ue-img-wrapper:hover img { transform: scale(1.05); }
         .ue-label { position: absolute; bottom: 20px; left: 20px; background: rgba(255,255,255,0.9); color: #000; padding: 6px 16px; border-radius: 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); pointer-events: auto; }
         
-        /* LIVE SETUP */
         .layer-live { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 16; pointer-events: none; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .live-header-group { text-align: center; margin-bottom: 4vh; }
-        .live-big-title { font-size: 5vw; font-weight: 900; letter-spacing: -1px; color: #fff; margin: 0; text-shadow: 0 0 50px rgba(255,255,255,0.2); line-height: 1.1; }
+        /* 🚀 Header 細啲 */
+        .live-big-title { font-size: 3.5vw; font-weight: 900; letter-spacing: -1px; color: #fff; margin: 0; text-shadow: 0 0 50px rgba(255,255,255,0.2); line-height: 1.1; }
         .live-gallery { display: grid; grid-template-columns: 1fr 1.8fr; grid-template-rows: 1fr 1fr; gap: 1.5vw; width: 85vw; height: 50vh; }
         .live-col-left, .live-col-right { display: contents; }
         .live-col-left > .live-img-wrapper:nth-child(1) { grid-column: 1; grid-row: 1; }
@@ -533,7 +322,6 @@ export default function ThreeDPage() {
         .live-img-wrapper:hover img { transform: scale(1.05); }
         .live-label { position: absolute; bottom: 20px; left: 20px; background: rgba(255,255,255,0.9); color: #000; padding: 6px 16px; border-radius: 30px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); pointer-events: auto; }
         
-        /* FRESH METAVERSE GARDEN */
         .layer-fresh { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
         .fresh-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; filter: brightness(0.5); pointer-events: none; }
         .fresh-content { position: relative; z-index: 2; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 30px; }
@@ -544,7 +332,6 @@ export default function ThreeDPage() {
         .fresh-img-wrapper:hover { transform: scale(1.05); }
         .fresh-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* CONTACT WIDGET */
         .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; cursor: pointer; }
         .contact-icon { width: 38px; height: 38px; background: #fff; color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         .contact-details { opacity: 0; white-space: nowrap; margin-left: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; pointer-events: none; transition: opacity 0.3s ease 0.1s, margin-left 0.4s ease; }
@@ -558,7 +345,6 @@ export default function ThreeDPage() {
             .contact-widget:hover .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
         }
 
-        /* SCROLL PROMPT UI */
         .scroll-prompt { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; pointer-events: none; opacity: 0.8; transition: opacity 0.3s ease; }
         .scroll-prompt.hide { opacity: 0; }
         .scroll-text { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: rgba(255,255,255,0.7); text-transform: uppercase; }
@@ -577,11 +363,11 @@ export default function ThreeDPage() {
             .nav-header { display: flex !important; width: 100%; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
             .nav-logo { order: unset; margin-right: 0; }
             .menu-icon { order: unset; }
-            .nav-links { display: flex !important; flex-direction: column !important; width: 100% !important; opacity: 0; transform: translateY(20px); transition: all 0.4s ease 0.1s; pointer-events: none; margin-top: 0; height: 100%; justify-content: center; align-items: center; gap: 40px !important; order: unset; margin: 0; }
-            .smart-nav.mobile-active .nav-links { opacity: 1 !important; transform: translateY(0) !important; pointer-events: auto !important; visibility: visible !important; }
+            .nav-links { display: flex !important; flex-direction: column !important; width: 100% !important; opacity: 0; transform: translate3d(0, 20px, 0); transition: all 0.4s ease 0.1s; pointer-events: none; margin-top: 0; height: 100%; justify-content: center; align-items: center; gap: 40px !important; order: unset; margin: 0; }
+            .smart-nav.mobile-active .nav-links { opacity: 1 !important; transform: translate3d(0, 0, 0) !important; pointer-events: auto !important; visibility: visible !important; }
             .nav-item { font-size: 28px !important; font-weight: 700 !important; letter-spacing: 2px !important; }
 
-            .cg-hero-section { top: 50%; left: 50%; transform: translate(-50%, 100vh); flex-direction: column; width: 90vw; height: auto; gap: 30px; padding-bottom: 20vh; }
+            .cg-hero-section { top: 50%; left: 50%; transform: translate3d(-50%, 100vh, 0); flex-direction: column; width: 90vw; height: auto; gap: 30px; padding-bottom: 20vh; }
             .hero-strip { width: 100%; height: 35vh; flex: 1 !important; } 
             .video-card video { object-fit: cover; }
 
@@ -590,14 +376,15 @@ export default function ThreeDPage() {
             .prod-card-wrap { width: 80vw; aspect-ratio: 9/16; }
             .section-title { font-size: 6vw; margin-bottom: 20px; }
 
-            .ue-big-title { font-size: 8vw; }
+            /* 🚀 Mobile 尺寸也同步縮小 */
+            .ue-big-title { font-size: 6vw; }
             .ue-small-subtitle { font-size: 3.5vw; }
             .ue-gallery { display: flex; flex-direction: column; height: auto; width: 90vw; gap: 20px; }
             .ue-col-left, .ue-col-right { display: contents; }
             .ue-img-wrapper { width: 100%; height: 30vh; }
             .ue-col-right > .ue-img-wrapper { height: 40vh; }
 
-            .live-big-title { font-size: 8vw; }
+            .live-big-title { font-size: 6vw; }
             .live-gallery { display: flex; flex-direction: column; height: auto; width: 90vw; gap: 20px; }
             .live-col-left, .live-col-right { display: contents; }
             .live-img-wrapper { width: 100%; height: 30vh; }
@@ -610,7 +397,6 @@ export default function ThreeDPage() {
         }
       `}</style>
 
-      {/* Preloader */}
       <div className={`preloader ${!isLoading ? 'hidden' : ''}`}>
         <span className="loader"></span>
       </div>
@@ -648,24 +434,24 @@ export default function ThreeDPage() {
       <div className="sequence-track" id="sequence-track" ref={trackRef}>
         <div className="sticky-viewport">
             
-            {/* 🔴 1️⃣ Landing 場景 (Star Wars) */}
+            {/* 0. StarWars Landing */}
             <div className="layer-yt" id="layer-yt" ref={ytRef}>
-                <iframe 
-                    src="https://www.youtube.com/embed/n01WI9mwJwc?autoplay=1&mute=1&loop=1&playlist=n01WI9mwJwc&controls=0&modestbranding=1&playsinline=1" 
-                    title="Landing Background" 
-                    frameBorder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    allowFullScreen
-                ></iframe>
+                <video 
+                    src="/images/3dvideo/StarWars.mp4" 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline 
+                    className="landing-vid-target"
+                />
             </div>
 
-            {/* HEADER (OVERLAY ON TOP OF BG VIDEO) */}
             <div className="header-content" id="main-header" ref={headerRef}>
                 <h1 className="page-title">3D VISUAL</h1>
                 <div className="page-desc">Motion graphics, simulations, and rendered realities.</div>
             </div>
 
-            {/* 🔴 2️⃣ NEW: CAR YOUTUBE 場景 (移到這裡！) */}
+            {/* 1. 車 (Car YT Video) */}
             <div className="layer-yt" id="layer-yt-car" ref={ytCarRef}>
                 <iframe 
                     src="https://www.youtube.com/embed/TLvBs1C6v08?autoplay=1&mute=1&loop=1&playlist=TLvBs1C6v08&controls=0&modestbranding=1" 
@@ -679,6 +465,7 @@ export default function ThreeDPage() {
                 </a>
             </div>
 
+            {/* 2. CGI Hero Section */}
             <div className="cg-hero-section" id="cg-hero" ref={heroRef}>
                 <div className="hero-strip"><div className="video-card"><video src="/images/3dvideo/Kiehls Sogo.mp4" autoPlay loop muted playsInline></video><div className="video-caption">KIEHLS SOGO</div></div></div>
                 <div className="hero-strip"><div className="video-card"><video src="/images/3dvideo/Kiehls Taxi.mp4" autoPlay loop muted playsInline></video><div className="video-caption">KIEHLS TAXI</div></div></div>
@@ -687,6 +474,7 @@ export default function ThreeDPage() {
                 <div className="hero-strip"><div className="video-card"><video src="/images/3dvideo/L'Oreal Paris.mp4" autoPlay loop muted playsInline></video><div className="video-caption">L'OREAL</div></div></div>
             </div>
 
+            {/* 3. CGI PRODUCTION Section */}
             <div className="production-section" id="production-section" ref={prodRef}>
                 <h2 className="section-title">CGI PRODUCTION</h2>
                 <div className="production-group">
@@ -705,6 +493,7 @@ export default function ThreeDPage() {
                 </div>
             </div>
 
+            {/* 4. SheShido XR */}
             <div className="layer-ue" id="layer-ue" ref={ueRef}>
                 <div className="ue-header-group">
                     <h2 className="ue-big-title">SheShido XR Immersive wall Production</h2>
@@ -721,6 +510,7 @@ export default function ThreeDPage() {
                 </div>
             </div>
 
+            {/* 5. Live Set up */}
             <div className="layer-live" id="layer-live" ref={liveRef}>
                 <div className="live-header-group">
                      <h2 className="live-big-title">LIVE SETUP</h2>
@@ -736,7 +526,22 @@ export default function ThreeDPage() {
                 </div>
             </div>
 
-            {/* 🔴 3️⃣ YT LAYER 1 (Forest Video) */}
+            {/* 6. Owl */}
+            <div className="layer-owl" id="layer-owl" ref={owlRef}>
+                <video src="/images/3dvideo/Owl.mp4" autoPlay loop muted playsInline className="owl-video"></video>
+            </div>
+
+            {/* 7. Male aim ocap (對應 basketball mocap) */}
+            <div className="layer-yt" id="layer-basket" ref={basketRef}>
+                <video src="/images/3dvideo/basketball mocap.mp4" autoPlay loop muted playsInline className="owl-video"></video>
+            </div>
+
+            {/* 8. Male 7pose */}
+            <div className="layer-yt" id="layer-pose" ref={poseRef}>
+                <video src="/images/3dvideo/male 7pose.mp4" autoPlay loop muted playsInline className="owl-video"></video>
+            </div>
+
+            {/* 9. YT1 */}
             <div className="layer-yt" id="layer-yt1" ref={yt1Ref}>
                 <iframe 
                     src="https://www.youtube.com/embed/RCPgtif9A9U?autoplay=1&mute=1&loop=1&playlist=RCPgtif9A9U&controls=0&modestbranding=1" 
@@ -750,7 +555,7 @@ export default function ThreeDPage() {
                 </a>
             </div>
 
-            {/* 🔴 4️⃣ YT LAYER 2 (Star Wars Video) */}
+            {/* 10. YT2 */}
             <div className="layer-yt" id="layer-yt2" ref={yt2Ref}>
                 <iframe 
                     src="https://www.youtube.com/embed/9PNM7YJtU2U?autoplay=1&mute=1&loop=1&playlist=9PNM7YJtU2U&controls=0&modestbranding=1" 
@@ -764,6 +569,7 @@ export default function ThreeDPage() {
                 </a>
             </div>
 
+            {/* 11. Fresh */}
             <div className="layer-fresh" id="layer-fresh" ref={freshRef}>
                 <img src="/images/freshgarden.png" alt="Fresh Garden" className="fresh-bg" />
                 <div className="fresh-content">
