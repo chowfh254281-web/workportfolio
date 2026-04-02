@@ -7,20 +7,17 @@ export default function AiPage() {
   const [isContactExpanded, setIsContactExpanded] = useState(false);
 
   // Data 
-  // 🟢 更新了這裡的排列順序：iPhone -> Gundam -> Casio -> 其他順延
   const items = [
-    { type: 'video', src: '/images/AI_optimized/iPhone .mp4', year: 'AI GENERATED' },
+    { type: 'video', src: '/images/AI_optimized/chanel ring.mp4', year: 'Chanel Ring' },
+    { type: 'video', src: '/images/AI_optimized/iPhone .mp4', year: 'iPhone 17 Pro Max', responsive: true },
     { type: 'video', src: '/images/AI_optimized/gundam.mp4', year: 'AI GENERATED' },
-    { type: 'casio' }, // Casio Showcase 整行
+    { type: 'casio' }, 
     { type: 'video', src: "/images/AI_optimized/ai_1.mp4", year: 'AI GENERATED' },
-    { type: 'video', src: "/images/AI_optimized/ai_2.mp4", year: 'AI GENERATED' },
     { type: 'video', src: "/images/muji.mov", year: 'AI GENERATED' },
-    { type: 'image', src: "/images/AI_optimized/ai_img1.png", year: 'AI GENERATED' },
     { type: 'image', src: "/images/AI_optimized/ai_img2.png", year: 'AI GENERATED' }
   ];
 
   useEffect(() => {
-    // 移除載入畫面
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 500);
@@ -41,7 +38,6 @@ export default function AiPage() {
       requestAnimationFrame(raf);
     });
 
-    // 1. 影片自動播放的 Observer (改用 Class 選擇器，更穩定)
     const videoObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             const video = entry.target as HTMLVideoElement;
@@ -50,7 +46,7 @@ export default function AiPage() {
             if (entry.isIntersecting) {
                 const playPromise = video.play();
                 if (playPromise !== undefined) {
-                    playPromise.catch(() => { /* 忽略瀏覽器 autoplay 限制的報錯 */ });
+                    playPromise.catch(() => { });
                 }
                 if (container) container.classList.add('in-view');
             } else {
@@ -59,10 +55,8 @@ export default function AiPage() {
         });
     }, { threshold: 0.15 });
 
-    // 取得所有帶有 .auto-play-video 的影片並進行觀察
     document.querySelectorAll('.auto-play-video').forEach(vid => videoObserver.observe(vid));
 
-    // 2. Casio 卡片滾動浮現的 Observer
     const casioObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -73,12 +67,15 @@ export default function AiPage() {
 
     document.querySelectorAll('.casio-card').forEach(card => casioObserver.observe(card));
 
-    // Navbar & Scroll Prompt 邏輯
     const navbar = document.getElementById('navbar');
     const scrollPrompt = document.getElementById('scroll-prompt');
 
+    // 🟢 核心修改：處理 Scroll 邏輯
     const handleScroll = () => {
-        if (window.scrollY > 50) {
+        const scrollY = window.scrollY;
+
+        // Navbar 邏輯
+        if (scrollY > 50) {
             if (navbar && !navbar.classList.contains('mobile-active')) {
                 navbar.classList.add('collapsed');
             }
@@ -88,7 +85,13 @@ export default function AiPage() {
             navbar?.classList.remove('force-expand');
             scrollPrompt?.classList.remove('hide');
         }
+
+        // Contact Widget 自動展開邏輯
+        // 判斷是否捲動到接近底部 (預留 50px 緩衝)
+        const isAtBottom = (window.innerHeight + scrollY) >= (document.documentElement.scrollHeight - 50);
+        setIsContactExpanded(isAtBottom);
     };
+
     window.addEventListener('scroll', handleScroll);
 
     return () => {
@@ -134,7 +137,6 @@ export default function AiPage() {
     <>
       {/* @ts-ignore */}
       <style jsx global>{`
-        /* PERFORMANCE & RESET */
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; color: #fff; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #050505; background-image: radial-gradient(circle at 50% 30%, #1a1a1a 0%, #000000 70%); min-height: 100vh; overflow-x: hidden; }
         html.lenis, html.lenis body { height: auto; }
@@ -142,7 +144,6 @@ export default function AiPage() {
         .lenis.lenis-stopped { overflow: hidden; }
         .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; mix-blend-mode: overlay; opacity: 0.06; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
         
-        /* Preloader */
         .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; }
         .preloader.hidden { opacity: 0; }
 
@@ -160,8 +161,9 @@ export default function AiPage() {
         .nav-header { display: contents; }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
         .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; order: 2; margin: 0 40px; }
-        .nav-item { text-decoration: none; color: #ccc; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
+        .nav-item { text-decoration: none; color: #fff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
         .nav-item:hover, .nav-item.active { color: #F4D03F; }
+        
         .menu-icon { width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; pointer-events: none; z-index: 2005; order: 3; margin-left: 0; }
         .menu-line { width: 100%; height: 1px; background-color: #fff; transition: all 0.3s ease; transform-origin: center; }
         .menu-icon.open .menu-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
@@ -178,13 +180,10 @@ export default function AiPage() {
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
         .mobile-menu-overlay { display: none; }
 
-        /* VIDEO HERO */
-        .video-hero { 
-            position: relative; width: 100%; height: 100vh; overflow: hidden; 
-        }
+        .video-hero { position: relative; width: 100%; height: 100vh; height: 100svh; overflow: hidden; }
         .video-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
-        .video-bg video { width: 100%; height: 100%; object-fit: cover; }
-        .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1; pointer-events: none; }
+        .video-bg video { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+        .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.15); z-index: 1; pointer-events: none; }
         .hero-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; text-align: center; width: 100%; pointer-events: none; }
         h1.page-title { font-size: 80px; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -2px; color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.8); opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.2s; }
         .page-desc { margin-top: 20px; font-size: 16px; color: #ddd; max-width: 600px; display: inline-block; text-shadow: 0 2px 10px rgba(0,0,0,0.8); opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.4s; }
@@ -197,70 +196,22 @@ export default function AiPage() {
         .scroll-line::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fff; transform: translateY(-100%); animation: scrollFlow 2s cubic-bezier(0.77, 0, 0.175, 1) infinite; }
         @keyframes scrollFlow { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
         
-        /* FEED LAYOUT */
         .video-feed { width: 100%; display: flex; flex-direction: column; gap: 0; padding-bottom: 100px; }
         
-        /* CASIO SECTION STYLE (Now inside the feed flow) */
-        .casio-showcase-container {
-            width: 100%;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            background: #000;
-        }
-        .casio-showcase {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            padding: 100px 40px;
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .casio-card {
-            width: 25vw;
-            max-width: 300px;
-            aspect-ratio: 9/16;
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            opacity: 0;
-            transform: translateY(60px);
-            transition: opacity 1.8s cubic-bezier(0.22, 1, 0.36, 1), transform 1.8s cubic-bezier(0.22, 1, 0.36, 1);
-        }
+        .casio-showcase-container { width: 100%; border-bottom: 1px solid rgba(255,255,255,0.05); background: #000; }
+        .casio-showcase { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 100px 40px; width: 100%; max-width: 1200px; margin: 0 auto; }
+        .casio-card { width: 25vw; max-width: 300px; aspect-ratio: 9/16; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5); opacity: 0; transform: translateY(60px); transition: opacity 1.8s cubic-bezier(0.22, 1, 0.36, 1), transform 1.8s cubic-bezier(0.22, 1, 0.36, 1); }
         .casio-card.visible { opacity: 1; transform: translateY(0); }
-        .casio-card:nth-child(1) { transition-delay: 0s; }
-        .casio-card:nth-child(2) { transition-delay: 0.2s; }
-        .casio-card:nth-child(3) { transition-delay: 0.4s; }
         .casio-media { width: 100%; height: 100%; object-fit: cover; }
 
         .video-block { width: 100%; height: 90vh; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); background: #000; }
         .cover-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.8; transition: opacity 0.5s ease; }
         
-        .mixed-block { width: 100%; height: 90vh; position: relative; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); background: #000; }
-        .bg-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.6; filter: grayscale(20%); z-index: 1; }
-        
-        .fg-video-wrapper { 
-            position: absolute; 
-            top: 50%; 
-            right: 20%; 
-            transform: translateY(-50%); 
-            width: 25vw; 
-            aspect-ratio: 9/16; 
-            z-index: 5;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            border-radius: 12px;
-            overflow: hidden;
-            opacity: 0; 
-            transition: opacity 1.5s ease, transform 1.5s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        
-        .mixed-block.in-view .fg-video-wrapper { opacity: 1; transform: translateY(-50%) translateX(0); }
-        .mixed-block .fg-video-wrapper { transform: translateY(-50%) translateX(50px); }
-        .fg-video { width: 100%; height: 100%; object-fit: cover; }
+        .video-block.responsive-block { height: auto; min-height: 50vh; display: block; overflow: hidden; }
+        .cover-video.responsive-media { position: relative; height: auto; width: 100%; object-fit: contain; display: block; transform: scale(1.2); transform-origin: center center; }
 
         .video-info-overlay { position: absolute; bottom: 80px; left: 60px; z-index: 20; pointer-events: auto; max-width: 600px; }
-        .video-meta { font-size: 14px; color: #aaa; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
+        .video-meta { font-size: 18px; color: #fff; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
         
         @media (max-width: 768px) {
             .smart-nav { flex-direction: column !important; align-items: flex-start !important; width: 90% !important; max-width: 350px !important; height: 60px; overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; }
@@ -274,13 +225,9 @@ export default function AiPage() {
 
             h1.page-title { font-size: 13vw; }
             .page-desc { font-size: 14px; padding: 0 20px; }
-
             .video-info-overlay { bottom: 60px; left: 20px; right: 20px; } 
             .video-block, .mixed-block { height: 70vh; }
-            
-            .fg-video-wrapper { width: 60vw; right: 5%; top: 55%; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-            .bg-image { opacity: 0.4; }
-
+            .video-block.responsive-block { height: auto; min-height: 30vh; }
             .casio-showcase { flex-direction: column; gap: 20px; padding: 50px 20px; }
             .casio-card { width: 80vw; max-width: none; }
         }
@@ -321,25 +268,9 @@ export default function AiPage() {
         </div>
       </nav>
 
-      <div className="mobile-menu-overlay" id="mobile-menu">
-        <Link href="/uiux" className="mobile-link">UI/UX</Link>
-        <Link href="/graphic" className="mobile-link">Graphic</Link>
-        <Link href="/3d" className="mobile-link">3D</Link>
-        <Link href="/photography" className="mobile-link">Photography</Link>
-        <Link href="/video" className="mobile-link">Video</Link>
-        <Link href="/ai" className="mobile-link">AI Generative</Link>
-      </div>
-
       <div className="video-hero">
         <div className="video-bg">
-            {/* 🟢 更新了這裡的 src 為 chanel ring.mp4 */}
-            <video 
-                src="/images/AI_optimized/chanel ring.mp4" 
-                autoPlay 
-                loop 
-                muted 
-                playsInline
-            ></video>
+            <video src="/images/AI_optimized/girlreading.mp4" autoPlay loop muted playsInline></video>
         </div>
         <div className="hero-overlay"></div>
         <div className="hero-content">
@@ -352,63 +283,27 @@ export default function AiPage() {
         </div>
       </div>
 
-      {/* 將全部內容放入 feed 容器順序顯示 */}
       <div className="video-feed" id="video-feed">
         {items.map((item, index) => {
             if (item.type === 'casio') {
                 return (
                     <div key={index} className="casio-showcase-container">
                         <div className="casio-showcase">
+                            <div className="casio-card"><img src="/images/AI_optimized/casio normal.jpg" alt="Casio Normal" className="casio-media" /></div>
+                            <div className="casio-card"><img src="/images/AI_optimized/casio decompose.jpeg" alt="Casio Decompose" className="casio-media" /></div>
                             <div className="casio-card">
-                                <img src="/images/AI_optimized/casio normal.jpg" alt="Casio Normal" className="casio-media" />
+                                <video src="/images/AI_optimized/Casio Watch.mp4" className="casio-media auto-play-video" muted loop playsInline/>
                             </div>
-                            <div className="casio-card">
-                                <img src="/images/AI_optimized/casio decompose.jpeg" alt="Casio Decompose" className="casio-media" />
-                            </div>
-                            <div className="casio-card">
-                                <video 
-                                    src="/images/AI_optimized/Casio Watch.mp4" 
-                                    className="casio-media auto-play-video" 
-                                    muted 
-                                    loop 
-                                    playsInline
-                                />
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            if (item.type === 'mixed') {
-                return (
-                    <div key={index} className="mixed-block">
-                        <img src={(item as any).bg} alt="AI Background" className="bg-image" />
-                        <div className="fg-video-wrapper">
-                            <video 
-                                src={(item as any).vid} 
-                                className="fg-video auto-play-video" 
-                                muted 
-                                loop 
-                                playsInline 
-                            />
-                        </div>
-                        <div className="video-info-overlay">
-                            <div className="video-meta">{item.year}</div>
                         </div>
                     </div>
                 );
             }
             
             if (item.type === 'video') {
+                const isResponsive = (item as any).responsive;
                 return (
-                    <div key={index} className="video-block">
-                        <video 
-                            src={item.src} 
-                            className="cover-video auto-play-video" 
-                            muted 
-                            loop 
-                            playsInline 
-                        />
+                    <div key={index} className={`video-block ${isResponsive ? 'responsive-block' : ''}`}>
+                        <video src={item.src} className={`cover-video auto-play-video ${isResponsive ? 'responsive-media' : ''}`} muted loop playsInline />
                         <div className="video-info-overlay">
                             <div className="video-meta">{item.year}</div>
                         </div>
@@ -419,11 +314,7 @@ export default function AiPage() {
             if (item.type === 'image') {
                 return (
                     <div key={index} className="video-block">
-                        <img 
-                            src={item.src} 
-                            className="cover-video"
-                            alt="AI Generated"
-                        />
+                        <img src={item.src} className="cover-video" alt="AI Generated" />
                         <div className="video-info-overlay">
                             <div className="video-meta">{item.year}</div>
                         </div>
@@ -435,7 +326,7 @@ export default function AiPage() {
 
       <div 
         className={`contact-widget ${isContactExpanded ? 'expanded' : ''}`} 
-        id="contact-bubble"
+        id="contact-bubble" 
         onClick={toggleContact}
       >
         <div className="contact-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>

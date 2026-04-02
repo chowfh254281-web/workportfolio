@@ -47,7 +47,6 @@ export default function HomePage() {
       lenis = new Lenis.default({
         duration: 1.2,
         easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        // 💡 將 touchMultiplier 降至 1.2，讓 iPad/手機觸控滑動時感覺更重，不會一下滑走
         touchMultiplier: 1.2, 
       });
       function raf(time: number) {
@@ -58,7 +57,6 @@ export default function HomePage() {
     });
 
     const navbar = document.getElementById('navbar');
-    const title = document.querySelector('.main-title') as HTMLElement;
     const subtitle = document.querySelector('.subtitle') as HTMLElement;
     const seamlessHero = document.getElementById('seamless-hero');
     const imgCard = document.querySelector('.img-card') as HTMLElement;
@@ -108,22 +106,8 @@ export default function HomePage() {
 
     if (revealSource) splitTextIntoSpans(revealSource);
 
-    if (title && !title.classList.contains('split-done')) {
-      const text = title.textContent || '';
-      title.innerHTML = text.replace(/\S/g, "<span class='char-span'>$&</span>");
-      title.classList.add('split-done');
-      const spans = title.querySelectorAll('.char-span');
-      spans.forEach((span: any, idx) => {
-        setTimeout(() => span.classList.add('visible'), 100 + (idx * 50));
-      });
-      setTimeout(() => subtitle?.classList.add('visible'), 800);
-    }
-
-    if (subtitle && !subtitle.classList.contains('split-done')) {
-       const subText = subtitle.textContent || '';
-       subtitle.innerHTML = subText.split('').map(char => `<span class="sub-char">${char}</span>`).join('');
-       subtitle.classList.add('split-done');
-    }
+    // Fade in subtitle after a short delay
+    setTimeout(() => subtitle?.classList.add('visible'), 500);
 
     if (overviewTitle && !overviewTitle.classList.contains('split-done')) {
         const text = "WORK OVERVIEW";
@@ -158,7 +142,8 @@ export default function HomePage() {
       const landingVideo = document.querySelector('.landing-bg-video') as HTMLElement;
       const landingOverlay = document.querySelector('.landing-video-overlay') as HTMLElement;
       
-      const vidOp = Math.max(0, 0.9 * (1 - scatterProgress));
+      // 💡 拎走咗原本嘅 0.9 乘數，等條片可以100%亮度
+      const vidOp = Math.max(0, 1 - scatterProgress);
 
       if (landingVideo) {
           landingVideo.style.opacity = vidOp.toString();
@@ -173,25 +158,8 @@ export default function HomePage() {
       }
 
       if (introText) {
-        introText.style.opacity = (1 - scatterProgress).toString();
+        introText.style.opacity = Math.max(0, 1 - (scatterProgress * 1.5)).toString();
         introText.style.transform = `translate(-50%, -50%)`;
-      }
-
-      const charSpans = document.querySelectorAll('.char-span, .sub-char');
-      if (charSpans.length > 0) {
-        charSpans.forEach((span: any, i) => {
-          const randomAngle = (i * 137.5) % 360;
-          const distance = scrollY * 2.5; 
-          
-          const x = Math.cos(randomAngle * Math.PI / 180) * distance;
-          const y = Math.sin(randomAngle * Math.PI / 180) * distance;
-          const rotation = scrollY * (i % 2 === 0 ? 0.2 : -0.2); 
-          const blur = scrollY * 0.03; 
-
-          span.style.transform = `translate(${x}px, ${y}px) rotate(${rotation}deg)`;
-          span.style.filter = `blur(${blur}px)`;
-          span.style.opacity = (1 - scatterProgress).toString();
-        });
       }
 
       if (seamlessHero) {
@@ -241,7 +209,6 @@ export default function HomePage() {
           if (imgCard) imgCard.style.opacity = '0';
           if (imgBg) imgBg.style.opacity = '1';
 
-          // 💡 調整第一段文字的顯示時機與停留時間
           let layer1Opacity = 0;
           if (progress < 0.20) {
              layer1Opacity = (progress - 0.15) / 0.05;
@@ -256,7 +223,6 @@ export default function HomePage() {
             revealSource.style.pointerEvents = layer1Opacity <= 0.1 ? 'none' : 'auto';
           }
 
-          // 💡 放慢逐字變色 (Reading progress) 的速度
           const allWords = revealSource?.querySelectorAll('.word') || [];
           if (progress >= 0.2 && progress < 0.60) { 
             const readP = (progress - 0.2) / 0.40;
@@ -271,7 +237,6 @@ export default function HomePage() {
             allWords.forEach(word => word.classList.remove('active'));
           }
 
-          // 💡 延後第二段文字 (工作經歷) 的出場時間
           let layer2Opacity = 0;
           if (progress > 0.70) { 
              layer2Opacity = (progress - 0.70) / 0.15;
@@ -438,15 +403,16 @@ export default function HomePage() {
 
         .intro-section { height: 100vh; width: 100%; position: relative; overflow: hidden; margin-bottom: 0; z-index: 10; }
         
-        .landing-bg-video { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 1; opacity: 0.9; pointer-events: none; will-change: opacity; }
-        .landing-video-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 60%, #000 100%); z-index: 2; pointer-events: none; will-change: opacity; }
-
-        .intro-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 50; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; will-change: opacity, transform, color; }
+        /* 💡 改為 opacity: 1 移除半透明嘅暗角 */
+        .landing-bg-video { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 1; opacity: 1; pointer-events: none; will-change: opacity; }
         
-        .main-title { font-size: clamp(40px, 8vw, 120px); font-weight: 900; margin: 0 0 20px 0; letter-spacing: -2px; line-height: 1; color: #fff; transition: color 0.1s linear; white-space: nowrap; }
+        /* 💡 將原本由透明到 100% 黑嘅漸變 改為去到 80% 都係全透明，淨係最底20%少少黑用嚟接駁下面個 section */
+        .landing-video-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(to bottom, transparent 0%, transparent 80%, #000 100%); z-index: 2; pointer-events: none; will-change: opacity; }
+
+        .intro-text { position: fixed; top: 70%; left: 50%; transform: translate(-50%, -50%); z-index: 50; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; will-change: opacity, transform, color; }
+        
         .subtitle { font-size: clamp(14px, 1.5vw, 24px); font-weight: 400; line-height: 1.4; max-width: 800px; color: #fff; opacity: 0; transform: translateY(20px); transition: all 1s ease; }
         .subtitle.visible { opacity: 1; transform: translateY(0); }
-        .char-span, .sub-char { display: inline-block; will-change: transform, opacity, filter, color; }
 
         .scroll-prompt { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; pointer-events: none; opacity: 0.6; transition: opacity 0.3s ease; }
         .scroll-prompt.hide { opacity: 0; }
@@ -466,7 +432,6 @@ export default function HomePage() {
         .img-card { z-index: 2; opacity: 0; }
         .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3; opacity: 0; pointer-events: none; }
         
-        /* 💡 延長整體停留時間 */
         .about-track { height: 400vh; position: relative; z-index: 10; margin-top: -10vh; }
         .about-sticky-view { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; padding: 0 5vw; box-sizing: border-box; background: transparent; pointer-events: none; }
         .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; width: 100%; height: 100%; align-items: center; position: relative; z-index: 2; }
@@ -555,7 +520,7 @@ export default function HomePage() {
             .nav-item { font-size: 28px !important; font-weight: 700 !important; letter-spacing: 2px !important; }
             
             .subtitle { padding: 0 20px; }
-            .intro-text { position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 100% !important; padding: 0 20px; }
+            .intro-text { position: fixed !important; top: 70% !important; left: 50% !important; transform: translate(-50%, -50%) !important; width: 100% !important; padding: 0 20px; }
 
             .credit-text { font-size: 9px; margin-bottom: 15px; }
 
@@ -581,7 +546,6 @@ export default function HomePage() {
         }
       `}</style>
 
-      {/* DOM 結構保持不變 */}
       <div className={`preloader ${!isLoading ? 'hidden' : ''}`}>
           <span className="loader"></span>
       </div>
@@ -614,13 +578,12 @@ export default function HomePage() {
           </div>
 
           <div className="intro-section" id="intro-trigger">
-            <video autoPlay loop muted playsInline className="landing-bg-video">
-              <source src="/images/3dvideo/capsule%20mograph.mp4" type="video/mp4" />
+            <video autoPlay muted playsInline className="landing-bg-video">
+              <source src="/images/SAMCHOW.mp4" type="video/mp4" />
             </video>
             <div className="landing-video-overlay"></div>
 
             <div className="intro-text" id="intro-text-container">
-              <h1 className="main-title">SAM CHOW.</h1>
               <div className="subtitle">MultiMedia Designer &nbsp;|&nbsp; Work Portfolio</div>
             </div>
             

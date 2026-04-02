@@ -7,21 +7,22 @@ export default function ThreeDPage() {
   const [isContactExpanded, setIsContactExpanded] = useState(false);
 
   const trackRef = useRef<HTMLDivElement>(null);
-  const heroRef = useRef<HTMLDivElement>(null);
-  const prodRef = useRef<HTMLDivElement>(null);
-  const ueRef = useRef<HTMLDivElement>(null);
-  const liveRef = useRef<HTMLDivElement>(null);
   
-  const ytRef = useRef<HTMLDivElement>(null); 
-  const ytCarRef = useRef<HTMLDivElement>(null); 
-  const owlRef = useRef<HTMLDivElement>(null); 
-  const yt1Ref = useRef<HTMLDivElement>(null); 
-  const yt2Ref = useRef<HTMLDivElement>(null); 
-  
-  const basketRef = useRef<HTMLDivElement>(null); // 對應 basketball mocap (male aim ocap)
-  const poseRef = useRef<HTMLDivElement>(null);   // 對應 male 7pose
-  
-  const freshRef = useRef<HTMLDivElement>(null);
+  // 圖層 Refs (根據新順序)
+  const capsuleRef = useRef<HTMLDivElement>(null); // 0. Landing
+  const heroRef = useRef<HTMLDivElement>(null);    // 1. 5條片
+  const prodRef = useRef<HTMLDivElement>(null);    // 2. CGI Production
+  const ueRef = useRef<HTMLDivElement>(null);      // 3. XR Wall
+  const liveRef = useRef<HTMLDivElement>(null);    // 4. Live Setup
+  const ytRef = useRef<HTMLDivElement>(null);      // 5. StarWars
+  const ytCarRef = useRef<HTMLDivElement>(null);   // 6. 車 YT
+  const owlRef = useRef<HTMLDivElement>(null);     // 7. Owl
+  const basketRef = useRef<HTMLDivElement>(null);  // 8. basketball mocap
+  const poseRef = useRef<HTMLDivElement>(null);    // 9. male 7pose
+  const yt1Ref = useRef<HTMLDivElement>(null);     // 10. YT1 Forest
+  const yt2Ref = useRef<HTMLDivElement>(null);     // 11. YT2 Car Showcase
+  const freshRef = useRef<HTMLDivElement>(null);   // 12. Fresh
+
   const headerRef = useRef<HTMLDivElement>(null);
   const scrollPromptRef = useRef<HTMLDivElement>(null);
 
@@ -67,23 +68,24 @@ export default function ThreeDPage() {
                 currentProgress = targetProgress;
             }
 
-            // 總共 12 個圖層 (乘數為 11)
-            const viewportIndex = currentProgress * 11; 
+            // 總共 13 個圖層 (0 到 12)，所以乘數係 12
+            const viewportIndex = currentProgress * 12; 
 
             // 🚀 依照最新需求的圖層順序
             const layers = [
-                { el: ytRef.current, type: 'standard' },           // 0: StarWars
-                { el: ytCarRef.current, type: 'standard' },        // 1: 車
-                { el: heroRef.current, type: 'centered' },         // 2: CGI Hero
-                { el: prodRef.current, type: 'centered' },         // 3: CGI Production
-                { el: ueRef.current, type: 'standard' },           // 4: SheShido XR
-                { el: liveRef.current, type: 'standard' },         // 5: Live Set up
-                { el: owlRef.current, type: 'standard' },          // 6: Owl
-                { el: basketRef.current, type: 'standard' },       // 7: Male aim ocap (basketball mocap)
-                { el: poseRef.current, type: 'standard' },         // 8: Male 7pose
-                { el: yt1Ref.current, type: 'standard' },          // 9: YT1 Forest
-                { el: yt2Ref.current, type: 'standard' },          // 10: YT2 Car Showcase
-                { el: freshRef.current, type: 'standard' }         // 11: Fresh Metaverse
+                { el: capsuleRef.current, type: 'standard' },      // 0: Landing (Capsule)
+                { el: heroRef.current, type: 'centered' },         // 1: 5條片 (CGI Hero)
+                { el: prodRef.current, type: 'centered' },         // 2: CGI Production
+                { el: ueRef.current, type: 'standard' },           // 3: Xr Wall Production
+                { el: liveRef.current, type: 'standard' },         // 4: Live Set up
+                { el: ytRef.current, type: 'standard' },           // 5: StarWars
+                { el: ytCarRef.current, type: 'standard' },        // 6: 車
+                { el: owlRef.current, type: 'standard' },          // 7: Owl
+                { el: basketRef.current, type: 'standard' },       // 8: Male aim ocap (basketball mocap)
+                { el: poseRef.current, type: 'standard' },         // 9: Male 7pose
+                { el: yt1Ref.current, type: 'standard' },          // 10: YT1 Forest
+                { el: yt2Ref.current, type: 'standard' },          // 11: YT2 Car Showcase
+                { el: freshRef.current, type: 'standard' }         // 12: Fresh Metaverse
             ];
 
             layers.forEach((layer, index) => {
@@ -244,7 +246,8 @@ export default function ThreeDPage() {
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
         .mobile-menu-overlay { display: none; }
         
-        .sequence-track { height: 1200vh; position: relative; z-index: 10; }
+        /* 13 層, 所以高度係 1300vh */
+        .sequence-track { height: 1300vh; position: relative; z-index: 10; }
         .sticky-viewport { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         
         .layer-yt { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 1; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
@@ -262,8 +265,9 @@ export default function ThreeDPage() {
             pointer-events: none;
         }
 
-        #layer-yt { z-index: 1; }
-        #layer-yt-car { z-index: 2; opacity: 0; }
+        #layer-capsule { z-index: 1; }
+        #layer-yt { z-index: 10; opacity: 0; }
+        #layer-yt-car { z-index: 11; opacity: 0; }
         #layer-owl { z-index: 17; opacity: 0; }
         #layer-yt1 { z-index: 18; opacity: 0; }
         #layer-yt2 { z-index: 19; opacity: 0; }
@@ -294,7 +298,6 @@ export default function ThreeDPage() {
         
         .layer-ue { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 15; pointer-events: none; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .ue-header-group { text-align: center; margin-bottom: 4vh; }
-        /* 🚀 Header 細啲 */
         .ue-big-title { font-size: 3.5vw; font-weight: 900; letter-spacing: -1px; color: #fff; margin: 0; text-shadow: 0 0 50px rgba(255,255,255,0.2); line-height: 1.1; }
         .ue-small-subtitle { font-size: 1.2vw; font-weight: 700; letter-spacing: 4px; color: #F4D03F; text-transform: uppercase; margin-top: 15px; }
         .ue-gallery { display: grid; grid-template-columns: 1fr 1.8fr; grid-template-rows: 1fr 1fr; gap: 1.5vw; width: 85vw; height: 50vh; }
@@ -310,7 +313,6 @@ export default function ThreeDPage() {
         
         .layer-live { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 16; pointer-events: none; opacity: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .live-header-group { text-align: center; margin-bottom: 4vh; }
-        /* 🚀 Header 細啲 */
         .live-big-title { font-size: 3.5vw; font-weight: 900; letter-spacing: -1px; color: #fff; margin: 0; text-shadow: 0 0 50px rgba(255,255,255,0.2); line-height: 1.1; }
         .live-gallery { display: grid; grid-template-columns: 1fr 1.8fr; grid-template-rows: 1fr 1fr; gap: 1.5vw; width: 85vw; height: 50vh; }
         .live-col-left, .live-col-right { display: contents; }
@@ -376,7 +378,6 @@ export default function ThreeDPage() {
             .prod-card-wrap { width: 80vw; aspect-ratio: 9/16; }
             .section-title { font-size: 6vw; margin-bottom: 20px; }
 
-            /* 🚀 Mobile 尺寸也同步縮小 */
             .ue-big-title { font-size: 6vw; }
             .ue-small-subtitle { font-size: 3.5vw; }
             .ue-gallery { display: flex; flex-direction: column; height: auto; width: 90vw; gap: 20px; }
@@ -434,10 +435,10 @@ export default function ThreeDPage() {
       <div className="sequence-track" id="sequence-track" ref={trackRef}>
         <div className="sticky-viewport">
             
-            {/* 0. StarWars Landing */}
-            <div className="layer-yt" id="layer-yt" ref={ytRef}>
+            {/* 0. Landing (capsule mograph) */}
+            <div className="layer-yt" id="layer-capsule" ref={capsuleRef}>
                 <video 
-                    src="/images/3dvideo/StarWars.mp4" 
+                    src="/images/3dvideo/capsule mograph.mp4" 
                     autoPlay 
                     loop 
                     muted 
@@ -451,21 +452,7 @@ export default function ThreeDPage() {
                 <div className="page-desc">Motion graphics, simulations, and rendered realities.</div>
             </div>
 
-            {/* 1. 車 (Car YT Video) */}
-            <div className="layer-yt" id="layer-yt-car" ref={ytCarRef}>
-                <iframe 
-                    src="https://www.youtube.com/embed/TLvBs1C6v08?autoplay=1&mute=1&loop=1&playlist=TLvBs1C6v08&controls=0&modestbranding=1" 
-                    title="YouTube video 2" 
-                    frameBorder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    allowFullScreen
-                ></iframe>
-                <a href="https://youtu.be/TLvBs1C6v08" target="_blank" rel="noopener noreferrer" className="yt-watch-btn">
-                    WATCH ON YOUTUBE
-                </a>
-            </div>
-
-            {/* 2. CGI Hero Section */}
+            {/* 1. CGI Hero Section (5條片) */}
             <div className="cg-hero-section" id="cg-hero" ref={heroRef}>
                 <div className="hero-strip"><div className="video-card"><video src="/images/3dvideo/Kiehls Sogo.mp4" autoPlay loop muted playsInline></video><div className="video-caption">KIEHLS SOGO</div></div></div>
                 <div className="hero-strip"><div className="video-card"><video src="/images/3dvideo/Kiehls Taxi.mp4" autoPlay loop muted playsInline></video><div className="video-caption">KIEHLS TAXI</div></div></div>
@@ -474,7 +461,7 @@ export default function ThreeDPage() {
                 <div className="hero-strip"><div className="video-card"><video src="/images/3dvideo/L'Oreal Paris.mp4" autoPlay loop muted playsInline></video><div className="video-caption">L'OREAL</div></div></div>
             </div>
 
-            {/* 3. CGI PRODUCTION Section */}
+            {/* 2. CGI PRODUCTION Section */}
             <div className="production-section" id="production-section" ref={prodRef}>
                 <h2 className="section-title">CGI PRODUCTION</h2>
                 <div className="production-group">
@@ -493,7 +480,7 @@ export default function ThreeDPage() {
                 </div>
             </div>
 
-            {/* 4. SheShido XR */}
+            {/* 3. SheShido XR */}
             <div className="layer-ue" id="layer-ue" ref={ueRef}>
                 <div className="ue-header-group">
                     <h2 className="ue-big-title">SheShido XR Immersive wall Production</h2>
@@ -510,7 +497,7 @@ export default function ThreeDPage() {
                 </div>
             </div>
 
-            {/* 5. Live Set up */}
+            {/* 4. Live Set up */}
             <div className="layer-live" id="layer-live" ref={liveRef}>
                 <div className="live-header-group">
                      <h2 className="live-big-title">LIVE SETUP</h2>
@@ -526,22 +513,48 @@ export default function ThreeDPage() {
                 </div>
             </div>
 
-            {/* 6. Owl */}
+            {/* 5. StarWars */}
+            <div className="layer-yt" id="layer-yt" ref={ytRef}>
+                <video 
+                    src="/images/3dvideo/StarWars.mp4" 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline 
+                    className="landing-vid-target"
+                />
+            </div>
+
+            {/* 6. 車 (Car YT Video) */}
+            <div className="layer-yt" id="layer-yt-car" ref={ytCarRef}>
+                <iframe 
+                    src="https://www.youtube.com/embed/TLvBs1C6v08?autoplay=1&mute=1&loop=1&playlist=TLvBs1C6v08&controls=0&modestbranding=1" 
+                    title="YouTube video 2" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowFullScreen
+                ></iframe>
+                <a href="https://youtu.be/TLvBs1C6v08" target="_blank" rel="noopener noreferrer" className="yt-watch-btn">
+                    WATCH ON YOUTUBE
+                </a>
+            </div>
+
+            {/* 7. Owl */}
             <div className="layer-owl" id="layer-owl" ref={owlRef}>
                 <video src="/images/3dvideo/Owl.mp4" autoPlay loop muted playsInline className="owl-video"></video>
             </div>
 
-            {/* 7. Male aim ocap (對應 basketball mocap) */}
+            {/* 8. Male aim ocap (對應 basketball mocap) */}
             <div className="layer-yt" id="layer-basket" ref={basketRef}>
                 <video src="/images/3dvideo/basketball mocap.mp4" autoPlay loop muted playsInline className="owl-video"></video>
             </div>
 
-            {/* 8. Male 7pose */}
+            {/* 9. Male 7pose */}
             <div className="layer-yt" id="layer-pose" ref={poseRef}>
                 <video src="/images/3dvideo/male 7pose.mp4" autoPlay loop muted playsInline className="owl-video"></video>
             </div>
 
-            {/* 9. YT1 */}
+            {/* 10. YT1 */}
             <div className="layer-yt" id="layer-yt1" ref={yt1Ref}>
                 <iframe 
                     src="https://www.youtube.com/embed/RCPgtif9A9U?autoplay=1&mute=1&loop=1&playlist=RCPgtif9A9U&controls=0&modestbranding=1" 
@@ -555,7 +568,7 @@ export default function ThreeDPage() {
                 </a>
             </div>
 
-            {/* 10. YT2 */}
+            {/* 11. YT2 */}
             <div className="layer-yt" id="layer-yt2" ref={yt2Ref}>
                 <iframe 
                     src="https://www.youtube.com/embed/9PNM7YJtU2U?autoplay=1&mute=1&loop=1&playlist=9PNM7YJtU2U&controls=0&modestbranding=1" 
@@ -569,7 +582,7 @@ export default function ThreeDPage() {
                 </a>
             </div>
 
-            {/* 11. Fresh */}
+            {/* 12. Fresh */}
             <div className="layer-fresh" id="layer-fresh" ref={freshRef}>
                 <img src="/images/freshgarden.png" alt="Fresh Garden" className="fresh-bg" />
                 <div className="fresh-content">

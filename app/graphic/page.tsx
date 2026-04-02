@@ -15,6 +15,7 @@ export default function GraphicPage() {
   const row7Ref = useRef<HTMLDivElement>(null); 
   const row8Ref = useRef<HTMLDivElement>(null); 
   const row9Ref = useRef<HTMLDivElement>(null); 
+  const row10Ref = useRef<HTMLDivElement>(null); // 新增 Row 10 Ref
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,15 +41,22 @@ export default function GraphicPage() {
     });
 
     const initDesktopAnimation = () => {
-      const rows = [row1Ref.current, row2Ref.current, row3Ref.current, row4Ref.current, row5Ref.current, row6Ref.current, row7Ref.current, row8Ref.current, row9Ref.current];
+      // 更新 rows 陣列加入 row10
+      const rows = [
+        row1Ref.current, row2Ref.current, row3Ref.current, 
+        row4Ref.current, row5Ref.current, row6Ref.current, 
+        row7Ref.current, row8Ref.current, row9Ref.current,
+        row10Ref.current
+      ];
       if (!rows[0]) return;
 
       let baseSpeed = 0.5; 
       let scrollVelocity = 0; 
       let skewStrength = 0;
       
-      let positions = [0, 0, 0, 0, 0, 0, 0, 0, 0]; 
-      let rowLimits = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+      // 更新為 10 個數值的陣列
+      let positions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; 
+      let rowLimits = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
       
       let lastScrollY = window.scrollY; 
 
@@ -239,10 +247,13 @@ export default function GraphicPage() {
 
         .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); padding: 0 30px; display: flex; align-items: center; justify-content: space-between; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; height: 60px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); overflow: hidden; cursor: pointer; }
         .nav-header { display: contents; }
-        .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
+        .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #ffffff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
         .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; order: 2; margin: 0 40px; }
-        .nav-item { text-decoration: none; color: #fff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
+        
+        /* 🔵 確保冇 highlight 既字係純白色 */
+        .nav-item { text-decoration: none; color: #ffffff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
         .nav-item:hover, .nav-item.active { color: #F4D03F; }
+        
         .menu-icon { width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; pointer-events: none; z-index: 2005; order: 3; margin-left: 0; }
         .menu-line { width: 100%; height: 1px; background-color: #fff; transition: all 0.3s ease; transform-origin: center; }
         .menu-icon.open .menu-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
@@ -391,7 +402,7 @@ export default function GraphicPage() {
 
       <div className="kinetic-wrapper" id="kinetic-wrapper" ref={wrapperRef}>
         
-        {/* ROW 1 (5 items) */}
+        {/* ROW 1 */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-1" ref={row1Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/02.jpg" alt="01" /><div className="strip-caption">01</div></div>
@@ -416,7 +427,7 @@ export default function GraphicPage() {
             </div>
         </div>
 
-        {/* ROW 2 (4 items) */}
+        {/* ROW 2 */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-2" ref={row2Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/asahifootball 2.jpg" alt="06" /><div className="strip-caption">06</div></div>
@@ -447,7 +458,7 @@ export default function GraphicPage() {
             </div>
         </div>
 
-        {/* ROW 3 (5 items) */}
+        {/* ROW 3 */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-3" ref={row3Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/Travel1.png" alt="10" /><div className="strip-caption">10</div></div>
@@ -503,7 +514,7 @@ export default function GraphicPage() {
             </div>
         </div>
 
-        {/* ROW 5 (加咗 ig-4x5 喺第4條 link) */}
+        {/* ROW 5 */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-5" ref={row5Ref}>
                 <div className="strip-item ig-container">
@@ -515,7 +526,6 @@ export default function GraphicPage() {
                 <div className="strip-item ig-container">
                     <iframe src="https://www.instagram.com/p/DHdQ9UitIm6/embed" frameBorder="0" scrolling="no"></iframe>
                 </div>
-                {/* 🟢 套用咗 ig-4x5 特效放大填滿屏幕 */}
                 <div className="strip-item ig-container ig-4x5">
                     <iframe src="https://www.instagram.com/p/DHDjQl8P3DW/embed" frameBorder="0" scrolling="no"></iframe>
                 </div>
@@ -531,7 +541,6 @@ export default function GraphicPage() {
                 <div className="strip-item ig-container duplicate">
                     <iframe src="https://www.instagram.com/p/DHdQ9UitIm6/embed" frameBorder="0" scrolling="no"></iframe>
                 </div>
-                {/* 🟢 套用咗 ig-4x5 */}
                 <div className="strip-item ig-container ig-4x5 duplicate">
                     <iframe src="https://www.instagram.com/p/DHDjQl8P3DW/embed" frameBorder="0" scrolling="no"></iframe>
                 </div>
@@ -547,7 +556,6 @@ export default function GraphicPage() {
                 <div className="strip-item ig-container duplicate">
                     <iframe src="https://www.instagram.com/p/DHdQ9UitIm6/embed" frameBorder="0" scrolling="no"></iframe>
                 </div>
-                {/* 🟢 套用咗 ig-4x5 */}
                 <div className="strip-item ig-container ig-4x5 duplicate">
                     <iframe src="https://www.instagram.com/p/DHDjQl8P3DW/embed" frameBorder="0" scrolling="no"></iframe>
                 </div>
@@ -646,6 +654,28 @@ export default function GraphicPage() {
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/0414_v1.jpg" alt="30" /><div className="strip-caption">30</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/scene1.jpg" alt="31" /><div className="strip-caption">31</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/scene2.jpg" alt="32" /><div className="strip-caption">32</div></div>
+            </div>
+        </div>
+
+        {/* 🟢 新增：ROW 10 (DS 4張圖) */}
+        <div className="mobile-track">
+            <div className="gallery-strip" id="row-10" ref={row10Ref}>
+                <div className="strip-item"><img src="/images/Graphic_optimized/DS_1.png" alt="33" /><div className="strip-caption">33</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/DS_2.png" alt="34" /><div className="strip-caption">34</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/DS_3.png" alt="35" /><div className="strip-caption">35</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/DS_4.png" alt="36" /><div className="strip-caption">36</div></div>
+
+                {/* SET 2 */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_1.png" alt="33" /><div className="strip-caption">33</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_2.png" alt="34" /><div className="strip-caption">34</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_3.png" alt="35" /><div className="strip-caption">35</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_4.png" alt="36" /><div className="strip-caption">36</div></div>
+                
+                {/* SET 3 */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_1.png" alt="33" /><div className="strip-caption">33</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_2.png" alt="34" /><div className="strip-caption">34</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_3.png" alt="35" /><div className="strip-caption">35</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_4.png" alt="36" /><div className="strip-caption">36</div></div>
             </div>
         </div>
       </div>
