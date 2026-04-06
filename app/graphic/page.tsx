@@ -15,7 +15,7 @@ export default function GraphicPage() {
   const row7Ref = useRef<HTMLDivElement>(null); 
   const row8Ref = useRef<HTMLDivElement>(null); 
   const row9Ref = useRef<HTMLDivElement>(null); 
-  const row10Ref = useRef<HTMLDivElement>(null); // 新增 Row 10 Ref
+  const row10Ref = useRef<HTMLDivElement>(null); 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,7 +41,6 @@ export default function GraphicPage() {
     });
 
     const initDesktopAnimation = () => {
-      // 更新 rows 陣列加入 row10
       const rows = [
         row1Ref.current, row2Ref.current, row3Ref.current, 
         row4Ref.current, row5Ref.current, row6Ref.current, 
@@ -54,7 +53,6 @@ export default function GraphicPage() {
       let scrollVelocity = 0; 
       let skewStrength = 0;
       
-      // 更新為 10 個數值的陣列
       let positions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; 
       let rowLimits = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
       
@@ -166,27 +164,26 @@ export default function GraphicPage() {
     window.addEventListener('resize', handleResizeSwitch);
 
     const navbar = document.getElementById('navbar');
-    const contactBubble = document.getElementById('contact-bubble');
+    const scrollPrompt = document.getElementById('scroll-prompt');
 
     const handleScroll = () => {
         const scrollY = window.scrollY;
 
+        // Navbar & Scroll Prompt 邏輯
         if (scrollY > 50) {
             if (navbar && !navbar.classList.contains('mobile-active')) {
                 navbar.classList.add('collapsed');
             }
+            scrollPrompt?.classList.add('hide');
         } else {
             navbar?.classList.remove('collapsed');
             navbar?.classList.remove('force-expand');
+            scrollPrompt?.classList.remove('hide');
         }
 
-        if (contactBubble) {
-            if ((window.innerHeight + scrollY) >= document.body.offsetHeight - 50) {
-                contactBubble.classList.add('expanded');
-            } else {
-                contactBubble.classList.remove('expanded');
-            }
-        }
+        // Contact Bubble 邏輯
+        const isAtBottom = (window.innerHeight + scrollY) >= (document.documentElement.scrollHeight - 50);
+        setIsContactExpanded(isAtBottom);
     };
     
     window.addEventListener('scroll', handleScroll);
@@ -245,12 +242,12 @@ export default function GraphicPage() {
         .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; }
         .preloader.hidden { opacity: 0; }
 
+        /* 導航列 */
         .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); padding: 0 30px; display: flex; align-items: center; justify-content: space-between; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; height: 60px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); overflow: hidden; cursor: pointer; }
         .nav-header { display: contents; }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #ffffff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
         .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; opacity: 1; max-width: 900px; order: 2; margin: 0 40px; }
         
-        /* 🔵 確保冇 highlight 既字係純白色 */
         .nav-item { text-decoration: none; color: #ffffff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; position: relative; }
         .nav-item:hover, .nav-item.active { color: #F4D03F; }
         
@@ -268,15 +265,29 @@ export default function GraphicPage() {
         .smart-nav.collapsed .nav-links { max-width: 0; opacity: 0; gap: 0; pointer-events: none; } 
         .smart-nav.collapsed .nav-logo { margin-right: 10px; } 
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
-
         .mobile-menu-overlay { display: none; }
 
-        .header-section { padding: 220px 40px 100px 40px; text-align: center; position: relative; z-index: 10; }
-        h1.page-title { font-size: 80px; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -2px; opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.2s; color: #fff; }
-        .page-desc { margin-top: 20px; font-size: 16px; color: #888; max-width: 600px; display: inline-block; opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.4s; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        /* Image Hero Section */
+        .image-hero { position: relative; width: 100%; height: 100vh; height: 100svh; overflow: hidden; margin-bottom: 80px; }
+        .image-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+        .image-bg img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; filter: brightness(0.85); }
+        .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%); z-index: 1; pointer-events: none; }
+        .hero-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; text-align: center; width: 100%; pointer-events: none; padding: 0 20px; }
         
-        .kinetic-wrapper { position: relative; width: 100%; overflow: hidden; padding-bottom: 200px; display: flex; flex-direction: column; gap: 15px; opacity: 0; transition: opacity 1.5s ease; }
+        h1.page-title { font-size: 80px; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -2px; color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.8); opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.2s; }
+        .page-desc { margin-top: 20px; font-size: 16px; color: #ddd; max-width: 600px; display: inline-block; text-shadow: 0 2px 10px rgba(0,0,0,0.8); opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.4s; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Scroll Prompt */
+        .scroll-prompt { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 10; opacity: 0.7; transition: opacity 0.3s ease; pointer-events: none;}
+        .scroll-prompt.hide { opacity: 0; }
+        .scroll-text { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: #fff; text-transform: uppercase; }
+        .scroll-line { width: 1px; height: 40px; background: rgba(255,255,255,0.2); position: relative; overflow: hidden; }
+        .scroll-line::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fff; transform: translateY(-100%); animation: scrollFlow 2s cubic-bezier(0.77, 0, 0.175, 1) infinite; }
+        @keyframes scrollFlow { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+
+        /* Kinetic Gallery */
+        .kinetic-wrapper { position: relative; width: 100%; overflow: hidden; padding-bottom: 50px; display: flex; flex-direction: column; gap: 15px; opacity: 0; transition: opacity 1.5s ease; }
         .kinetic-wrapper.loaded { opacity: 1; }
         .mobile-track { display: contents; }
         .gallery-strip { display: flex; gap: 15px; width: max-content; transform: translate3d(0, 0, 0); will-change: transform; backface-visibility: hidden; perspective: 1000px; }
@@ -285,42 +296,18 @@ export default function GraphicPage() {
         .strip-item:hover img, .strip-item:hover video { filter: brightness(1.1) !important; transform: scale(1.05); }
         .strip-caption { position: absolute; bottom: 20px; left: 20px; font-size: 3vw; font-weight: 700; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.5); z-index: 2; pointer-events: none; }
         
-        .ig-container { 
-            background-color: #fff; 
-            position: relative;
-        }
-        .ig-container iframe { 
-            position: absolute;
-            top: -28%; 
-            left: 0;
-            width: 100%; 
-            height: 148%; 
-            border: none; 
-            pointer-events: none; 
-            transition: all 0.3s ease; 
-        }
-        .ig-container:hover iframe { 
-            pointer-events: auto; 
-        }
+        .ig-container { background-color: #fff; position: relative; }
+        .ig-container iframe { position: absolute; top: -28%; left: 0; width: 100%; height: 148%; border: none; pointer-events: none; transition: all 0.3s ease; }
+        .ig-container:hover iframe { pointer-events: auto; }
+        .ig-container.ig-reel iframe { width: 150%; left: -25%; height: 170%; top: -60%; }
+        .ig-container.ig-4x5 iframe { width: 135%; left: -17.5%; height: 175%; top: -42%; }
 
-        /* 🟢 IG Reel 專用裁切 (9:16) */
-        .ig-container.ig-reel iframe {
-            width: 150%; 
-            left: -25%; 
-            height: 170%; 
-            top: -60%; 
-        }
-
-        /* 🟢 新增：IG 4:5 影片/貼文專用裁切 (特意放大) */
-        .ig-container.ig-4x5 iframe {
-            width: 135%;       /* 比普通貼文再放闊啲 */
-            left: -17.5%;      /* 置中對齊 */
-            height: 175%;      /* 拉高以遮蔽預設白邊同 Header */
-            top: -42%;         /* 向上移去避開底頂部資訊 */
-        }
+        /* 🟢 新增：Final Frame Section CSS */
+        .final-frame-section { position: relative; width: 100%; height: 100vh; height: 100svh; overflow: hidden; display: flex; justify-content: center; align-items: center; background-color: #000; z-index: 10; margin-top: 50px; }
+        .final-frame-section img { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(0.9); transition: filter 0.5s ease; }
+        .final-frame-section:hover img { filter: brightness(1); }
 
         @media (max-width: 768px) {
-            .header-section { padding-bottom: 50px; }
             .smart-nav { flex-direction: column !important; align-items: flex-start !important; width: 90% !important; max-width: 350px !important; height: 60px; overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; }
             .smart-nav.mobile-active { position: fixed !important; top: 0 !important; left: 0 !important; transform: none !important; width: 100vw !important; max-width: none !important; height: 100vh !important; border-radius: 0 !important; background: #000 !important; border: none !important; padding: 30px !important; justify-content: flex-start !important; align-items: center !important; z-index: 9000 !important; }
             .nav-header { display: flex !important; width: 100%; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
@@ -330,7 +317,11 @@ export default function GraphicPage() {
             .smart-nav.mobile-active .nav-links { opacity: 1 !important; transform: translateY(0) !important; pointer-events: auto !important; visibility: visible !important; }
             .nav-item { font-size: 28px !important; font-weight: 700 !important; letter-spacing: 2px !important; }
 
-            .kinetic-wrapper { gap: 40px; padding: 0 0 100px 0; display: flex; flex-direction: column; align-items: center; }
+            h1.page-title { font-size: 13vw; }
+            .page-desc { font-size: 14px; padding: 0 10px; }
+            .image-hero { margin-bottom: 40px; }
+
+            .kinetic-wrapper { gap: 40px; padding: 0 0 50px 0; display: flex; flex-direction: column; align-items: center; }
             .mobile-track { display: block; margin-bottom: 0; width: 100%; }
             .gallery-strip { display: flex; flex-direction: column; gap: 40px; width: 100%; transform: none !important; overflow: visible; align-items: center; }
             
@@ -341,21 +332,8 @@ export default function GraphicPage() {
             .strip-caption { font-size: 40px; }
             
             .ig-container iframe { pointer-events: auto; } 
-
-            .ig-container.ig-reel iframe {
-                width: 150%;
-                left: -25%;
-                height: 170%;
-                top: -38%;
-            }
-
-            /* 手機版 4:5 影片微調 */
-            .ig-container.ig-4x5 iframe {
-                width: 135%;
-                left: -17.5%;
-                height: 175%;
-                top: -36%; 
-            }
+            .ig-container.ig-reel iframe { width: 150%; left: -25%; height: 170%; top: -38%; }
+            .ig-container.ig-4x5 iframe { width: 135%; left: -17.5%; height: 175%; top: -36%; }
         }
 
         .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; cursor: pointer; }
@@ -395,9 +373,19 @@ export default function GraphicPage() {
         </div>
       </nav>
 
-      <div className="header-section">
-        <h1 className="page-title">Graphic</h1>
-        <div className="page-desc">Visual identity, branding, and creative composition.</div>
+      <div className="image-hero">
+        <div className="image-bg">
+            <img src="/images/Graphic_optimized/FreshOragneJuice.png" alt="Graphic Design Portfolio Background" />
+        </div>
+        <div className="hero-overlay"></div>
+        <div className="hero-content">
+            <h1 className="page-title">Graphic</h1>
+            <div className="page-desc">Visual identity, branding, and creative composition.</div>
+        </div>
+        <div className="scroll-prompt" id="scroll-prompt">
+            <div className="scroll-text">SCROLL</div>
+            <div className="scroll-line"></div>
+        </div>
       </div>
 
       <div className="kinetic-wrapper" id="kinetic-wrapper" ref={wrapperRef}>
@@ -657,7 +645,7 @@ export default function GraphicPage() {
             </div>
         </div>
 
-        {/* 🟢 新增：ROW 10 (DS 4張圖) */}
+        {/* ROW 10 */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-10" ref={row10Ref}>
                 <div className="strip-item"><img src="/images/Graphic_optimized/DS_1.png" alt="33" /><div className="strip-caption">33</div></div>
@@ -678,6 +666,11 @@ export default function GraphicPage() {
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_4.png" alt="36" /><div className="strip-caption">36</div></div>
             </div>
         </div>
+      </div>
+
+      {/* 🟢 新增：Final Full Screen Frame (Create.png) */}
+      <div className="final-frame-section">
+        <img src="/images/Graphic_optimized/Create.png" alt="Final Creation Frame" />
       </div>
 
       <div 
