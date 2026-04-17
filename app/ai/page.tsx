@@ -21,7 +21,8 @@ const items = [
   { type: 'video', src: "/images/AI_optimized/ai_1.mp4", year: 'AI GENERATED' },
   { type: 'video', src: "/images/muji.mov", year: 'AI GENERATED' },
   { type: 'image', src: "/images/AI_optimized/ai_img2.png", year: 'AI GENERATED' },
-  { type: 'video_with_text', src: '/images/AI_optimized/girlreading.mp4', }
+  // 🟢 這裡補上了 text 屬性
+  { type: 'video_with_text', src: '/images/AI_optimized/girlreading.mp4', text: 'Transforming ideas into cinematic reality.' }
 ];
 
 export default function AiPage() {
@@ -246,7 +247,6 @@ export default function AiPage() {
         
         .video-feed { width: 100%; display: flex; flex-direction: column; gap: 0; padding-bottom: 100px; }
         
-        /* 🟢 將 background 換成截圖裡的米白色 #E4E3DE */
         .casio-showcase-container { width: 100%; border-bottom: 1px solid rgba(255,255,255,0.05); background: #E4E3DE; }
         .casio-showcase { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 100px 40px; width: 100%; max-width: 1200px; margin: 0 auto; }
         .casio-card { width: 25vw; max-width: 300px; aspect-ratio: 9/16; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5); opacity: 0; transform: translateY(60px); transition: opacity 1.8s cubic-bezier(0.22, 1, 0.36, 1), transform 1.8s cubic-bezier(0.22, 1, 0.36, 1); }
@@ -410,7 +410,8 @@ export default function AiPage() {
                     <div key={index} className="video-block">
                         <video src={item.src} className="cover-video auto-play-video" muted loop playsInline />
                         <div className="cinematic-overlay">
-                            <h2 className="cinematic-text">{item.text}</h2>
+                            {/* 🟢 這裡加上了 (item as any) 避免 TypeScript 報錯 */}
+                            <h2 className="cinematic-text">{(item as any).text}</h2>
                         </div>
                     </div>
                 );
