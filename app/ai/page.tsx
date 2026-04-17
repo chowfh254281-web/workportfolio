@@ -2,20 +2,32 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 
+const items = [
+  { type: 'image', src: '/images/AI_optimized/victoriahabour_1.png', year: 'Victoria Harbour' },
+  { type: 'video', src: '/images/AI_optimized/chanel ring.mp4', year: 'Chanel Ring' },
+  { type: 'video', src: '/images/AI_optimized/iPhone .mp4', year: 'iPhone 17 Pro Max', responsive: true },
+  { type: 'video', src: '/images/AI_optimized/pickleball.mp4', year: 'Pickleball', responsive: true },
+  { 
+    type: 'pickleball_images', 
+    images: [
+      '/images/AI_optimized/pickleball_character.jpg', 
+      '/images/AI_optimized/pickleball_home.png', 
+      '/images/AI_optimized/pickleball_scene.png'
+    ] 
+  },
+  { type: 'video', src: '/images/AI_optimized/gundam.mp4', year: 'AI GENERATED' },
+  { type: 'image', src: "/images/AI_optimized/cocacola.png", year: 'Coca Cola' },
+  { type: 'casio' }, 
+  { type: 'video', src: "/images/AI_optimized/ai_1.mp4", year: 'AI GENERATED' },
+  { type: 'video', src: "/images/muji.mov", year: 'AI GENERATED' },
+  { type: 'image', src: "/images/AI_optimized/ai_img2.png", year: 'AI GENERATED' },
+  { type: 'video_with_text', src: '/images/AI_optimized/girlreading.mp4', }
+];
+
 export default function AiPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isContactExpanded, setIsContactExpanded] = useState(false);
-
-  // Data 
-  const items = [
-    { type: 'video', src: '/images/AI_optimized/chanel ring.mp4', year: 'Chanel Ring' },
-    { type: 'video', src: '/images/AI_optimized/iPhone .mp4', year: 'iPhone 17 Pro Max', responsive: true },
-    { type: 'video', src: '/images/AI_optimized/gundam.mp4', year: 'AI GENERATED' },
-    { type: 'casio' }, 
-    { type: 'video', src: "/images/AI_optimized/ai_1.mp4", year: 'AI GENERATED' },
-    { type: 'video', src: "/images/muji.mov", year: 'AI GENERATED' },
-    { type: 'image', src: "/images/AI_optimized/ai_img2.png", year: 'AI GENERATED' }
-  ];
+  const [currentPickleballImageIndex, setCurrentPickleballImageIndex] = useState(0);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -70,11 +82,9 @@ export default function AiPage() {
     const navbar = document.getElementById('navbar');
     const scrollPrompt = document.getElementById('scroll-prompt');
 
-    // 🟢 核心修改：處理 Scroll 邏輯
     const handleScroll = () => {
         const scrollY = window.scrollY;
 
-        // Navbar 邏輯
         if (scrollY > 50) {
             if (navbar && !navbar.classList.contains('mobile-active')) {
                 navbar.classList.add('collapsed');
@@ -86,8 +96,6 @@ export default function AiPage() {
             scrollPrompt?.classList.remove('hide');
         }
 
-        // Contact Widget 自動展開邏輯
-        // 判斷是否捲動到接近底部 (預留 50px 緩衝)
         const isAtBottom = (window.innerHeight + scrollY) >= (document.documentElement.scrollHeight - 50);
         setIsContactExpanded(isAtBottom);
     };
@@ -102,6 +110,48 @@ export default function AiPage() {
         window.removeEventListener('scroll', handleScroll);
     };
   }, []);
+
+  useEffect(() => {
+    const sliderItems = items.filter(item => item.type === 'pickleball_images');
+    if (sliderItems.length === 0 || sliderItems[0].type !== 'pickleball_images') return;
+
+    const totalImages = (sliderItems[0] as any).images.length;
+    let intervalId: any;
+
+    const startSlider = () => {
+        if (intervalId) clearInterval(intervalId);
+        intervalId = setInterval(() => {
+            setCurrentPickleballImageIndex((prevIndex) => (prevIndex + 1) % totalImages);
+        }, 3000); 
+    };
+
+    const stopSlider = () => {
+        if (intervalId) clearInterval(intervalId);
+    };
+
+    const sliderObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                startSlider();
+            } else {
+                stopSlider();
+            }
+        });
+    }, { threshold: 0.15 });
+
+    const sliderElement = document.querySelector('.pickleball-slider');
+    if (sliderElement) {
+        sliderObserver.observe(sliderElement);
+    }
+
+    return () => {
+        stopSlider();
+        if (sliderElement) {
+            sliderObserver.unobserve(sliderElement);
+        }
+        sliderObserver.disconnect();
+    };
+  }, []); 
 
   const toggleMenu = (e: React.MouseEvent) => {
     const navbar = document.getElementById('navbar');
@@ -178,11 +228,9 @@ export default function AiPage() {
         .smart-nav.collapsed .nav-links { max-width: 0; opacity: 0; gap: 0; pointer-events: none; } 
         .smart-nav.collapsed .nav-logo { margin-right: 10px; } 
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
-        .mobile-menu-overlay { display: none; }
 
         .video-hero { position: relative; width: 100%; height: 100vh; height: 100svh; overflow: hidden; }
         .video-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
-        .video-bg video { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
         .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.15); z-index: 1; pointer-events: none; }
         .hero-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; text-align: center; width: 100%; pointer-events: none; }
         h1.page-title { font-size: 80px; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -2px; color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.8); opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.2s; }
@@ -198,7 +246,8 @@ export default function AiPage() {
         
         .video-feed { width: 100%; display: flex; flex-direction: column; gap: 0; padding-bottom: 100px; }
         
-        .casio-showcase-container { width: 100%; border-bottom: 1px solid rgba(255,255,255,0.05); background: #000; }
+        /* 🟢 將 background 換成截圖裡的米白色 #E4E3DE */
+        .casio-showcase-container { width: 100%; border-bottom: 1px solid rgba(255,255,255,0.05); background: #E4E3DE; }
         .casio-showcase { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 100px 40px; width: 100%; max-width: 1200px; margin: 0 auto; }
         .casio-card { width: 25vw; max-width: 300px; aspect-ratio: 9/16; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5); opacity: 0; transform: translateY(60px); transition: opacity 1.8s cubic-bezier(0.22, 1, 0.36, 1), transform 1.8s cubic-bezier(0.22, 1, 0.36, 1); }
         .casio-card.visible { opacity: 1; transform: translateY(0); }
@@ -212,7 +261,16 @@ export default function AiPage() {
 
         .video-info-overlay { position: absolute; bottom: 80px; left: 60px; z-index: 20; pointer-events: auto; max-width: 600px; }
         .video-meta { font-size: 18px; color: #fff; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
+
+        .cinematic-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); z-index: 10; pointer-events: none; }
+        .cinematic-text { font-size: 3.5vw; font-weight: 700; color: #fff; text-align: center; opacity: 0; transform: translateY(30px); transition: opacity 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s, transform 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s; text-transform: uppercase; letter-spacing: 4px; text-shadow: 0 4px 30px rgba(0,0,0,0.9); padding: 0 20px; max-width: 80%; line-height: 1.2; }
+        .video-block.in-view .cinematic-text { opacity: 1; transform: translateY(0); }
         
+        .pickleball-slider { height: 90vh; }
+        .slider-wrapper { position: relative; width: 100%; height: 100%; overflow: hidden; }
+        .slider-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1s ease-in-out; }
+        .slider-image.active { opacity: 1; }
+
         @media (max-width: 768px) {
             .smart-nav { flex-direction: column !important; align-items: flex-start !important; width: 90% !important; max-width: 350px !important; height: 60px; overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; }
             .smart-nav.mobile-active { position: fixed !important; top: 0 !important; left: 0 !important; transform: none !important; width: 100vw !important; max-width: none !important; height: 100vh !important; border-radius: 0 !important; background: #000 !important; border: none !important; padding: 30px !important; justify-content: flex-start !important; align-items: center !important; z-index: 9000 !important; }
@@ -230,6 +288,9 @@ export default function AiPage() {
             .video-block.responsive-block { height: auto; min-height: 30vh; }
             .casio-showcase { flex-direction: column; gap: 20px; padding: 50px 20px; }
             .casio-card { width: 80vw; max-width: none; }
+            
+            .pickleball-slider { height: 70vh; }
+            .cinematic-text { font-size: 24px; letter-spacing: 2px; }
         }
 
         .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; cursor: pointer; }
@@ -270,7 +331,12 @@ export default function AiPage() {
 
       <div className="video-hero">
         <div className="video-bg">
-            <video src="/images/AI_optimized/girlreading.mp4" autoPlay loop muted playsInline></video>
+            <video 
+                src="/images/AI_optimized/victoriahabour.mp4" 
+                className="cover-video auto-play-video" 
+                autoPlay muted loop playsInline 
+                style={{ objectFit: 'cover', width: '100%', height: '100%', opacity: 1 }} 
+            />
         </div>
         <div className="hero-overlay"></div>
         <div className="hero-content">
@@ -314,9 +380,37 @@ export default function AiPage() {
             if (item.type === 'image') {
                 return (
                     <div key={index} className="video-block">
-                        <img src={item.src} className="cover-video" alt="AI Generated" />
+                        <img src={item.src} className="cover-video" alt={item.year || "AI Generated"} />
                         <div className="video-info-overlay">
                             <div className="video-meta">{item.year}</div>
+                        </div>
+                    </div>
+                );
+            }
+            
+            if (item.type === 'pickleball_images') {
+                return (
+                    <div key={index} className="video-block pickleball-slider">
+                        <div className="slider-wrapper">
+                            {(item as any).images.map((imgSrc: string, imgIndex: number) => (
+                                <img 
+                                    key={imgIndex} 
+                                    src={imgSrc} 
+                                    alt={`Pickleball Image ${imgIndex + 1}`} 
+                                    className={`slider-image ${currentPickleballImageIndex === imgIndex ? 'active' : ''}`}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+
+            if (item.type === 'video_with_text') {
+                return (
+                    <div key={index} className="video-block">
+                        <video src={item.src} className="cover-video auto-play-video" muted loop playsInline />
+                        <div className="cinematic-overlay">
+                            <h2 className="cinematic-text">{item.text}</h2>
                         </div>
                     </div>
                 );
@@ -331,8 +425,8 @@ export default function AiPage() {
       >
         <div className="contact-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
         <div className="contact-details">
-            <a href="https://wa.me/85267012420" target="_blank" className="contact-link" style={{ color: '#fff' }}><span className="label">WHATSAPP</span>6701 2420</a>
-            <a href="mailto:chowfh254281@gmail.com" className="contact-link" style={{ color: '#fff' }}><span className="label">MAIL</span>chowfh254281@gmail.com</a>
+            <a href="https://wa.me/85267012420" target="_blank" className="contact-link" style={{ color: '#D4AF37' }}><span className="label">WHATSAPP</span>6701 2420</a>
+            <a href="mailto:chowfh254281@gmail.com" className="contact-link" style={{ color: '#D4AF37' }}><span className="label">MAIL</span>chowfh254281@gmail.com</a>
         </div>
       </div>
     </>
