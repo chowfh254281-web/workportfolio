@@ -3,10 +3,12 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 const items = [
-  { type: 'image', src: '/images/AI_optimized/victoriahabour_1.png', year: 'Victoria Harbour' },
+  // 將原本的 Victoria Harbour 影片順延下來成為列表第一項
+  { type: 'video', src: '/images/AI_optimized/VictoriaHarbour.mp4', year: 'Victoria Harbour - PreProduction' },
+  { type: 'image', src: '/images/AI_optimized/victoriahabour_1.png', year: 'Commerical Application' },
   { type: 'video', src: '/images/AI_optimized/chanel ring.mp4', year: 'Chanel Ring' },
   { type: 'video', src: '/images/AI_optimized/iPhone .mp4', year: 'iPhone 17 Pro Max', responsive: true },
-  { type: 'video', src: '/images/AI_optimized/pickleball.mp4', year: 'Pickleball', responsive: true },
+  { type: 'video', src: '/images/AI_optimized/pickleball.mp4', year: 'Commerical Application', responsive: true },
   { 
     type: 'pickleball_images', 
     images: [
@@ -15,13 +17,12 @@ const items = [
       '/images/AI_optimized/pickleball_scene.png'
     ] 
   },
-  { type: 'video', src: '/images/AI_optimized/gundam.mp4', year: 'AI GENERATED' },
-  { type: 'image', src: "/images/AI_optimized/cocacola.png", year: 'Coca Cola' },
   { type: 'casio' }, 
+  { type: 'image', src: "/images/AI_optimized/cocacola.png", year: 'Coca Cola' },
+  { type: 'video', src: '/images/AI_optimized/gundam.mp4', year: 'AI GENERATED' },
   { type: 'video', src: "/images/AI_optimized/ai_1.mp4", year: 'AI GENERATED' },
   { type: 'video', src: "/images/muji.mov", year: 'AI GENERATED' },
   { type: 'image', src: "/images/AI_optimized/ai_img2.png", year: 'AI GENERATED' },
-  // 🟢 這裡補上了 text 屬性
   { type: 'video_with_text', src: '/images/AI_optimized/girlreading.mp4', text: 'Transforming ideas into cinematic reality.' }
 ];
 
@@ -64,9 +65,10 @@ export default function AiPage() {
                 if (container) container.classList.add('in-view');
             } else {
                 video.pause();
+                if (container) container.classList.remove('in-view');
             }
         });
-    }, { threshold: 0.15 });
+    }, { threshold: 0.3 }); 
 
     document.querySelectorAll('.auto-play-video').forEach(vid => videoObserver.observe(vid));
 
@@ -263,13 +265,38 @@ export default function AiPage() {
         .video-meta { font-size: 18px; color: #fff; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
 
         .cinematic-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); z-index: 10; pointer-events: none; }
-        .cinematic-text { font-size: 3.5vw; font-weight: 700; color: #fff; text-align: center; opacity: 0; transform: translateY(30px); transition: opacity 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s, transform 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s; text-transform: uppercase; letter-spacing: 4px; text-shadow: 0 4px 30px rgba(0,0,0,0.9); padding: 0 20px; max-width: 80%; line-height: 1.2; }
-        .video-block.in-view .cinematic-text { opacity: 1; transform: translateY(0); }
+        .cinematic-text { 
+            font-size: 3.5vw; 
+            font-weight: 700; 
+            color: #fff; 
+            text-align: center; 
+            opacity: 0; 
+            transition: opacity 2.5s ease-in-out; 
+            text-transform: uppercase; 
+            letter-spacing: 4px; 
+            text-shadow: 0 4px 30px rgba(0,0,0,0.9); 
+            padding: 0 20px; 
+            max-width: 80%; 
+            line-height: 1.2; 
+        }
+        
+        .video-block.in-view .cinematic-text { opacity: 1; }
         
         .pickleball-slider { height: 90vh; }
         .slider-wrapper { position: relative; width: 100%; height: 100%; overflow: hidden; }
         .slider-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1s ease-in-out; }
         .slider-image.active { opacity: 1; }
+
+        /* CONTACT WIDGET ADAPTED FROM HOMEPAGE */
+        .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; cursor: pointer; }
+        .contact-widget:hover, .contact-widget.expanded { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .contact-widget:hover .contact-details, .contact-widget.expanded .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
+        
+        .contact-icon { width: 38px; height: 38px; background: #fff; color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+        .contact-details { opacity: 0; white-space: nowrap; margin-left: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; pointer-events: none; transition: opacity 0.3s ease 0.1s, margin-left 0.4s ease; }
+        .contact-link { color: #ccc; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; transition: all 0.3s; }
+        .contact-link:hover { color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.6); }
+        .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #F4D03F; margin-right: 10px; width: 60px; font-weight: 700; }
 
         @media (max-width: 768px) {
             .smart-nav { flex-direction: column !important; align-items: flex-start !important; width: 90% !important; max-width: 350px !important; height: 60px; overflow: hidden; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); min-width: 0 !important; }
@@ -291,19 +318,6 @@ export default function AiPage() {
             
             .pickleball-slider { height: 70vh; }
             .cinematic-text { font-size: 24px; letter-spacing: 2px; }
-        }
-
-        .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; cursor: pointer; }
-        .contact-icon { width: 38px; height: 38px; background: #fff; color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
-        .contact-details { opacity: 0; white-space: nowrap; margin-left: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; pointer-events: none; transition: opacity 0.3s ease 0.1s, margin-left 0.4s ease; }
-        .contact-link { color: #ccc; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; transition: color 0.3s; }
-        .contact-link:hover { color: #fff; }
-        .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #666; margin-right: 10px; width: 60px; font-weight: 700; }
-        .contact-widget.expanded { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .contact-widget.expanded .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
-        @media (min-width: 769px) {
-            .contact-widget:hover { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-            .contact-widget:hover .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
         }
       `}</style>
 
@@ -332,7 +346,7 @@ export default function AiPage() {
       <div className="video-hero">
         <div className="video-bg">
             <video 
-                src="/images/AI_optimized/victoriahabour.mp4" 
+                src="/images/AI_optimized/Molley.mp4" 
                 className="cover-video auto-play-video" 
                 autoPlay muted loop playsInline 
                 style={{ objectFit: 'cover', width: '100%', height: '100%', opacity: 1 }} 
@@ -410,7 +424,6 @@ export default function AiPage() {
                     <div key={index} className="video-block">
                         <video src={item.src} className="cover-video auto-play-video" muted loop playsInline />
                         <div className="cinematic-overlay">
-                            {/* 🟢 這裡加上了 (item as any) 避免 TypeScript 報錯 */}
                             <h2 className="cinematic-text">{(item as any).text}</h2>
                         </div>
                     </div>
@@ -424,10 +437,12 @@ export default function AiPage() {
         id="contact-bubble" 
         onClick={toggleContact}
       >
-        <div className="contact-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
+        <div className="contact-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </div>
         <div className="contact-details">
-            <a href="https://wa.me/85267012420" target="_blank" className="contact-link" style={{ color: '#D4AF37' }}><span className="label">WHATSAPP</span>6701 2420</a>
-            <a href="mailto:chowfh254281@gmail.com" className="contact-link" style={{ color: '#D4AF37' }}><span className="label">MAIL</span>chowfh254281@gmail.com</a>
+            <a href="https://wa.me/85267012420" target="_blank" className="contact-link" rel="noreferrer"><span className="label">WHATSAPP</span>6701 2420</a>
+            <a href="mailto:chowfh254281@gmail.com" className="contact-link"><span className="label">MAIL</span>chowfh254281@gmail.com</a>
         </div>
       </div>
     </>
