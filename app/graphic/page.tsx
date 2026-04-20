@@ -652,18 +652,21 @@ export default function GraphicPage() {
                 <div className="strip-item"><img src="/images/Graphic_optimized/DS_2.png" alt="34" /><div className="strip-caption">34</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/DS_3.png" alt="35" /><div className="strip-caption">35</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/DS_4.png" alt="36" /><div className="strip-caption">36</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/hkf.png" alt="HKF Flat Map Illustration" /><div className="strip-caption">HKF</div></div>
 
                 {/* SET 2 */}
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_1.png" alt="33" /><div className="strip-caption">33</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_2.png" alt="34" /><div className="strip-caption">34</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_3.png" alt="35" /><div className="strip-caption">35</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_4.png" alt="36" /><div className="strip-caption">36</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/hkf.png" alt="HKF Flat Map Illustration" /><div className="strip-caption">HKF</div></div>
                 
                 {/* SET 3 */}
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_1.png" alt="33" /><div className="strip-caption">33</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_2.png" alt="34" /><div className="strip-caption">34</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_3.png" alt="35" /><div className="strip-caption">35</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_4.png" alt="36" /><div className="strip-caption">36</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/hkf.png" alt="HKF Flat Map Illustration" /><div className="strip-caption">HKF</div></div>
             </div>
         </div>
       </div>

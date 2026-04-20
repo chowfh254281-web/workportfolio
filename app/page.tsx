@@ -324,13 +324,13 @@ export default function HomePage() {
     });
   }
 
-  const portfolioData: any = {
+const portfolioData: any = {
     'uiux': { type: 'static', src: "/images/index_uiux.png" },
     'graphic': { type: 'static', src: "/images/index_graphic.png" },
     '3d': { type: 'static', src: "/images/index_3d.png" },
     'photography': { type: 'static', src: "/images/index_photo.png" },
     'video': { type: 'yt', id: 'oil1eYqmIXo' },
-    'ai': { type: 'local_vid', src: "/images/AI_optimized/chanel ring.mp4" }
+    'ai': { type: 'local_vid', src: "/images/AI_optimized/Molley.mp4" } // 已經換成 Molley.mp4
   };
 
   const categories = [

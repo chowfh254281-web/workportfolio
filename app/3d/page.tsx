@@ -18,10 +18,9 @@ export default function ThreeDPage() {
   const ytCarRef = useRef<HTMLDivElement>(null);   // 6. 車 YT
   const owlRef = useRef<HTMLDivElement>(null);     // 7. Owl
   const basketRef = useRef<HTMLDivElement>(null);  // 8. basketball mocap
-  const poseRef = useRef<HTMLDivElement>(null);    // 9. male 7pose
-  const yt1Ref = useRef<HTMLDivElement>(null);     // 10. YT1 Forest
-  const yt2Ref = useRef<HTMLDivElement>(null);     // 11. YT2 Car Showcase
-  const freshRef = useRef<HTMLDivElement>(null);   // 12. Fresh
+  const yt1Ref = useRef<HTMLDivElement>(null);     // 9. YT1 Forest
+  const yt2Ref = useRef<HTMLDivElement>(null);     // 10. YT2 Car Showcase
+  const freshRef = useRef<HTMLDivElement>(null);   // 11. Fresh
 
   const headerRef = useRef<HTMLDivElement>(null);
   const scrollPromptRef = useRef<HTMLDivElement>(null);
@@ -68,8 +67,8 @@ export default function ThreeDPage() {
                 currentProgress = targetProgress;
             }
 
-            // 總共 13 個圖層 (0 到 12)，所以乘數係 12
-            const viewportIndex = currentProgress * 12; 
+            // 總共 12 個圖層 (0 到 11)，所以乘數係 11
+            const viewportIndex = currentProgress * 11; 
 
             // 🚀 依照最新需求的圖層順序
             const layers = [
@@ -82,10 +81,9 @@ export default function ThreeDPage() {
                 { el: ytCarRef.current, type: 'standard' },        // 6: 車
                 { el: owlRef.current, type: 'standard' },          // 7: Owl
                 { el: basketRef.current, type: 'standard' },       // 8: Male aim ocap (basketball mocap)
-                { el: poseRef.current, type: 'standard' },         // 9: Male 7pose
-                { el: yt1Ref.current, type: 'standard' },          // 10: YT1 Forest
-                { el: yt2Ref.current, type: 'standard' },          // 11: YT2 Car Showcase
-                { el: freshRef.current, type: 'standard' }         // 12: Fresh Metaverse
+                { el: yt1Ref.current, type: 'standard' },          // 9: YT1 Forest
+                { el: yt2Ref.current, type: 'standard' },          // 10: YT2 Car Showcase
+                { el: freshRef.current, type: 'standard' }         // 11: Fresh Metaverse
             ];
 
             layers.forEach((layer, index) => {
@@ -246,8 +244,8 @@ export default function ThreeDPage() {
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
         .mobile-menu-overlay { display: none; }
         
-        /* 13 層, 所以高度係 1300vh */
-        .sequence-track { height: 1300vh; position: relative; z-index: 10; }
+        /* 12 層, 所以高度係 1200vh */
+        .sequence-track { height: 1200vh; position: relative; z-index: 10; }
         .sticky-viewport { position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         
         .layer-yt { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 1; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
@@ -549,12 +547,7 @@ export default function ThreeDPage() {
                 <video src="/images/3dvideo/basketball mocap.mp4" autoPlay loop muted playsInline className="owl-video"></video>
             </div>
 
-            {/* 9. Male 7pose */}
-            <div className="layer-yt" id="layer-pose" ref={poseRef}>
-                <video src="/images/3dvideo/male 7pose.mp4" autoPlay loop muted playsInline className="owl-video"></video>
-            </div>
-
-            {/* 10. YT1 */}
+            {/* 9. YT1 */}
             <div className="layer-yt" id="layer-yt1" ref={yt1Ref}>
                 <iframe 
                     src="https://www.youtube.com/embed/RCPgtif9A9U?autoplay=1&mute=1&loop=1&playlist=RCPgtif9A9U&controls=0&modestbranding=1" 
@@ -568,7 +561,7 @@ export default function ThreeDPage() {
                 </a>
             </div>
 
-            {/* 11. YT2 */}
+            {/* 10. YT2 */}
             <div className="layer-yt" id="layer-yt2" ref={yt2Ref}>
                 <iframe 
                     src="https://www.youtube.com/embed/9PNM7YJtU2U?autoplay=1&mute=1&loop=1&playlist=9PNM7YJtU2U&controls=0&modestbranding=1" 
@@ -582,7 +575,7 @@ export default function ThreeDPage() {
                 </a>
             </div>
 
-            {/* 12. Fresh */}
+            {/* 11. Fresh */}
             <div className="layer-fresh" id="layer-fresh" ref={freshRef}>
                 <img src="/images/freshgarden.png" alt="Fresh Garden" className="fresh-bg" />
                 <div className="fresh-content">
