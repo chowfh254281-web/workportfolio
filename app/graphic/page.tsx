@@ -16,6 +16,7 @@ export default function GraphicPage() {
   const row8Ref = useRef<HTMLDivElement>(null); 
   const row9Ref = useRef<HTMLDivElement>(null); 
   const row10Ref = useRef<HTMLDivElement>(null); 
+  const row11Ref = useRef<HTMLDivElement>(null); 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export default function GraphicPage() {
         row1Ref.current, row2Ref.current, row3Ref.current, 
         row4Ref.current, row5Ref.current, row6Ref.current, 
         row7Ref.current, row8Ref.current, row9Ref.current,
-        row10Ref.current
+        row10Ref.current, row11Ref.current
       ];
       if (!rows[0]) return;
 
@@ -53,8 +54,8 @@ export default function GraphicPage() {
       let scrollVelocity = 0; 
       let skewStrength = 0;
       
-      let positions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; 
-      let rowLimits = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+      let positions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; 
+      let rowLimits = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; 
       
       let lastScrollY = window.scrollY; 
 
@@ -169,7 +170,6 @@ export default function GraphicPage() {
     const handleScroll = () => {
         const scrollY = window.scrollY;
 
-        // Navbar & Scroll Prompt 邏輯
         if (scrollY > 50) {
             if (navbar && !navbar.classList.contains('mobile-active')) {
                 navbar.classList.add('collapsed');
@@ -181,7 +181,6 @@ export default function GraphicPage() {
             scrollPrompt?.classList.remove('hide');
         }
 
-        // Contact Bubble 邏輯
         const isAtBottom = (window.innerHeight + scrollY) >= (document.documentElement.scrollHeight - 50);
         setIsContactExpanded(isAtBottom);
     };
@@ -242,7 +241,6 @@ export default function GraphicPage() {
         .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; transition: opacity 0.8s ease-in-out; pointer-events: none; }
         .preloader.hidden { opacity: 0; }
 
-        /* 導航列 */
         .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); padding: 0 30px; display: flex; align-items: center; justify-content: space-between; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; height: 60px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); overflow: hidden; cursor: pointer; }
         .nav-header { display: contents; }
         .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #ffffff; white-space: nowrap; margin-right: auto; cursor: pointer; order: 1; }
@@ -267,7 +265,6 @@ export default function GraphicPage() {
         .smart-nav.collapsed .menu-icon { margin-left: 0; }
         .mobile-menu-overlay { display: none; }
 
-        /* Image Hero Section */
         .image-hero { position: relative; width: 100%; height: 100vh; height: 100svh; overflow: hidden; margin-bottom: 80px; }
         .image-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
         .image-bg img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; filter: brightness(0.85); }
@@ -278,7 +275,6 @@ export default function GraphicPage() {
         .page-desc { margin-top: 20px; font-size: 16px; color: #ddd; max-width: 600px; display: inline-block; text-shadow: 0 2px 10px rgba(0,0,0,0.8); opacity: 0; animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; animation-delay: 0.4s; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Scroll Prompt */
         .scroll-prompt { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 10; opacity: 0.7; transition: opacity 0.3s ease; pointer-events: none;}
         .scroll-prompt.hide { opacity: 0; }
         .scroll-text { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: #fff; text-transform: uppercase; }
@@ -286,7 +282,6 @@ export default function GraphicPage() {
         .scroll-line::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fff; transform: translateY(-100%); animation: scrollFlow 2s cubic-bezier(0.77, 0, 0.175, 1) infinite; }
         @keyframes scrollFlow { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
 
-        /* Kinetic Gallery */
         .kinetic-wrapper { position: relative; width: 100%; overflow: hidden; padding-bottom: 50px; display: flex; flex-direction: column; gap: 15px; opacity: 0; transition: opacity 1.5s ease; }
         .kinetic-wrapper.loaded { opacity: 1; }
         .mobile-track { display: contents; }
@@ -302,7 +297,6 @@ export default function GraphicPage() {
         .ig-container.ig-reel iframe { width: 150%; left: -25%; height: 170%; top: -60%; }
         .ig-container.ig-4x5 iframe { width: 135%; left: -17.5%; height: 175%; top: -42%; }
 
-        /* 🟢 新增：Final Frame Section CSS */
         .final-frame-section { position: relative; width: 100%; height: 100vh; height: 100svh; overflow: hidden; display: flex; justify-content: center; align-items: center; background-color: #000; z-index: 10; margin-top: 50px; }
         .final-frame-section img { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(0.9); transition: filter 0.5s ease; }
         .final-frame-section:hover img { filter: brightness(1); }
@@ -645,46 +639,73 @@ export default function GraphicPage() {
             </div>
         </div>
 
-        {/* ROW 10 */}
+        {/* ROW 10 (Matcha 行 - Caption 更新為數字) */}
         <div className="mobile-track">
             <div className="gallery-strip" id="row-10" ref={row10Ref}>
-                <div className="strip-item"><img src="/images/Graphic_optimized/DS_1.png" alt="33" /><div className="strip-caption">33</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/DS_2.png" alt="34" /><div className="strip-caption">34</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/DS_3.png" alt="35" /><div className="strip-caption">35</div></div>
-                <div className="strip-item"><img src="/images/Graphic_optimized/DS_4.png" alt="36" /><div className="strip-caption">36</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/Matcha_1.png" alt="Matcha 1" /><div className="strip-caption">33</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/Matcha_2.png" alt="Matcha 2" /><div className="strip-caption">34</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/Matcha_3.png" alt="Matcha 3" /><div className="strip-caption">35</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/Matcha_4.png" alt="Matcha 4" /><div className="strip-caption">36</div></div>
+
+                {/* SET 2 */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Matcha_1.png" alt="Matcha 1" /><div className="strip-caption">33</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Matcha_2.png" alt="Matcha 2" /><div className="strip-caption">34</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Matcha_3.png" alt="Matcha 3" /><div className="strip-caption">35</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Matcha_4.png" alt="Matcha 4" /><div className="strip-caption">36</div></div>
+                
+                {/* SET 3 */}
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Matcha_1.png" alt="Matcha 1" /><div className="strip-caption">33</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Matcha_2.png" alt="Matcha 2" /><div className="strip-caption">34</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Matcha_3.png" alt="Matcha 3" /><div className="strip-caption">35</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/Matcha_4.png" alt="Matcha 4" /><div className="strip-caption">36</div></div>
+            </div>
+        </div>
+
+        {/* ROW 11 (原本的 ROW 10 - Caption 數字順延) */}
+        <div className="mobile-track">
+            <div className="gallery-strip" id="row-11" ref={row11Ref}>
+                <div className="strip-item"><img src="/images/Graphic_optimized/DS_1.png" alt="37" /><div className="strip-caption">37</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/DS_2.png" alt="38" /><div className="strip-caption">38</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/DS_3.png" alt="39" /><div className="strip-caption">39</div></div>
+                <div className="strip-item"><img src="/images/Graphic_optimized/DS_4.png" alt="40" /><div className="strip-caption">40</div></div>
                 <div className="strip-item"><img src="/images/Graphic_optimized/hkf.png" alt="HKF Flat Map Illustration" /><div className="strip-caption">HKF</div></div>
 
                 {/* SET 2 */}
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_1.png" alt="33" /><div className="strip-caption">33</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_2.png" alt="34" /><div className="strip-caption">34</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_3.png" alt="35" /><div className="strip-caption">35</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_4.png" alt="36" /><div className="strip-caption">36</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_1.png" alt="37" /><div className="strip-caption">37</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_2.png" alt="38" /><div className="strip-caption">38</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_3.png" alt="39" /><div className="strip-caption">39</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_4.png" alt="40" /><div className="strip-caption">40</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/hkf.png" alt="HKF Flat Map Illustration" /><div className="strip-caption">HKF</div></div>
                 
                 {/* SET 3 */}
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_1.png" alt="33" /><div className="strip-caption">33</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_2.png" alt="34" /><div className="strip-caption">34</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_3.png" alt="35" /><div className="strip-caption">35</div></div>
-                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_4.png" alt="36" /><div className="strip-caption">36</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_1.png" alt="37" /><div className="strip-caption">37</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_2.png" alt="38" /><div className="strip-caption">38</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_3.png" alt="39" /><div className="strip-caption">39</div></div>
+                <div className="strip-item duplicate"><img src="/images/Graphic_optimized/DS_4.png" alt="40" /><div className="strip-caption">40</div></div>
                 <div className="strip-item duplicate"><img src="/images/Graphic_optimized/hkf.png" alt="HKF Flat Map Illustration" /><div className="strip-caption">HKF</div></div>
             </div>
         </div>
       </div>
 
-      {/* 🟢 新增：Final Full Screen Frame (Create.png) */}
       <div className="final-frame-section">
         <img src="/images/Graphic_optimized/Create.png" alt="Final Creation Frame" />
       </div>
 
       <div 
         className={`contact-widget ${isContactExpanded ? 'expanded' : ''}`} 
-        id="contact-bubble"
+        id="contact-bubble" 
         onClick={toggleContact}
       >
-        <div className="contact-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
+        <div className="contact-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </div>
         <div className="contact-details">
-            <a href="https://wa.me/85267012420" target="_blank" className="contact-link" style={{ color: '#fff' }}><span className="label">WHATSAPP</span>6701 2420</a>
-            <a href="mailto:chowfh254281@gmail.com" className="contact-link" style={{ color: '#fff' }}><span className="label">MAIL</span>chowfh254281@gmail.com</a>
+            <a href="https://wa.me/85267012420" target="_blank" className="contact-link" rel="noreferrer" style={{ color: '#ffffff' }}>
+                <span className="label" style={{ color: '#FFD700' }}>WHATSAPP</span>6701 2420
+            </a>
+            <a href="mailto:chowfh254281@gmail.com" className="contact-link" style={{ color: '#ffffff' }}>
+                <span className="label" style={{ color: '#FFD700' }}>MAIL</span>chowfh254281@gmail.com
+            </a>
         </div>
       </div>
     </>
