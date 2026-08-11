@@ -151,6 +151,23 @@ export default function GraphicPage() {
         };
     };
 
+    // 🎲 Random row order (每行做單位, Graphic page) — 每次 mount shuffle 一次
+    const shuffleRows = () => {
+      const wrap = wrapperRef.current;
+      if (!wrap) return;
+      const rows = Array.from(wrap.children); // 11 個 mobile-track
+      if (rows.length < 2) return;
+      // Fisher-Yates shuffle
+      for (let i = rows.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [rows[i], rows[j]] = [rows[j], rows[i]];
+      }
+      // 依新次序 append 返去 (appendChild 會移動 DOM 節點)
+      rows.forEach(r => wrap.appendChild(r));
+    };
+    // 確保喺 desktop 動畫計算前已 shuffle，避免 offset 計算用舊次序
+    requestAnimationFrame(() => shuffleRows());
+
     let cleanupDesktop: () => void;
     let cleanupMobile: () => void;
 

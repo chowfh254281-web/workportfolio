@@ -608,7 +608,7 @@ const portfolioData: any = {
                     </div>
                     <div className="experience-list">
                         <div className="experience-item">
-                            <div className="exp-left"><span className="exp-date">Aug 2025 - Now</span><span className="exp-role">Senior Graphic Designer</span></div>
+                            <div className="exp-left"><span className="exp-date">Sept 2025 - Nov 2025</span><span className="exp-role">Senior Graphic Designer</span></div>
                             <div className="exp-company">RFI (Asia) Limited</div>
                         </div>
                         <div className="experience-item">

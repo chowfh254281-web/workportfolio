@@ -227,7 +227,6 @@
     "set-function-length": "^1.2.2",
     "set-function-name": "^2.0.2",
     "set-proto": "^1.0.0",
-    "sharp": "^0.34.5",
     "shebang-command": "^2.0.0",
     "shebang-regex": "^3.0.0",
     "side-channel": "^1.1.0",

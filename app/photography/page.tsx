@@ -229,17 +229,25 @@ export default function PhotographyPage() {
 
   const toggleContact = () => setIsContactExpanded(!isContactExpanded);
 
-  // 🟢 每行 5 張圖
-  const row1Images = ["DSC00127", "DSC03905", "DSC04688", "DSC06114", "DSC02991"];
-  const row2Images = ["DSC00672", "DSC04087", "DSC08718", "DSC05456", "DSC00709"];
-  const row3Images = ["DSC00133", "DSC03919", "DSC05608", "DSC07850", "DSC02995"];
-  const row4Images = ["DSC00765", "DSC04102", "DSC08748", "DSC08358", "DSC03300"];
-  const row5Images = ["DSC00327", "DSC03959", "DSC05664", "DSC09908", "DSC03011"];
-  const row6Images = ["DSC03382", "DSC04119", "DSC08760", "DSC08810", "DSC09492"];
-  const row7Images = ["DSC00362", "DSC03982", "DSC05863", "DSC09480", "DSC03014"];
+  // 🟢 每行 5 張圖 (每次 mount shuffle 一次 — 單張為單位 random)
+  const shuffleArr = (a: string[]) => {
+    const arr = [...a];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+  const [row1Images] = useState<string[]>(() => shuffleArr(["DSC00127", "DSC03905", "DSC04688", "DSC06114", "DSC02991"]));
+  const [row2Images] = useState<string[]>(() => shuffleArr(["DSC00672", "DSC04087", "DSC08718", "DSC05456", "DSC00709"]));
+  const [row3Images] = useState<string[]>(() => shuffleArr(["DSC00133", "DSC03919", "DSC05608", "DSC07850", "DSC02995"]));
+  const [row4Images] = useState<string[]>(() => shuffleArr(["DSC00765", "DSC04102", "DSC08748", "DSC08358", "DSC03300"]));
+  const [row5Images] = useState<string[]>(() => shuffleArr(["DSC00327", "DSC03959", "DSC05664", "DSC09908", "DSC03011"]));
+  const [row6Images] = useState<string[]>(() => shuffleArr(["DSC03382", "DSC04119", "DSC08760", "DSC08810", "DSC09492"]));
+  const [row7Images] = useState<string[]>(() => shuffleArr(["DSC00362", "DSC03982", "DSC05863", "DSC09480", "DSC03014"]));
   // 🟢 新圖加入 Row 8 (代替部分舊圖)，維持 5 張
-  const row8Images = ["DSC04391", "DSC04662-2", "DSC01244", "DSC01436", "DSC01437"]; 
-  const row9Images = ["DSC00380", "DSC04086", "DSC05864", "DSC09482", "DSC03064"];
+  const [row8Images] = useState<string[]>(() => shuffleArr(["DSC04391", "DSC04662-2", "DSC01244", "DSC01436", "DSC01437"]));
+  const [row9Images] = useState<string[]>(() => shuffleArr(["DSC00380", "DSC04086", "DSC05864", "DSC09482", "DSC03064"]));
 
   return (
     <>
