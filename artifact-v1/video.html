@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Video — Sam Chow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;400;500;600;700;800;900&display=swap">
+<style>
+:root { color-scheme: dark; background: #050505; }
+
+        * { box-sizing: border-box; }
+        
+        html { 
+        }
+        
+        body { 
+            margin: 0; padding: 0; color: #fff; 
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+            background-color: #050505; 
+            background-image: radial-gradient(circle at 50% 30%, #1a1a1a 0%, #000000 70%); 
+            min-height: 100vh; overflow-x: hidden; 
+        }
+        
+        .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; mix-blend-mode: overlay; opacity: 0.06; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
+
+        /* Preloader */
+        .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background-color: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; transition: opacity 0.8s ease; pointer-events: none; }
+        .preloader.hidden { opacity: 0; }
+        .loader { width: 48px; height: 48px; border: 3px solid rgba(244, 208, 63, 0.2); border-radius: 50%; display: inline-block; position: relative; animation: rotation 1s linear infinite; }
+        .loader::after { content: ''; box-sizing: border-box; position: absolute; left: 0; top: 0; background: #F4D03F; width: 12px; height: 12px; transform: translate(-50%, 50%); border-radius: 50%; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .main-content { opacity: 0; transition: opacity 1s ease; }
+        .main-content.loaded { opacity: 1; }
+
+        /* Navbar */
+        .smart-nav { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); padding: 0 30px; display: flex; align-items: center; justify-content: space-between; z-index: 2000; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); width: auto; min-width: 450px; height: 60px; transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); overflow: hidden; cursor: pointer; }
+        .nav-header { display: contents; }
+        .nav-logo { font-weight: 900; letter-spacing: -1px; font-size: 18px; text-decoration: none; color: #fff; white-space: nowrap; margin-right: auto; order: 1; }
+        .nav-links { display: flex; gap: 25px; align-items: center; overflow: hidden; transition: all 0.5s ease; max-width: 900px; order: 2; margin: 0 40px; }
+        
+        .nav-item { text-decoration: none; color: #fff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s ease; white-space: nowrap; }
+        .nav-item:hover, .nav-item.active { color: #F4D03F; }
+        
+        .menu-icon { width: 24px; height: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; cursor: pointer; z-index: 2005; order: 3; }
+        .menu-line { width: 100%; height: 1px; background-color: #fff; transition: all 0.3s ease; }
+        .menu-icon.open .menu-line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+        .menu-icon.open .menu-line:nth-child(2) { opacity: 0; }
+        .menu-icon.open .menu-line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+        @media (min-width: 769px) {
+            .smart-nav:hover, .smart-nav.force-expand { min-width: 650px !important; background: rgba(255, 255, 255, 0.1) !important; padding: 0 30px !important; } 
+            .smart-nav:hover .nav-links, .smart-nav.force-expand .nav-links { max-width: 900px !important; opacity: 1 !important; display: flex !important; } 
+        }
+        .smart-nav.collapsed { min-width: 150px; padding: 0 20px; } 
+        .smart-nav.collapsed .nav-links { max-width: 0; opacity: 0; } 
+
+        /* HERO & VIDEO FEED */
+        .video-hero { 
+            position: relative; width: 100%; height: 100vh; overflow: hidden; 
+        }
+        .video-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+        
+        iframe { 
+            width: 100vw; height: 56.25vw; min-height: 100vh; min-width: 177.77vh; 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            pointer-events: none; 
+        }
+        
+        .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1; pointer-events: none; }
+        .hero-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; text-align: center; width: 100%; pointer-events: none; }
+        h1.page-title { font-size: 80px; font-weight: 900; margin: 0; line-height: 1; letter-spacing: -2px; color: #fff; text-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .page-desc { margin-top: 20px; font-size: 16px; color: #ddd; max-width: 600px; display: inline-block; text-shadow: 0 2px 10px rgba(0,0,0,0.8); }
+
+        .scroll-prompt { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 10; opacity: 0.7; transition: opacity 0.3s ease; }
+        .scroll-prompt.hide { opacity: 0; }
+        .scroll-text { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: #fff; text-transform: uppercase; }
+        .scroll-line { width: 1px; height: 40px; background: rgba(255,255,255,0.2); position: relative; overflow: hidden; }
+        .scroll-line::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fff; transform: translateY(-100%); animation: scrollFlow 2s cubic-bezier(0.77, 0, 0.175, 1) infinite; }
+        @keyframes scrollFlow { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+
+        .video-feed { width: 100%; display: flex; flex-direction: column; gap: 0; background: transparent; position: relative; z-index: 10; }
+        
+        /* VIDEO BLOCK */
+        .video-block { 
+            width: 100%; height: 100vh; position: relative;
+            display: flex; align-items: center; justify-content: center; 
+            overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); 
+            background: #000;
+        }
+        
+        .video-wrapper { width: 100%; height: 100%; position: relative; pointer-events: auto; }
+        .video-wrapper > div { width: 100%; height: 100%; }
+        
+        .video-info-overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 20; 
+            display: flex; flex-direction: column; 
+            justify-content: flex-end; 
+            align-items: center;
+            padding-bottom: 18%; 
+        }
+        
+        .yt-watch-btn { 
+            position: absolute; bottom: 12%; left: 50%; transform: translateX(-50%);
+            display: inline-flex; align-items: center; gap: 10px; padding: 12px 30px; 
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); 
+            border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 30px; 
+            color: #fff; text-decoration: none; font-size: 11px; font-weight: 700; 
+            text-transform: uppercase; letter-spacing: 2px; transition: all 0.3s ease; 
+            pointer-events: auto; z-index: 30;
+        }
+        .yt-watch-btn:hover { background: #fff; color: #000; border-color: #fff; }
+
+        .contact-widget { position: fixed; bottom: 30px; right: 30px; z-index: 2500; display: flex; align-items: center; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; padding: 6px; width: auto; max-width: 52px; height: 52px; box-sizing: border-box; overflow: hidden; transition: max-width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease, padding-right 0.6s ease; cursor: pointer; }
+        .contact-icon { width: 38px; height: 38px; background: #fff; color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+        .contact-details { opacity: 0; white-space: nowrap; margin-left: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; pointer-events: none; transition: opacity 0.3s ease 0.1s, margin-left 0.4s ease; }
+        .contact-link { color: #ccc; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: 1px; display: flex; align-items: center; transition: color 0.3s; }
+        .contact-link:hover { color: #fff; }
+        .contact-link span.label { font-size: 9px; text-transform: uppercase; color: #666; margin-right: 10px; width: 60px; font-weight: 700; }
+        .contact-widget:hover, .contact-widget.expanded { max-width: 380px; padding-right: 25px; background: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .contact-widget:hover .contact-details, .contact-widget.expanded .contact-details { opacity: 1; margin-left: 15px; pointer-events: auto; }
+
+        @media (max-width: 768px) { 
+            .smart-nav { flex-direction: column !important; width: 90% !important; max-width: 350px !important; }
+            .smart-nav.mobile-active { width: 100vw !important; height: 100vh !important; border-radius: 0 !important; background: #000 !important; padding: 30px !important; justify-content: flex-start !important; align-items: center !important; }
+            .nav-header { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+            .nav-links { flex-direction: column; width: 100%; gap: 40px !important; margin-top: 40px; }
+            .nav-item { font-size: 28px !important; }
+            
+            h1.page-title { font-size: 13vw; }
+            .page-desc { font-size: 14px; padding: 0 20px; }
+            
+            .video-block { height: 100vh; } 
+            
+            /* Mobile 調整 */
+            .yt-watch-btn { bottom: 15%; }
+            .video-info-overlay { padding-bottom: 25%; }
+        }
+      
+
+body { font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif !important; }
+a:focus-visible, .contact-widget:focus-visible { outline: 2px solid #F4D03F; outline-offset: 3px; }
+.contact-widget { bottom: calc(30px + env(safe-area-inset-bottom, 0px)); right: calc(30px + env(safe-area-inset-right, 0px)); }
+.smart-nav { top: calc(30px + env(safe-area-inset-top, 0px)); }
+@media (max-width: 768px) { .contact-widget { right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); } }
+.yt-thumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; } }
+
+
+.video-block .yt-thumb { opacity: .85; transition: opacity .5s ease, transform 1.2s ease; }
+.video-block:hover .yt-thumb { opacity: 1; transform: scale(1.03); }
+@media (max-width: 768px) {
+  .smart-nav { align-items: flex-start !important; min-width: 0 !important; overflow: hidden; }
+  .smart-nav.mobile-active { position: fixed !important; top: 0 !important; left: 0 !important; transform: none !important; max-width: none !important; border: none !important; z-index: 9000 !important; }
+  .nav-links { display: flex !important; opacity: 0; pointer-events: none; max-width: none !important; margin: 0 !important; height: 100%; justify-content: center; align-items: center; }
+  .smart-nav.mobile-active .nav-links { opacity: 1 !important; pointer-events: auto !important; }
+  .nav-logo, .menu-icon { order: unset; }
+}
+
+</style>
+</head>
+<body>
+<div class="preloader"><span class="loader"></span></div>
+<div class="noise-overlay"></div>
+<div class="main-content">
+<nav class="smart-nav" id="navbar">
+  <div class="nav-header"><a href="index.html" class="nav-logo">SAM CHOW.</a><div class="menu-icon" id="menu-btn"><div class="menu-line"></div><div class="menu-line"></div><div class="menu-line"></div></div></div>
+  <div class="nav-links"><a href="uiux.html" class="nav-item">UI/UX</a><a href="graphic.html" class="nav-item">Graphic</a><a href="3d.html" class="nav-item">3D</a><a href="photography.html" class="nav-item">Photography</a><a href="video.html" class="nav-item active">Video</a><a href="ai.html" class="nav-item">AI Generative</a></div>
+</nav>
+<div class="video-hero">
+  <div class="video-bg"><img src="images/yt/oil1eYqmIXo.jpg" class="yt-thumb" alt=""></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content"><h1 class="page-title">Video</h1><div class="page-desc">Motion, pacing, and storytelling through the timeline.</div></div>
+  <div class="scroll-prompt" id="scroll-prompt"><div class="scroll-text">SCROLL</div><div class="scroll-line"></div></div>
+</div>
+<div class="video-feed" id="video-feed">
+<div class="video-block"><div class="video-wrapper"><img src="images/yt/nZvCxgonaKM.jpg" class="yt-thumb" alt="" loading="lazy"></div>
+  <div class="video-info-overlay"><a href="https://www.youtube.com/watch?v=nZvCxgonaKM" target="_blank" rel="noreferrer" class="yt-watch-btn">WATCH ON YOUTUBE</a></div></div>
+<div class="video-block"><div class="video-wrapper"><img src="images/yt/2MvFryTKJoI.jpg" class="yt-thumb" alt="" loading="lazy"></div>
+  <div class="video-info-overlay"><a href="https://www.youtube.com/watch?v=2MvFryTKJoI" target="_blank" rel="noreferrer" class="yt-watch-btn">WATCH ON YOUTUBE</a></div></div>
+<div class="video-block"><div class="video-wrapper"><img src="images/yt/_yeHdBy8Wzs.jpg" class="yt-thumb" alt="" loading="lazy"></div>
+  <div class="video-info-overlay"><a href="https://www.youtube.com/watch?v=_yeHdBy8Wzs" target="_blank" rel="noreferrer" class="yt-watch-btn">WATCH ON YOUTUBE</a></div></div>
+<div class="video-block"><div class="video-wrapper"><img src="images/yt/Dc3phLpndD0.jpg" class="yt-thumb" alt="" loading="lazy"></div>
+  <div class="video-info-overlay"><a href="https://www.youtube.com/watch?v=Dc3phLpndD0" target="_blank" rel="noreferrer" class="yt-watch-btn">WATCH ON YOUTUBE</a></div></div>
+<div class="video-block"><div class="video-wrapper"><img src="images/yt/rJBpYguoROg.jpg" class="yt-thumb" alt="" loading="lazy"></div>
+  <div class="video-info-overlay"><a href="https://www.youtube.com/watch?v=rJBpYguoROg" target="_blank" rel="noreferrer" class="yt-watch-btn">WATCH ON YOUTUBE</a></div></div>
+<div class="video-block"><div class="video-wrapper"><img src="images/yt/cKj_WzwWvfQ.jpg" class="yt-thumb" alt="" loading="lazy"></div>
+  <div class="video-info-overlay"><a href="https://www.youtube.com/watch?v=cKj_WzwWvfQ" target="_blank" rel="noreferrer" class="yt-watch-btn">WATCH ON YOUTUBE</a></div></div>
+<div class="video-block"><div class="video-wrapper"><img src="images/yt/DOp19wtL28w.jpg" class="yt-thumb" alt="" loading="lazy"></div>
+  <div class="video-info-overlay"><a href="https://www.youtube.com/watch?v=DOp19wtL28w" target="_blank" rel="noreferrer" class="yt-watch-btn">WATCH ON YOUTUBE</a></div></div>
+</div>
+<div class="contact-widget" id="contact-bubble" tabindex="0" role="button" aria-label="Contact details">
+  <div class="contact-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
+  <div class="contact-details">
+    <a href="https://wa.me/85267012420" target="_blank" rel="noreferrer" class="contact-link" style="color:#fff"><span class="label" style="color:#F4D03F">WHATSAPP</span>6701 2420</a>
+    <span class="contact-link" style="color:#fff;user-select:text"><span class="label" style="color:#F4D03F">MAIL</span>chowfh254281@gmail.com</span>
+  </div>
+</div>
+</div>
+<script>window.PAGE = {"delay": 1000, "lenisOpts": {"duration": 2.5, "wheelMultiplier": 1.2, "touchMultiplier": 2.0}};</script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="site.js"></script>
+<script>
+
+</script>
+</body>
+</html>
